@@ -1,0 +1,7 @@
+folder_id,file_id,file_path,file_name,file_type
+1tX2bGgZBraVnhnG9j00etIexAD_Nlxbp,1pN_sS14XzIzcLP4sO5vdjO-YJ1c6g6Op,/,align_next5_reffile.txt,text/plain
+1tX2bGgZBraVnhnG9j00etIexAD_Nlxbp,1L_eRIRo_yVqc8scmJkBQk6MMtO6blxba,/,align_next49_reffile.txt,text/plain
+1tX2bGgZBraVnhnG9j00etIexAD_Nlxbp,1Zy81jfYgeogEl3EIdjGCH7prgoYvt4Ex,/,align_first2_reffile.txt,text/plain
+1DIV2s4SXpoAMrXxMdW6ekg37gH-qwkCp,19lVqFiVXtDPF1ZCgMGvFSqRuoVSuboaQN0XloAdTx_0,/Daughter Folder/,another test,application/vnd.google-apps.document
+1DIV2s4SXpoAMrXxMdW6ekg37gH-qwkCp,1xyT0hvE5KcyV4_zlh96213gEffAP6TygRrYaxyQAF3Y,/Daughter Folder/,I am a google doc file,application/vnd.google-apps.document
+1IPX1VJlT6-ZalSwzp1KSwlcZAizdogED,1KbgQtrFwY9QvymDp6Ifj9MNs_GHT5TZd3qrReWlt0nE,/Daughter Folder/second level daughter/,more testing of paths,application/vnd.google-apps.document

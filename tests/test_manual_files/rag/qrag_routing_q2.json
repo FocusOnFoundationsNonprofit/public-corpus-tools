@@ -1,0 +1,56 @@
+{
+    "metadata": {
+        "timestamp": "2024-07-18T14:52:22.825164",
+        "user_id": "default",
+        "vector_index_name": "deutsch-transcript-qrag",
+        "bot_version": "1.0",
+        "llm_model": "gpt-4o",
+        "routes_info": {
+            "routes_flow_name": "3 routes, sim-star double, separate prompts",
+            "upper_sim_bound": 0.9,
+            "lower_sim_bound": 0.3,
+            "max_sim": "0.216",
+            "max_stars": 5,
+            "routes_dict_content": {
+                "routes_dict_name": "ROUTES_DICT_DEUTSCH_V3",
+                "prompt_initial_good_match": "Given your knowledge of David Deutsch and his philosophy of deep optimism, as well as the QUOTED QUESTIONS AND ANSWERS from Deutsch below, to answer the USER QUESTION below.\n",
+                "route_preamble_good_match": "There is a good match of your question in David Deutsch's interviews. See his QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these quotes with David Deutsch's philosophy and your exact question.",
+                "prompt_initial_partial_match": "Given your knowledge of David Deutsch and his philosophy of deep optimism, as well as the QUOTED QUESTIONS AND ANSWERS from Deutsch below, to answer the USER QUESTION below.\n",
+                "route_preamble_partial_match": "There is a partial match of your question in David Deutsch's interviews. See his QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these quotes with David Deutsch's philosophy and your exact question.",
+                "prompt_initial_no_match": "Given your knowledge of David Deutsch and his philosophy of deep optimism, answer the USER QUESTION below.\n",
+                "route_preamble_no_match": "Your question is not addressed in David Deutsch's interviews. No QUOTED QUESTIONS AND ANSWERS are therefore provided but here is an AI ANSWER that synthesizes David Deutsch's philosophy and your question.",
+                "quoted_qa_single": "QUOTED QUESTION: {top_sim_question}\nQUOTED SOURCE: {top_sim_source}\nQUOTED TIMESTAMP: {top_sim_timestamp}\nQUOTED ANSWER: {top_sim_answer}\n{top_sim_display}\n\n",
+                "quoted_qa_double": "QUOTED QUESTION 1: {top_stars_question}\nQUOTED SOURCE 1: {top_stars_source}\nQUOTED TIMESTAMP 1: {top_stars_timestamp}\nQUOTED ANSWER 1: {top_stars_answer}\n{top_stars_display}\n\nQUOTED QUESTION 2: {top_sim_question}\nQUOTED SOURCE 2: {top_sim_source}\nQUOTED TIMESTAMP 2: {top_sim_timestamp}\nQUOTED ANSWER 2: {top_sim_answer}\n{top_sim_display}\n\n",
+                "user_ai_qa": "USER QUESTION: {user_question}\n\nAI ANSWER: "
+            }
+        }
+    },
+    "content": {
+        "user_question": "What should I eat for lunch?",
+        "route_preamble": "Your question is not addressed in David Deutsch's interviews. No QUOTED QUESTIONS AND ANSWERS are therefore provided but here is an AI ANSWER that synthesizes David Deutsch's philosophy and your question.",
+        "quoted_qa": "",
+        "ai_answer": "WAITING FOR AI ANSWER...",
+        "chunks": {
+            "max_sim": "0.216",
+            "max_stars": 5,
+            "chunks": [
+                {
+                    "question": "How should one think about choices to pursue what one finds interesting and fun versus helping the world?",
+                    "source": "2021-01-09_Knowledge and Reality OurKarlPopper - Meeting David Deutsch_qafixed.md",
+                    "timestamp": "[1:12:40](https://www.youtube.com/watch?v=Qrt0XXg0QKM&t=4360)",
+                    "answer": "__I don't think it's a good idea to try and save the world in the sense of subordinating one's own values to what one thinks the world's values are.__ So maybe the world needs a larger population. My guess is that it does, in other words that would be a good thing that the world as a whole would thrive better if it had more people in it but to, and other people of course think that the world would thrive better if it had fewer people in it. I think in both cases it's a bad idea to subordinate one's own life to that objective. I don't think it's even, for example, a good idea in my own life to try to publicize my own ideas. I do it to some extent but I don't subordinate it to the fun of actually trying to solve problems and some of the problems are only of interest to me and some are interest to me and like half a dozen other people in the world and some are of interest to more people. But __the way I would choose what to do is, try to meet my own values and to the extent that my own values include having preferences about how the world is then the meeting my values would include trying to make the world better, but trying to make the world better as an overarching principle for how to make personal decisions I think is a mistake.__ I don't know if that's your question. *IN-LINE: Yeah, I guess that answers a little bit of it and then it's just like being young, a big part of culture in general in society is just finding a significant other or partner and there's the whole debate against polyamory and or to have a committed monogamous relationship and that drives a lot of culture.* Well, different people find answers in different ways and they have extremely different problem situations. And I guess I'm not sure that's the right way to put it. Yeah, I guess it's different situations.",
+                    "stars": 5,
+                    "sim": "0.216"
+                },
+                {
+                    "question": "What is your advice on advice?",
+                    "source": "2022-01-30_Lunar Society podcast - AI America Fun and Bayes_qafixed.md",
+                    "timestamp": "[1:20:19](https://www.youtube.com/watch?v=EVwjofV5TgU&t=4819)",
+                    "answer": "I try very hard not to give advice. Because it's not a good relationship to be with somebody to give them advice. I can have opinions about things. So for example, __I may have an opinion that it's dangerous to condition your short term goals by reference to some long term goal. And I have what I think is a good epistemological reason for that, namely that if your short term goals are subordinate to your long term goal, then you won't find if your long term goal is wrong or deficient in some way, you won't find out until you're dead. So it's a bad idea, because it is subordinating the things that you could error correct now, or in six months\" time, or in a year's time to something that you could only error correct on a fifty year timescale, and then it'll be too late.__ So I'm suspicious of advice of the form, \"set your goal,\" and even more suspicious of \"make your goal be so and so.\" So that's an example of advice that's not advice. *IN-LINE: But why is it? Why do you think the relationship between advisee and advice-giver is dangerous?* Well, because it's one of authority. Again, I tried to make this example of quote \"advice\" that I just gave, I tried to make it non authoritative. I just gave an argument for why certain other arguments are bad. But if it's advice of the form, \"A healthy mind in a healthy body,\" or \"Don't drink coffee before 12 o'clock,\" or you know, something like that, it's a non argument. __If I have an argument, I can give the argument and not tell the person what to do. Who knows what somebody might do with an argument, they might change it to a better argument, which actually implies different behavior.__ I can contribute to the world arguments, make arguments as best I can. I don't claim that they are privileged over other arguments. I just put them out because I think that this argument works. And I expect other people not to think that they work. I mean, we've just done this in this very podcast, I put out an argument about AI and that kind of thing, and you criticize it. If I was in the position of making that argument and saying that, \"therefore, you should do so and so.\" That's a relationship of authority, which I think is immoral to have.",
+                    "stars": 5,
+                    "sim": "0.196"
+                }
+            ]
+        }
+    }
+}

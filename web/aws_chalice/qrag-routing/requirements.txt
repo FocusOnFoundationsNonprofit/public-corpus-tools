@@ -1,0 +1,10 @@
+chalice
+beautifulsoup4
+boto3
+requests
+openai
+pinecone-client
+pytz
+tiktoken
+termcolor
+tenacity

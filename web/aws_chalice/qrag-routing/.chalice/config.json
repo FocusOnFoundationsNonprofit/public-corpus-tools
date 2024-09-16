@@ -1,0 +1,17 @@
+{
+  "version": "2.0",
+  "app_name": "qrag-routing",
+  "stages": {
+    "dev": {
+      "api_gateway_stage": "api",
+      "lambda_functions": {
+        "qrag-routing-dev": {
+          "layers": ["arn:aws:lambda:us-west-2:957789311461:layer:langchain-layer:1"],
+          "environment_variables": {
+            "PYTHONPATH": "/opt/python:/var/task"
+          }
+        }
+      }
+    }
+  }
+}

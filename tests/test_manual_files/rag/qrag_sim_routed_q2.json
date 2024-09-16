@@ -1,0 +1,48 @@
+{
+    "metadata": {
+        "timestamp": "2024-06-13T11:48:53.069334",
+        "user_id": "default",
+        "index_name": "deutsch-transcript-qrag",
+        "bot_version": "1.0",
+        "llm_model": "gpt-4o",
+        "routes_info": {
+            "routes_flow_name": "3 routes, sim-star double, separate prompts",
+            "upper_sim_bound": 0.9,
+            "lower_sim_bound": 0.3,
+            "max_sim": "0.216",
+            "max_stars": 5,
+            "routes_dict_content": {
+                "routes_dict_name": "ROUTES_DICT_DEUTSCH_V3",
+                "prompt_initial_good_match": "Given your knowledge of David Deutsch and his philosophy of deep optimism, as well as the QUOTED QUESTIONS AND ANSWERS from Deutsch below, to answer the USER QUESTION below.\n",
+                "route_preamble_good_match": "There is a good match of your question in David Deutsch's interviews. See his QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these quotes with David Deutsch's philosophy and your exact question.",
+                "prompt_initial_partial_match": "Given your knowledge of David Deutsch and his philosophy of deep optimism, as well as the QUOTED QUESTIONS AND ANSWERS from Deutsch below, to answer the USER QUESTION below.\n",
+                "route_preamble_partial_match": "There is a partial match of your question in David Deutsch's interviews. See his QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these quotes with David Deutsch's philosophy and your exact question.",
+                "prompt_initial_no_match": "Given your knowledge of David Deutsch and his philosophy of deep optimism, answer the USER QUESTION below.\n",
+                "route_preamble_no_match": "Your question is not addressed in David Deutsch's interviews. No QUOTED QUESTIONS AND ANSWERS are therefore provided but here is an AI ANSWER that synthesizes David Deutsch's philosophy and your question.",
+                "quoted_qa_single": "QUOTED QUESTION: {top_sim_question}\nQUOTED SOURCE: {top_sim_source}\nQUOTED TIMESTAMP: {top_sim_timestamp}\nQUOTED ANSWER: {top_sim_answer}\n{top_sim_display}\n\n",
+                "quoted_qa_double": "QUOTED QUESTION 1: {top_stars_question}\nQUOTED SOURCE 1: {top_stars_source}\nQUOTED TIMESTAMP 1: {top_stars_timestamp}\nQUOTED ANSWER 1: {top_stars_answer}\n{top_stars_display}\n\nQUOTED QUESTION 2: {top_sim_question}\nQUOTED SOURCE 2: {top_sim_source}\nQUOTED TIMESTAMP 2: {top_sim_timestamp}\nQUOTED ANSWER 2: {top_sim_answer}\n{top_sim_display}\n\n",
+                "user_ai_qa": "USER QUESTION: {user_question}\n\nAI ANSWER: "
+            }
+        }
+    },
+    "content": {
+        "user_question": "What should I eat for lunch?",
+        "route_preamble": "Your question is not addressed in David Deutsch's interviews. No QUOTED QUESTIONS AND ANSWERS are therefore provided but here is an AI ANSWER that synthesizes David Deutsch's philosophy and your question.",
+        "quoted_qa": "",
+        "ai_answer": "David Deutsch's philosophy of deep optimism is fundamentally about believing in the potential for unbounded growth and improvement through the application of knowledge. While his work doesn't directly address meal choices, we can draw some insights from his broader views on knowledge and problem-solving.\n\nGiven this outlook, your choice for lunch should be seen as an opportunity to apply knowledge about nutrition, personal preferences, and well-being. Here are some suggestions aligned with this philosophy:\n\n1. **Nutritional Value**: Choose a meal that is balanced and nutritious to support your long-term health and cognitive function. Think of it as an investment in your future capabilities.\n2. **Personal Discovery**: Experiment with new dishes or ingredients you haven't tried before. This aligns with the idea of seeking knowledge and improving your culinary horizons.\n3. **Sustainability**: Consider the impact of your meal on the environment and choose options that are sustainable. This reflects a broader perspective on growth and improvement not just for yourself, but for the world.\n4. **Enjoyment and Well-being**: Enjoy your meal! It should not only fuel your body but also bring you pleasure and satisfaction, contributing positively to your overall well-being.\n\nSo, for lunch, you might choose a nutritious, sustainably-sourced meal with some new or interesting components that you enjoy. This could be a quinoa salad with a variety of fresh vegetables and a protein source like grilled chicken or tofu, perhaps with a side of fruit. This kind of meal is balanced, expands your dietary horizons, and reflects a mindful choice in line with deep optimism.",
+        "chunks": {
+            "max_sim": "0.216",
+            "max_stars": 5,
+            "chunks": [
+                {
+                    "question": "How should one think about choices to pursue what one finds interesting and fun versus helping the world?",
+                    "source": "2021-01-09_Knowledge and Reality OurKarlPopper - Meeting David Deutsch_qafixed.md",
+                    "timestamp": "[1:12:40](https://www.youtube.com/watch?v=Qrt0XXg0QKM&t=4360)",
+                    "answer": "__I don't think it's a good idea to try and save the world in the sense of subordinating one's own values to what one thinks the world's values are.__ So maybe the world needs a larger population. My guess is that it does, in other words that would be a good thing that the world as a whole would thrive better if it had more people in it but to, and other people of course think that the world would thrive better if it had fewer people in it. I think in both cases it's a bad idea to subordinate one's own life to that objective. I don't think it's even, for example, a good idea in my own life to try to publicize my own ideas. I do it to some extent but I don't subordinate it to the fun of actually trying to solve problems and some of the problems are only of interest to me and some are interest to me and like half a dozen other people in the world and some are of interest to more people. But __the way I would choose what to do is, try to meet my own values and to the extent that my own values include having preferences about how the world is then the meeting my values would include trying to make the world better, but trying to make the world better as an overarching principle for how to make personal decisions I think is a mistake.__ I don't know if that's your question. *IN-LINE: Yeah, I guess that answers a little bit of it and then it's just like being young, a big part of culture in general in society is just finding a significant other or partner and there's the whole debate against polyamory and or to have a committed monogamous relationship and that drives a lot of culture.* Well, different people find answers in different ways and they have extremely different problem situations. And I guess I'm not sure that's the right way to put it. Yeah, I guess it's different situations.",
+                    "stars": 5,
+                    "sim": "0.216"
+                }
+            ]
+        }
+    }
+}

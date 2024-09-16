@@ -1,0 +1,48 @@
+{
+    "metadata": {
+        "timestamp": "2024-07-18T14:52:36.527422",
+        "user_id": "default",
+        "vector_index_name": "deutsch-transcript-qrag",
+        "bot_version": "1.0",
+        "llm_model": "gpt-4o",
+        "routes_info": {
+            "routes_flow_name": "3 routes, sim-star double, separate prompts",
+            "upper_sim_bound": 0.9,
+            "lower_sim_bound": 0.3,
+            "max_sim": "1.000",
+            "max_stars": 5,
+            "routes_dict_content": {
+                "routes_dict_name": "ROUTES_DICT_DEUTSCH_V3",
+                "prompt_initial_good_match": "Given your knowledge of David Deutsch and his philosophy of deep optimism, as well as the QUOTED QUESTIONS AND ANSWERS from Deutsch below, to answer the USER QUESTION below.\n",
+                "route_preamble_good_match": "There is a good match of your question in David Deutsch's interviews. See his QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these quotes with David Deutsch's philosophy and your exact question.",
+                "prompt_initial_partial_match": "Given your knowledge of David Deutsch and his philosophy of deep optimism, as well as the QUOTED QUESTIONS AND ANSWERS from Deutsch below, to answer the USER QUESTION below.\n",
+                "route_preamble_partial_match": "There is a partial match of your question in David Deutsch's interviews. See his QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these quotes with David Deutsch's philosophy and your exact question.",
+                "prompt_initial_no_match": "Given your knowledge of David Deutsch and his philosophy of deep optimism, answer the USER QUESTION below.\n",
+                "route_preamble_no_match": "Your question is not addressed in David Deutsch's interviews. No QUOTED QUESTIONS AND ANSWERS are therefore provided but here is an AI ANSWER that synthesizes David Deutsch's philosophy and your question.",
+                "quoted_qa_single": "QUOTED QUESTION: {top_sim_question}\nQUOTED SOURCE: {top_sim_source}\nQUOTED TIMESTAMP: {top_sim_timestamp}\nQUOTED ANSWER: {top_sim_answer}\n{top_sim_display}\n\n",
+                "quoted_qa_double": "QUOTED QUESTION 1: {top_stars_question}\nQUOTED SOURCE 1: {top_stars_source}\nQUOTED TIMESTAMP 1: {top_stars_timestamp}\nQUOTED ANSWER 1: {top_stars_answer}\n{top_stars_display}\n\nQUOTED QUESTION 2: {top_sim_question}\nQUOTED SOURCE 2: {top_sim_source}\nQUOTED TIMESTAMP 2: {top_sim_timestamp}\nQUOTED ANSWER 2: {top_sim_answer}\n{top_sim_display}\n\n",
+                "user_ai_qa": "USER QUESTION: {user_question}\n\nAI ANSWER: "
+            }
+        }
+    },
+    "content": {
+        "user_question": "What are computers and computation at a deep level?",
+        "route_preamble": "There is a good match of your question in David Deutsch's interviews. See his QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these quotes with David Deutsch's philosophy and your exact question.",
+        "quoted_qa": "QUOTED QUESTION: What are computers and computation at a deep level?\nQUOTED SOURCE: 2013-05-08_Closer to Truth - Why is the Quantum so Strange_qafixed.md\nQUOTED TIMESTAMP: [6:03](https://www.youtube.com/watch?v=mNP5w4n9sFU&t=363)\nQUOTED ANSWER: A theory of computation within any laws of physics is the theory of how you can use physical objects to represent abstract objects. So you want to represent the integers, 1, 2, 3, and you can use physical objects like fingers to say that will be 1, that's called 2, that's called 3, and so on. And __computers are ways of instantiating abstract objects and their relationships in physical objects and their motion.__ So now what happens with quantum computers is that we simply take the deepest physical theory we have, quantum theory, and we say \"What kind of information processing does quantum theory in general allow and what does it not allow?\" And that's the theory of quantum computation.\nQUOTED ANSWER STARS: 5\nQUOTED QUESTION SIMILARITY SCORE: 100%\n\n",
+        "ai_answer": "WAITING FOR AI ANSWER...",
+        "chunks": {
+            "max_sim": "1.000",
+            "max_stars": 5,
+            "chunks": [
+                {
+                    "question": "What are computers and computation at a deep level?",
+                    "source": "2013-05-08_Closer to Truth - Why is the Quantum so Strange_qafixed.md",
+                    "timestamp": "[6:03](https://www.youtube.com/watch?v=mNP5w4n9sFU&t=363)",
+                    "answer": "A theory of computation within any laws of physics is the theory of how you can use physical objects to represent abstract objects. So you want to represent the integers, 1, 2, 3, and you can use physical objects like fingers to say that will be 1, that's called 2, that's called 3, and so on. And __computers are ways of instantiating abstract objects and their relationships in physical objects and their motion.__ So now what happens with quantum computers is that we simply take the deepest physical theory we have, quantum theory, and we say \"What kind of information processing does quantum theory in general allow and what does it not allow?\" And that's the theory of quantum computation.",
+                    "stars": 5,
+                    "sim": "1.000"
+                }
+            ]
+        }
+    }
+}

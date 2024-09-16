@@ -1,0 +1,56 @@
+{
+    "metadata": {
+        "timestamp": "2024-06-05T11:59:57.997042",
+        "user_id": "default",
+        "index_name": "qragnospace",
+        "bot_version": "1.0",
+        "llm_model": "gpt-4o",
+        "routes_info": {
+            "routes_flow_name": "3 routes, sim-star double, separate prompts",
+            "upper_sim_bound": 0.9,
+            "lower_sim_bound": 0.3,
+            "max_sim": "0.761",
+            "max_stars": 5,
+            "routes_dict_content": {
+                "routes_dict_name": "ROUTES_DICT_DEUTSCH_V1",
+                "prompt_initial_good_match": "Given your knowledge of David Deutsch and his philosophy of deep optimism, as well as the QUOTED QUESTIONS AND ANSWERS from Deutsch below, to answer the USER QUESTION below.\n",
+                "route_preamble_good_match": "There is a good match of your question in David Deutsch's interviews. See his QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these quotes with David Deutsch's philosophy and your exact question.",
+                "prompt_initial_partial_match": "Given your knowledge of David Deutsch and his philosophy of deep optimism, as well as the QUOTED QUESTIONS AND ANSWERS from Deutsch below, to answer the USER QUESTION below.\n",
+                "route_preamble_partial_match": "There is a partial match of your question in David Deutsch's interviews. See his QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these quotes with David Deutsch's philosophy and your exact question.",
+                "prompt_initial_no_match": "Given your knowledge of David Deutsch and his philosophy of deep optimism, answer the USER QUESTION below.\n",
+                "route_preamble_no_match": "Your question is not addressed in David Deutsch's interviews. No QUOTED QUESTIONS AND ANSWERS are therefore provided but here is an AI ANSWER that synthesizes David Deutsch's philosophy and your question.",
+                "quoted_qa_single": "QUOTED SOURCE: {top_sim_source}\nQUOTED TIMESTAMP: {top_sim_timestamp}\nQUOTED QUESTION: {top_sim_question}\nQUOTED ANSWER: {top_sim_answer}\n{top_sim_display}\n\n",
+                "quoted_qa_double": "QUOTED SOURCE 1: {top_stars_source}\nQUOTED TIMESTAMP 1: {top_stars_timestamp}\nQUOTED QUESTION 1: {top_stars_question}\nQUOTED ANSWER 1: {top_stars_answer}\n{top_stars_display}\n\nQUOTED SOURCE 2: {top_sim_source}\nQUOTED TIMESTAMP 2: {top_sim_timestamp}\nQUOTED QUESTION 2: {top_sim_question}\nQUOTED ANSWER 2: {top_sim_answer}\n{top_sim_display}\n\n",
+                "user_ai_qa": "USER QUESTION: {user_question}\n\nAI ANSWER: "
+            }
+        }
+    },
+    "content": {
+        "chunks_info": {
+            "max_sim": "0.761",
+            "max_stars": 5,
+            "chunks": [
+                {
+                    "source": "data/deutsch/f8_done_qafixed_and_vrb/2011-10-01_What Now interview with Ken Rose_qafixed.md",
+                    "timestamp": "[20:16](https://www.youtube.com/watch?v=jjg0hnITUio&t=1216)",
+                    "question": "What is meaning of life, the significance of our existence?",
+                    "answer": "_Regarding the significance of our existence,_ this has to do with both moral and aesthetic values.",
+                    "stars": 4,
+                    "sim": "0.761"
+                },
+                {
+                    "source": "data/deutsch/f8_done_qafixed_and_vrb/2023-10-15_Deutsch Files 3 with Naval and Brett_qafixed.md",
+                    "timestamp": "[54:34](https://youtu.be/fizPWAAo-lc&t=3274)",
+                    "question": "What does existence mean in the context of science and the mystery of consciousness?",
+                    "answer": "Well, I think it's important to give up on the idea of ultimate explanation. There's this quote in one of the great chess players of the early 20th century, it goes like this, \"Chess, like music, like love, has the power to make men happy.\" Okay, he's got a sliver of truth there. There is an important truth in there. But he hasn't actually understood happiness, or men, or how to achieve anything in the way of making men happy. He's just got a sliver of truth and I don't think that chess player thought of this as being the truth. But __the Kumbaya people and maybe your person think that they've got the truth, the whole truth, the final truth about this, and they definitely haven't.__",
+                    "stars": 5,
+                    "sim": "0.497"
+                }
+            ]
+        },
+        "user_question": "What is the meaning of life?",
+        "route_preamble": "There is a partial match of your question in David Deutsch's interviews. See his QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these quotes with David Deutsch's philosophy and your exact question.",
+        "quoted_qa": "QUOTED SOURCE 1: data/deutsch/f8_done_qafixed_and_vrb/2023-10-15_Deutsch Files 3 with Naval and Brett_qafixed.md\nQUOTED TIMESTAMP 1: [54:34](https://youtu.be/fizPWAAo-lc&t=3274)\nQUOTED QUESTION 1: What does existence mean in the context of science and the mystery of consciousness?\nQUOTED ANSWER 1: Well, I think it's important to give up on the idea of ultimate explanation. There's this quote in one of the great chess players of the early 20th century, it goes like this, \"Chess, like music, like love, has the power to make men happy.\" Okay, he's got a sliver of truth there. There is an important truth in there. But he hasn't actually understood happiness, or men, or how to achieve anything in the way of making men happy. He's just got a sliver of truth and I don't think that chess player thought of this as being the truth. But __the Kumbaya people and maybe your person think that they've got the truth, the whole truth, the final truth about this, and they definitely haven't.__\nQUOTED ANSWER STARS: 5\nQUOTED QUESTION SIMILARITY SCORE: 50%\n\nQUOTED SOURCE 2: data/deutsch/f8_done_qafixed_and_vrb/2011-10-01_What Now interview with Ken Rose_qafixed.md\nQUOTED TIMESTAMP 2: [20:16](https://www.youtube.com/watch?v=jjg0hnITUio&t=1216)\nQUOTED QUESTION 2: What is meaning of life, the significance of our existence?\nQUOTED ANSWER 2: _Regarding the significance of our existence,_ this has to do with both moral and aesthetic values.\nQUOTED ANSWER STARS: 4\nQUOTED QUESTION SIMILARITY SCORE: 76%\n\n",
+        "ai_answer": "David Deutsch's philosophy suggests that the meaning of life is not something pre-determined or revealed to us, but something that we actively create and discover through our own efforts."
+    }
+}

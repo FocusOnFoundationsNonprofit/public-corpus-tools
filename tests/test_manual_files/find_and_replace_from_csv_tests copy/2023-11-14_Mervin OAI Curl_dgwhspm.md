@@ -1,0 +1,18 @@
+## metadata
+last updated: 11-30-2023 Created
+link: https://www.youtube.com/watch?v=ZcBJwyCPUHU
+transcript source: dgwhspm
+summaries source: deepgram
+
+## content
+
+### summaries
+
+Tamagotchi  [0:00](https://www.youtube.com/watch?v=ZcBJwyCPUHU&t=0)
+Curl is a command that allows you to create assistants in your terminal. The assistant what we create is a geography expert. Thread is for initializing the chat and the message is the user asking a question.
+
+### transcript
+
+John Smith  [0:00](https://www.youtube.com/watch?v=ZcBJwyCPUHU&t=0)
+This is huge. Is there any way to create your assistants using curl commands? Is there any easy way to create your assistants in your terminal? That's exactly what we're going to see today. Let's get started. Hi everyone, I'm really excited to show you about creating assistants using curl commands. I'm going to take you through step by step on how to run this in your own computer. Before going into that, I regularly create videos in my YouTube channel about artificial intelligence. So do subscribe and stay tuned. Coming to create your assistance, these are the steps. First you're creating an assistant, then you are creating a thread and thirdly you are creating a message and fourth you are running that. The assistant what we create is a geography expert. Thread is for initializing the chat and the message is the user which will be the student who is asking question to the geography expert. First you are exporting your OpenAI API key like this and click enter. As a first step we are going to create assistants. This is the curl command for that. I will add all those commands in the description below. Here using the model GPT-4 turbo, in the instruction you are mentioning you are a expert in geography. I'm going to click enter. Now we have created an assistant with the assistant ID is this. Now we are going to export the assistant ID. You can copy the assistant ID from here and paste it in the export command here and then click enter. Now we have created the first step which is creating assistant and now we are going to create a thread as a form of initializing the chat. Slash threads is the endpoint to create threads. We are passing the OpenAI API key and then click enter. Now thread got created. Now we are going to export our thread ID. We can copy that from the ID provided here and paste and click enter. Now we create the second point which is thread and thirdly now we're going to create a message by the student asking a question to the geography expert. We are passing the thread ID in the URL and slash messages. Here the user with the role is asking a question. What is the capital of France? Now you're gonna click enter. We can see the question got created and assigned through the thread. Now the final step is run. This will run the whole execution. You are passing the assistant ID and the thread ID here in the URL. And I'm gonna click enter. Now we can see it's created at and the assistant ID, thread ID and the status is queued. Now we have created assistant, created a thread, message and then ran. Now we need to print out the result. To do that you mention slash messages towards the end and click enter. Now we got the response. The initial question was what is the capital of France? And you can see the assistant who is a geography expert is responding. The capital of France is Paris. That's it. As simple as that. The reason why we have curl command is that by understanding this, you will be able to integrate this assistance API in any programming language. Can't wait to see you create more programs with this. I hope you like this video. Do like, share and subscribe and thanks for watching.
+

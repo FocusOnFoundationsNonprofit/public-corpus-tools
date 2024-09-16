@@ -1,4 +1,6 @@
-# Corpus Tools
+# Public Corpus Tools
+by Focus on Foundations, a 501(c)3 nonprofit
+Founder: Randy True
 
 ## Description
 
