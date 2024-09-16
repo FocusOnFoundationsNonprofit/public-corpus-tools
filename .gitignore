@@ -36,6 +36,30 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
+# DB pattern
+*-chroma-db/
+
+# API Keys and Access files
+config.py
+# Exclude all config.py files anywhere in the repository
+**/config.py
+gdrive_service_account_fofgeneral20_personal.json
+credentials.json
+credentials_new.json
+gdrive_service_account.json
+floodlamp-gdrive-jackie-cce56b4f953f.json
+client_secret_119941763167-jmob7gtcjbpamdukm8in6ekfp72r154h.apps.googleusercontent.com.json
+
+# Data folders with large files
+data/voice_playback/
+voice/captured_frames/
+data/0_gitignore
+data/audio_0_pv_gitignore
+
+# macOS related
+.DS_Store
+
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
@@ -127,6 +151,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+ms-graphrag/.env
 
 # Spyder project settings
 .spyderproject
@@ -158,3 +183,4 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+**/config.py
