@@ -1,0 +1,47 @@
+anthropic==0.34.2
+boto3==1.35.28
+botocore==1.35.28
+config==0.5.1
+docs==0.1.0
+langchain==0.3.1
+langchain_community==0.3.1
+langchain_openai==0.2.1
+langchain_pinecone==0.2.0
+llama_index==0.11.14
+llama_parse==0.5.6
+matplotlib==3.9.2
+mutagen==1.47.0
+networkx==3.3
+num2words==0.5.13
+openai==1.50.0
+pinecone_client>=5.0.0,<6.0.0
+pyautogui==0.9.54
+pypandoc==1.13
+pyperclip==1.9.0
+pytz==2023.3
+pyvis==0.3.2
+Requests==2.32.3
+tenacity==8.2.2
+termcolor==2.4.0
+tiktoken>=0.7.0,<1.0.0
+wordfreq==3.1.1
+yt_dlp==2024.8.6
+pipreqs>=0.5.0,<0.6.0
+
+
+# Files used to generate these requirements:
+# primary/fileops.py
+# primary/transcribe.py
+# primary/llm.py
+# primary/vectordb.py
+# primary/rag.py
+# primary/docwork.py
+# primary/conversion.py
+# primary/structured.py
+# primary/corpuses.py
+# primary/aws.py
+# tests/test_fileops.py
+# tests/test_transcribe.py
+# tests/test_llm.py
+# docs/codeindex/create_codeindex.py
+# docs/vis/codebase_graph_vis.py
