@@ -3,7 +3,11 @@
   "app_name": "vrag-llm",
   "stages": {
     "dev": {
-      "api_gateway_stage": "api"
+      "api_gateway_stage": "api",
+      "environment_variables": {
+        "OPENAI_API_KEY": "OPENAI_API_KEY_AWS1",
+        "PINECONE_API_KEY": "PINECONE_API_KEY"
+      }
     }
   }
 }

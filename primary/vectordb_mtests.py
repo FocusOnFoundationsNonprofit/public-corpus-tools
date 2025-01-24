@@ -1,3 +1,6 @@
+# ===== START OF FILE primary/vectordb_mtests.py =====
+# Library for manual testing of vectordb functions
+
 from primary.vectordb import *
 
 if True:
@@ -10,12 +13,12 @@ if __name__ == "__main__":
 def mtest_create_qrag_vector_db():
     pass
 #if __name__ == "__main__":  
-    # cur_folder_paths = ['tests/vectordb_test']
-    # create_qrag_vectordb(cur_folder_paths ,'dd-qrag-test', suffixpat_include = '_qafixed')
+    cur_folder_paths = ['tests/vectordb_test']
+    create_qrag_vectordb(cur_folder_paths ,'dd-qrag-test', suffixpat_include = '_qafixed')
 
 def mtest_create_vectordb_vrag_langchain():
     pass
-if __name__ == "__main__":  
+#if __name__ == "__main__":  
     cur_folder_paths = ['tests/vectordb_test']
     create_vectordb_vrag_langchain(cur_folder_paths,'dd-vrag-test-newjson', suffixpat_include='_vrb', skip_pinecone=True)
 
@@ -50,4 +53,4 @@ def mtest_upsert_vectors_pinecone():
     # create_vrag_pinecone_db('data/floodlamp_fda/townhalls/f4_md_cleaned_manualedits', 'fda-townhalls-vrag-test1', suffix_include='_cleaned')
 
 
-
+# ===== END OF FILE primary/vectordb_mtests.py =====

@@ -1,9 +1,9 @@
 {
     "metadata": {
         "transaction_key": "deprecated",
-        "request_id": "c9a85eea-87c3-4d5c-b572-c4c06b4c0240",
+        "request_id": "bdc7db23-115c-4b6e-a8ea-d391f502aad0",
         "sha256": "6073cca053a951476e12fb8e6c778189d0ba013a17dbdce7a44edb6f0a0c6f1c",
-        "created": "2024-08-13T14:11:29.538Z",
+        "created": "2024-11-01T10:24:54.188Z",
         "duration": 54.768,
         "channels": 1,
         "models": [
@@ -15,21 +15,6 @@
                 "version": "2024-01-09.29447",
                 "arch": "nova-2"
             }
-        },
-        "intents_info": {
-            "model_uuid": "80ab3179-d113-4254-bd6b-4a2f96498695",
-            "input_tokens": 247,
-            "output_tokens": 15
-        },
-        "sentiment_info": {
-            "model_uuid": "80ab3179-d113-4254-bd6b-4a2f96498695",
-            "input_tokens": 247,
-            "output_tokens": 247
-        },
-        "topics_info": {
-            "model_uuid": "80ab3179-d113-4254-bd6b-4a2f96498695",
-            "input_tokens": 247,
-            "output_tokens": 17
         }
     },
     "results": {
@@ -38,2170 +23,1771 @@
                 "alternatives": [
                     {
                         "transcript": "You know, rather than be scared by a jobless future, I started to rethink it and I said I could really be excited by a jobless future because I can finally see a day in under 50 years when people don't have to work for pay. Because humans have labored for 1000 of years, slaves to their work primarily in most of the world. And soon, they'll be able to do what they wanted to do, what they were born to do before someone came along and said, stop doing that. You gotta go earn a living. This is a whole new renaissance that we may be able to see actually in our lifetime, where humans can can can do what they were born to do like art and dance and music and invention and caring for others and whatever it is that you wanna do. Now there will be fits and starts. There'll be politics to get in the way. This is no no. It is a utopia actually, come to think of it. And working together towards this goal, this is actually a great idea when we look at it from this vantage point.",
-                        "confidence": 0.9984289,
+                        "confidence": 0.99865973,
                         "words": [
                             {
                                 "word": "you",
                                 "start": 0.0,
                                 "end": 0.16,
-                                "confidence": 0.9925396,
+                                "confidence": 0.9943606,
                                 "punctuated_word": "You",
                                 "speaker": 0,
-                                "speaker_confidence": 0.69921875,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.044769287109375
+                                "speaker_confidence": 0.6033786
                             },
                             {
                                 "word": "know",
                                 "start": 0.16,
                                 "end": 0.39999998,
-                                "confidence": 0.92782557,
+                                "confidence": 0.92723674,
                                 "punctuated_word": "know,",
                                 "speaker": 0,
-                                "speaker_confidence": 0.69921875,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.053680419921875
+                                "speaker_confidence": 0.6033786
                             },
                             {
                                 "word": "rather",
                                 "start": 0.39999998,
                                 "end": 0.79999995,
-                                "confidence": 0.99927634,
+                                "confidence": 0.9994216,
                                 "punctuated_word": "rather",
                                 "speaker": 0,
-                                "speaker_confidence": 0.69921875,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.0042724609375
+                                "speaker_confidence": 0.6033786
                             },
                             {
                                 "word": "than",
                                 "start": 0.79999995,
                                 "end": 1.12,
-                                "confidence": 0.9991493,
+                                "confidence": 0.9994968,
                                 "punctuated_word": "than",
                                 "speaker": 0,
-                                "speaker_confidence": 0.69921875,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.01953125
+                                "speaker_confidence": 0.6033786
                             },
                             {
                                 "word": "be",
                                 "start": 1.12,
                                 "end": 1.4399999,
-                                "confidence": 0.9977451,
+                                "confidence": 0.99901223,
                                 "punctuated_word": "be",
                                 "speaker": 0,
-                                "speaker_confidence": 0.69921875,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.1151123046875
+                                "speaker_confidence": 0.6033786
                             },
                             {
                                 "word": "scared",
                                 "start": 1.4399999,
                                 "end": 1.9399999,
-                                "confidence": 0.9998933,
+                                "confidence": 0.99994135,
                                 "punctuated_word": "scared",
                                 "speaker": 0,
-                                "speaker_confidence": 0.69921875,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.2607421875
+                                "speaker_confidence": 0.6033786
                             },
                             {
                                 "word": "by",
                                 "start": 2.24,
                                 "end": 2.3999999,
-                                "confidence": 0.99940085,
+                                "confidence": 0.9996165,
                                 "punctuated_word": "by",
                                 "speaker": 0,
-                                "speaker_confidence": 0.8798828,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.2861328125
+                                "speaker_confidence": 0.77758247
                             },
                             {
                                 "word": "a",
                                 "start": 2.3999999,
                                 "end": 2.56,
-                                "confidence": 0.9986632,
+                                "confidence": 0.99956256,
                                 "punctuated_word": "a",
                                 "speaker": 0,
-                                "speaker_confidence": 0.8798828,
-                                "sentiment": "negative",
-                                "sentiment_score": -0.37060546875
+                                "speaker_confidence": 0.77758247
                             },
                             {
                                 "word": "jobless",
                                 "start": 2.56,
                                 "end": 3.04,
-                                "confidence": 0.99934816,
+                                "confidence": 0.9999619,
                                 "punctuated_word": "jobless",
                                 "speaker": 0,
-                                "speaker_confidence": 0.8798828,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.32275390625
+                                "speaker_confidence": 0.77758247
                             },
                             {
                                 "word": "future",
                                 "start": 3.04,
                                 "end": 3.54,
-                                "confidence": 0.9712964,
+                                "confidence": 0.98614496,
                                 "punctuated_word": "future,",
                                 "speaker": 0,
-                                "speaker_confidence": 0.8798828,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.14892578125
+                                "speaker_confidence": 0.77758247
                             },
                             {
                                 "word": "i",
                                 "start": 3.76,
                                 "end": 3.9199998,
-                                "confidence": 0.9994748,
+                                "confidence": 0.9997228,
                                 "punctuated_word": "I",
                                 "speaker": 0,
-                                "speaker_confidence": 0.8798828,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.03857421875
+                                "speaker_confidence": 0.77758247
                             },
                             {
                                 "word": "started",
                                 "start": 3.9199998,
                                 "end": 4.24,
-                                "confidence": 0.9979097,
+                                "confidence": 0.99862003,
                                 "punctuated_word": "started",
                                 "speaker": 0,
-                                "speaker_confidence": 0.8798828,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.0277099609375
+                                "speaker_confidence": 0.77758247
                             },
                             {
                                 "word": "to",
                                 "start": 4.24,
                                 "end": 4.4,
-                                "confidence": 0.99861634,
+                                "confidence": 0.99909925,
                                 "punctuated_word": "to",
                                 "speaker": 0,
-                                "speaker_confidence": 0.8798828,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.016357421875
+                                "speaker_confidence": 0.77758247
                             },
                             {
                                 "word": "rethink",
                                 "start": 4.4,
                                 "end": 4.72,
-                                "confidence": 0.97276795,
+                                "confidence": 0.9692003,
                                 "punctuated_word": "rethink",
                                 "speaker": 0,
-                                "speaker_confidence": 0.8798828,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.046142578125
+                                "speaker_confidence": 0.77758247
                             },
                             {
                                 "word": "it",
                                 "start": 4.72,
                                 "end": 4.7999997,
-                                "confidence": 0.9930748,
+                                "confidence": 0.9960304,
                                 "punctuated_word": "it",
                                 "speaker": 0,
-                                "speaker_confidence": 0.8798828,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.0223388671875
+                                "speaker_confidence": 0.77758247
                             },
                             {
                                 "word": "and",
                                 "start": 4.7999997,
                                 "end": 4.96,
-                                "confidence": 0.66481656,
+                                "confidence": 0.60684025,
                                 "punctuated_word": "and",
                                 "speaker": 0,
-                                "speaker_confidence": 0.8798828,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.06646728515625
+                                "speaker_confidence": 0.77758247
                             },
                             {
                                 "word": "i",
                                 "start": 4.96,
                                 "end": 5.12,
-                                "confidence": 0.9963744,
+                                "confidence": 0.9965468,
                                 "punctuated_word": "I",
                                 "speaker": 0,
-                                "speaker_confidence": 0.8798828,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.130615234375
+                                "speaker_confidence": 0.77758247
                             },
                             {
                                 "word": "said",
                                 "start": 5.12,
                                 "end": 5.3599997,
-                                "confidence": 0.9989586,
+                                "confidence": 0.9993031,
                                 "punctuated_word": "said",
                                 "speaker": 0,
-                                "speaker_confidence": 0.8798828,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.1451416015625
+                                "speaker_confidence": 0.77758247
                             },
                             {
                                 "word": "i",
                                 "start": 5.3599997,
                                 "end": 5.44,
-                                "confidence": 0.61347586,
+                                "confidence": 0.6120256,
                                 "punctuated_word": "I",
                                 "speaker": 0,
-                                "speaker_confidence": 0.76416016,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.1884765625
+                                "speaker_confidence": 0.48437548
                             },
                             {
                                 "word": "could",
                                 "start": 5.44,
                                 "end": 5.6,
-                                "confidence": 0.9985116,
+                                "confidence": 0.999086,
                                 "punctuated_word": "could",
                                 "speaker": 0,
-                                "speaker_confidence": 0.76416016,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.259521484375
+                                "speaker_confidence": 0.48437548
                             },
                             {
                                 "word": "really",
                                 "start": 5.6,
                                 "end": 5.92,
-                                "confidence": 0.99479705,
+                                "confidence": 0.99551207,
                                 "punctuated_word": "really",
                                 "speaker": 0,
-                                "speaker_confidence": 0.76416016,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.265625
+                                "speaker_confidence": 0.48437548
                             },
                             {
                                 "word": "be",
                                 "start": 5.92,
                                 "end": 6.16,
-                                "confidence": 0.9978846,
+                                "confidence": 0.99902487,
                                 "punctuated_word": "be",
                                 "speaker": 0,
-                                "speaker_confidence": 0.76416016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.358642578125
+                                "speaker_confidence": 0.48437548
                             },
                             {
                                 "word": "excited",
                                 "start": 6.16,
                                 "end": 6.66,
-                                "confidence": 0.9995308,
+                                "confidence": 0.9999194,
                                 "punctuated_word": "excited",
                                 "speaker": 0,
-                                "speaker_confidence": 0.76416016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.42529296875
+                                "speaker_confidence": 0.48437548
                             },
                             {
                                 "word": "by",
-                                "start": 6.7999997,
+                                "start": 6.8799996,
                                 "end": 7.04,
-                                "confidence": 0.99505216,
+                                "confidence": 0.9993339,
                                 "punctuated_word": "by",
                                 "speaker": 0,
-                                "speaker_confidence": 0.76416016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.484375
+                                "speaker_confidence": 0.48437548
                             },
                             {
                                 "word": "a",
                                 "start": 7.04,
-                                "end": 7.195,
-                                "confidence": 0.89784,
+                                "end": 7.12,
+                                "confidence": 0.99913055,
                                 "punctuated_word": "a",
                                 "speaker": 0,
-                                "speaker_confidence": 0.76416016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.5068359375
+                                "speaker_confidence": 0.5889543
                             },
                             {
                                 "word": "jobless",
-                                "start": 7.275,
-                                "end": 7.5950003,
-                                "confidence": 0.99931717,
+                                "start": 7.12,
+                                "end": 7.52,
+                                "confidence": 0.9998739,
                                 "punctuated_word": "jobless",
                                 "speaker": 0,
-                                "speaker_confidence": 0.76416016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.4169921875
+                                "speaker_confidence": 0.5889543
                             },
                             {
                                 "word": "future",
-                                "start": 7.5950003,
-                                "end": 7.835,
-                                "confidence": 0.9992368,
+                                "start": 7.52,
+                                "end": 7.8399997,
+                                "confidence": 0.9999038,
                                 "punctuated_word": "future",
                                 "speaker": 0,
-                                "speaker_confidence": 0.76416016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.471923828125
+                                "speaker_confidence": 0.5889543
                             },
                             {
                                 "word": "because",
-                                "start": 7.835,
-                                "end": 8.155,
-                                "confidence": 0.6569671,
+                                "start": 7.8399997,
+                                "end": 8.08,
+                                "confidence": 0.71290827,
                                 "punctuated_word": "because",
                                 "speaker": 0,
-                                "speaker_confidence": 0.76416016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.420166015625
+                                "speaker_confidence": 0.5889543
                             },
                             {
                                 "word": "i",
-                                "start": 8.155,
-                                "end": 8.235001,
-                                "confidence": 0.9990308,
+                                "start": 8.08,
+                                "end": 8.16,
+                                "confidence": 0.9993586,
                                 "punctuated_word": "I",
                                 "speaker": 0,
-                                "speaker_confidence": 0.76416016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.51611328125
+                                "speaker_confidence": 0.5889543
                             },
                             {
                                 "word": "can",
-                                "start": 8.235001,
-                                "end": 8.395,
-                                "confidence": 0.9454249,
+                                "start": 8.16,
+                                "end": 8.32,
+                                "confidence": 0.97169197,
                                 "punctuated_word": "can",
                                 "speaker": 0,
-                                "speaker_confidence": 0.76416016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.54296875
+                                "speaker_confidence": 0.5889543
                             },
                             {
                                 "word": "finally",
-                                "start": 8.395,
-                                "end": 8.635,
-                                "confidence": 0.9983259,
+                                "start": 8.32,
+                                "end": 8.639999,
+                                "confidence": 0.9984938,
                                 "punctuated_word": "finally",
                                 "speaker": 0,
-                                "speaker_confidence": 0.76416016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.40966796875
+                                "speaker_confidence": 0.5889543
                             },
                             {
                                 "word": "see",
-                                "start": 8.635,
-                                "end": 8.795,
-                                "confidence": 0.99954647,
+                                "start": 8.639999,
+                                "end": 8.8,
+                                "confidence": 0.9996942,
                                 "punctuated_word": "see",
                                 "speaker": 0,
-                                "speaker_confidence": 0.76416016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.5390625
+                                "speaker_confidence": 0.5889543
                             },
                             {
                                 "word": "a",
-                                "start": 8.795,
-                                "end": 8.875,
-                                "confidence": 0.9990772,
+                                "start": 8.8,
+                                "end": 8.88,
+                                "confidence": 0.999326,
                                 "punctuated_word": "a",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.53076171875
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "day",
-                                "start": 8.875,
-                                "end": 9.035,
-                                "confidence": 0.9997906,
+                                "start": 8.88,
+                                "end": 9.04,
+                                "confidence": 0.99987686,
                                 "punctuated_word": "day",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.61279296875
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "in",
-                                "start": 9.035,
-                                "end": 9.195,
-                                "confidence": 0.9965976,
+                                "start": 9.04,
+                                "end": 9.2,
+                                "confidence": 0.99779284,
                                 "punctuated_word": "in",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.42041015625
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "under",
-                                "start": 9.195,
-                                "end": 9.435,
-                                "confidence": 0.994416,
+                                "start": 9.2,
+                                "end": 9.44,
+                                "confidence": 0.99467343,
                                 "punctuated_word": "under",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.54833984375
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "50",
-                                "start": 9.435,
-                                "end": 9.755,
-                                "confidence": 0.985232,
+                                "start": 9.44,
+                                "end": 9.76,
+                                "confidence": 0.98753464,
                                 "punctuated_word": "50",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.441162109375
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "years",
-                                "start": 9.755,
-                                "end": 10.255,
-                                "confidence": 0.9996939,
+                                "start": 9.76,
+                                "end": 10.24,
+                                "confidence": 0.99978524,
                                 "punctuated_word": "years",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.479248046875
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "when",
-                                "start": 10.315001,
-                                "end": 10.475,
-                                "confidence": 0.98453426,
+                                "start": 10.24,
+                                "end": 10.48,
+                                "confidence": 0.98923117,
                                 "punctuated_word": "when",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.462646484375
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "people",
-                                "start": 10.475,
-                                "end": 10.875,
-                                "confidence": 0.9999324,
+                                "start": 10.48,
+                                "end": 10.8,
+                                "confidence": 0.9999634,
                                 "punctuated_word": "people",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.35400390625
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "don't",
-                                "start": 10.875,
-                                "end": 11.275,
-                                "confidence": 0.99987626,
+                                "start": 10.8,
+                                "end": 11.28,
+                                "confidence": 0.99991274,
                                 "punctuated_word": "don't",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.337890625
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "have",
-                                "start": 11.275,
-                                "end": 11.514999,
-                                "confidence": 0.9996973,
+                                "start": 11.28,
+                                "end": 11.5199995,
+                                "confidence": 0.99981755,
                                 "punctuated_word": "have",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.34033203125
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "to",
-                                "start": 11.514999,
-                                "end": 11.755,
-                                "confidence": 0.999708,
+                                "start": 11.5199995,
+                                "end": 11.679999,
+                                "confidence": 0.9997415,
                                 "punctuated_word": "to",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.213623046875
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "work",
-                                "start": 11.755,
-                                "end": 12.255,
-                                "confidence": 0.99983466,
+                                "start": 11.679999,
+                                "end": 12.179999,
+                                "confidence": 0.99987125,
                                 "punctuated_word": "work",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.167724609375
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "for",
-                                "start": 12.475,
-                                "end": 12.715,
-                                "confidence": 0.9992835,
+                                "start": 12.425,
+                                "end": 12.745,
+                                "confidence": 0.9998872,
                                 "punctuated_word": "for",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.088134765625
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "pay",
-                                "start": 12.715,
-                                "end": 13.215,
-                                "confidence": 0.9111315,
+                                "start": 12.745,
+                                "end": 13.245,
+                                "confidence": 0.89705527,
                                 "punctuated_word": "pay.",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.18994140625
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "because",
-                                "start": 13.434999,
-                                "end": 13.755,
-                                "confidence": 0.9993106,
+                                "start": 13.385,
+                                "end": 13.785,
+                                "confidence": 0.9993414,
                                 "punctuated_word": "Because",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.08050537109375
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "humans",
-                                "start": 13.755,
-                                "end": 14.235001,
-                                "confidence": 0.9983175,
+                                "start": 13.785,
+                                "end": 14.265,
+                                "confidence": 0.99798894,
                                 "punctuated_word": "humans",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.092041015625
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "have",
-                                "start": 14.235001,
-                                "end": 14.395,
-                                "confidence": 0.9990609,
+                                "start": 14.265,
+                                "end": 14.425,
+                                "confidence": 0.99841106,
                                 "punctuated_word": "have",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.130859375
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "labored",
-                                "start": 14.395,
-                                "end": 14.795,
-                                "confidence": 0.9986532,
+                                "start": 14.425,
+                                "end": 14.825001,
+                                "confidence": 0.9984343,
                                 "punctuated_word": "labored",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.0914306640625
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "for",
-                                "start": 14.795,
-                                "end": 15.035,
-                                "confidence": 0.9661991,
+                                "start": 14.825001,
+                                "end": 14.985001,
+                                "confidence": 0.96297044,
                                 "punctuated_word": "for",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.0599365234375
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "1000",
-                                "start": 15.035,
-                                "end": 15.355,
-                                "confidence": 0.7221217,
+                                "start": 14.985001,
+                                "end": 15.305,
+                                "confidence": 0.675256,
                                 "punctuated_word": "1000",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.070068359375
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "of",
-                                "start": 15.355,
-                                "end": 15.514999,
-                                "confidence": 0.9960218,
+                                "start": 15.305,
+                                "end": 15.465,
+                                "confidence": 0.99316674,
                                 "punctuated_word": "of",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.02166748046875
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "years",
-                                "start": 15.514999,
-                                "end": 16.015,
-                                "confidence": 0.76556885,
+                                "start": 15.465,
+                                "end": 15.965,
+                                "confidence": 0.9011393,
                                 "punctuated_word": "years,",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.03118896484375
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "slaves",
-                                "start": 16.075,
-                                "end": 16.475,
-                                "confidence": 0.99933964,
+                                "start": 16.185,
+                                "end": 16.505001,
+                                "confidence": 0.9995011,
                                 "punctuated_word": "slaves",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.0157470703125
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "to",
-                                "start": 16.475,
-                                "end": 16.715,
-                                "confidence": 0.9948972,
+                                "start": 16.505001,
+                                "end": 16.665,
+                                "confidence": 0.99582857,
                                 "punctuated_word": "to",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.071533203125
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "their",
-                                "start": 16.715,
-                                "end": 16.875,
-                                "confidence": 0.9957176,
+                                "start": 16.665,
+                                "end": 16.905,
+                                "confidence": 0.9980749,
                                 "punctuated_word": "their",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.001708984375
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "work",
-                                "start": 16.875,
-                                "end": 17.18,
-                                "confidence": 0.8650303,
+                                "start": 16.905,
+                                "end": 17.225,
+                                "confidence": 0.96102595,
                                 "punctuated_word": "work",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.05169677734375
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "primarily",
-                                "start": 17.34,
-                                "end": 17.66,
-                                "confidence": 0.99899,
+                                "start": 17.225,
+                                "end": 17.725,
+                                "confidence": 0.8564911,
                                 "punctuated_word": "primarily",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.0654296875
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "in",
-                                "start": 17.66,
-                                "end": 17.98,
-                                "confidence": 0.9288019,
+                                "start": 17.785,
+                                "end": 17.945,
+                                "confidence": 0.9741082,
                                 "punctuated_word": "in",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.093017578125
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "most",
-                                "start": 17.98,
-                                "end": 18.14,
-                                "confidence": 0.99909174,
+                                "start": 17.945,
+                                "end": 18.185,
+                                "confidence": 0.99911314,
                                 "punctuated_word": "most",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.1368408203125
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "of",
-                                "start": 18.14,
-                                "end": 18.220001,
-                                "confidence": 0.9989837,
+                                "start": 18.185,
+                                "end": 18.265,
+                                "confidence": 0.9992384,
                                 "punctuated_word": "of",
                                 "speaker": 0,
-                                "speaker_confidence": 0.93359375,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.09466552734375
+                                "speaker_confidence": 0.8539409
                             },
                             {
                                 "word": "the",
-                                "start": 18.220001,
-                                "end": 18.380001,
-                                "confidence": 0.9993741,
+                                "start": 18.265,
+                                "end": 18.425,
+                                "confidence": 0.99949265,
                                 "punctuated_word": "the",
                                 "speaker": 0,
-                                "speaker_confidence": 0.5722656,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.12548828125
+                                "speaker_confidence": 0.5329731
                             },
                             {
                                 "word": "world",
-                                "start": 18.380001,
-                                "end": 18.7,
-                                "confidence": 0.7452822,
+                                "start": 18.425,
+                                "end": 18.665,
+                                "confidence": 0.7247132,
                                 "punctuated_word": "world.",
                                 "speaker": 0,
-                                "speaker_confidence": 0.5722656,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.1170654296875
+                                "speaker_confidence": 0.5329731
                             },
                             {
                                 "word": "and",
-                                "start": 18.7,
-                                "end": 18.86,
-                                "confidence": 0.99854904,
+                                "start": 18.665,
+                                "end": 18.825,
+                                "confidence": 0.99905163,
                                 "punctuated_word": "And",
                                 "speaker": 0,
-                                "speaker_confidence": 0.5722656,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.25634765625
+                                "speaker_confidence": 0.5329731
                             },
                             {
                                 "word": "soon",
-                                "start": 18.86,
-                                "end": 19.34,
-                                "confidence": 0.93643206,
+                                "start": 18.825,
+                                "end": 19.305,
+                                "confidence": 0.89158165,
                                 "punctuated_word": "soon,",
                                 "speaker": 0,
-                                "speaker_confidence": 0.5722656,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.228515625
+                                "speaker_confidence": 0.5329731
                             },
                             {
                                 "word": "they'll",
-                                "start": 19.34,
-                                "end": 19.66,
-                                "confidence": 0.9918037,
+                                "start": 19.305,
+                                "end": 19.625,
+                                "confidence": 0.9942623,
                                 "punctuated_word": "they'll",
                                 "speaker": 0,
-                                "speaker_confidence": 0.5722656,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.402099609375
+                                "speaker_confidence": 0.5329731
                             },
                             {
                                 "word": "be",
-                                "start": 19.66,
-                                "end": 19.74,
-                                "confidence": 0.9967014,
+                                "start": 19.625,
+                                "end": 19.705,
+                                "confidence": 0.99756694,
                                 "punctuated_word": "be",
                                 "speaker": 0,
-                                "speaker_confidence": 0.5722656,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.451904296875
+                                "speaker_confidence": 0.5329731
                             },
                             {
                                 "word": "able",
-                                "start": 19.74,
-                                "end": 19.98,
-                                "confidence": 0.99975604,
+                                "start": 19.705,
+                                "end": 19.945,
+                                "confidence": 0.99982965,
                                 "punctuated_word": "able",
                                 "speaker": 0,
-                                "speaker_confidence": 0.5722656,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.455810546875
+                                "speaker_confidence": 0.5329731
                             },
                             {
                                 "word": "to",
-                                "start": 19.98,
-                                "end": 20.06,
-                                "confidence": 0.99500775,
+                                "start": 19.945,
+                                "end": 20.025,
+                                "confidence": 0.9973508,
                                 "punctuated_word": "to",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.54052734375
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "do",
-                                "start": 20.06,
-                                "end": 20.220001,
-                                "confidence": 0.99842095,
+                                "start": 20.025,
+                                "end": 20.185,
+                                "confidence": 0.99865973,
                                 "punctuated_word": "do",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.56591796875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "what",
-                                "start": 20.220001,
-                                "end": 20.380001,
-                                "confidence": 0.99934167,
+                                "start": 20.185,
+                                "end": 20.345001,
+                                "confidence": 0.9996088,
                                 "punctuated_word": "what",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.60888671875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "they",
-                                "start": 20.380001,
-                                "end": 20.54,
-                                "confidence": 0.9993475,
+                                "start": 20.345001,
+                                "end": 20.585,
+                                "confidence": 0.99946135,
                                 "punctuated_word": "they",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.57861328125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "wanted",
-                                "start": 20.54,
-                                "end": 20.86,
-                                "confidence": 0.998548,
+                                "start": 20.585,
+                                "end": 20.825,
+                                "confidence": 0.9986871,
                                 "punctuated_word": "wanted",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.439453125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "to",
-                                "start": 20.86,
-                                "end": 20.94,
-                                "confidence": 0.99725145,
+                                "start": 20.825,
+                                "end": 20.985,
+                                "confidence": 0.998254,
                                 "punctuated_word": "to",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.51123046875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "do",
-                                "start": 20.94,
-                                "end": 21.34,
-                                "confidence": 0.8080305,
+                                "start": 20.985,
+                                "end": 21.305,
+                                "confidence": 0.8188673,
                                 "punctuated_word": "do,",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.4873046875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "what",
-                                "start": 21.34,
-                                "end": 21.5,
-                                "confidence": 0.9994492,
+                                "start": 21.305,
+                                "end": 21.545,
+                                "confidence": 0.9993887,
                                 "punctuated_word": "what",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.486572265625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "they",
-                                "start": 21.5,
-                                "end": 21.66,
-                                "confidence": 0.99971133,
+                                "start": 21.545,
+                                "end": 21.705,
+                                "confidence": 0.99980885,
                                 "punctuated_word": "they",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.376953125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "were",
-                                "start": 21.66,
-                                "end": 21.9,
-                                "confidence": 0.99902654,
+                                "start": 21.705,
+                                "end": 21.865,
+                                "confidence": 0.9992385,
                                 "punctuated_word": "were",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.28369140625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "born",
-                                "start": 21.9,
-                                "end": 22.220001,
-                                "confidence": 0.9996482,
+                                "start": 21.865,
+                                "end": 22.185001,
+                                "confidence": 0.99974173,
                                 "punctuated_word": "born",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.33251953125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "to",
-                                "start": 22.220001,
-                                "end": 22.3,
-                                "confidence": 0.9994265,
+                                "start": 22.185001,
+                                "end": 22.345001,
+                                "confidence": 0.99949026,
                                 "punctuated_word": "to",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.3740234375
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "do",
-                                "start": 22.3,
-                                "end": 22.54,
-                                "confidence": 0.99934,
+                                "start": 22.345001,
+                                "end": 22.505001,
+                                "confidence": 0.9992693,
                                 "punctuated_word": "do",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.30322265625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "before",
-                                "start": 22.54,
-                                "end": 22.86,
-                                "confidence": 0.9321242,
+                                "start": 22.505001,
+                                "end": 22.904999,
+                                "confidence": 0.8948764,
                                 "punctuated_word": "before",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.233642578125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "someone",
-                                "start": 22.86,
-                                "end": 23.26,
-                                "confidence": 0.999456,
+                                "start": 22.904999,
+                                "end": 23.225,
+                                "confidence": 0.99962497,
                                 "punctuated_word": "someone",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.0118408203125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "came",
-                                "start": 23.26,
-                                "end": 23.42,
-                                "confidence": 0.9998227,
+                                "start": 23.225,
+                                "end": 23.465,
+                                "confidence": 0.9998455,
                                 "punctuated_word": "came",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.0128173828125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "along",
-                                "start": 23.42,
-                                "end": 23.74,
-                                "confidence": 0.999451,
+                                "start": 23.465,
+                                "end": 23.705,
+                                "confidence": 0.9994435,
                                 "punctuated_word": "along",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.0531005859375
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "and",
-                                "start": 23.74,
-                                "end": 23.9,
-                                "confidence": 0.9940485,
+                                "start": 23.705,
+                                "end": 23.945,
+                                "confidence": 0.9960657,
                                 "punctuated_word": "and",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.0721435546875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "said",
-                                "start": 23.9,
-                                "end": 24.3,
-                                "confidence": 0.87056065,
+                                "start": 23.945,
+                                "end": 24.265,
+                                "confidence": 0.8268428,
                                 "punctuated_word": "said,",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.019500732421875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "stop",
-                                "start": 24.3,
-                                "end": 24.54,
-                                "confidence": 0.8340682,
+                                "start": 24.265,
+                                "end": 24.585,
+                                "confidence": 0.91377926,
                                 "punctuated_word": "stop",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.0557861328125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "doing",
-                                "start": 24.54,
-                                "end": 24.78,
-                                "confidence": 0.99988055,
+                                "start": 24.585,
+                                "end": 24.744999,
+                                "confidence": 0.9998841,
                                 "punctuated_word": "doing",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.06982421875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "that",
-                                "start": 24.78,
-                                "end": 25.02,
-                                "confidence": 0.78202844,
+                                "start": 24.744999,
+                                "end": 24.985,
+                                "confidence": 0.84118295,
                                 "punctuated_word": "that.",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.05828857421875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "you",
-                                "start": 25.02,
-                                "end": 25.1,
-                                "confidence": 0.999373,
+                                "start": 24.985,
+                                "end": 25.064999,
+                                "confidence": 0.99957484,
                                 "punctuated_word": "You",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.1817626953125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "gotta",
-                                "start": 25.1,
-                                "end": 25.34,
-                                "confidence": 0.9431049,
+                                "start": 25.064999,
+                                "end": 25.385,
+                                "confidence": 0.95066875,
                                 "punctuated_word": "gotta",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.173828125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "go",
-                                "start": 25.34,
-                                "end": 25.58,
-                                "confidence": 0.99764144,
+                                "start": 25.385,
+                                "end": 25.545,
+                                "confidence": 0.9965701,
                                 "punctuated_word": "go",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.1763916015625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "earn",
-                                "start": 25.58,
-                                "end": 25.74,
-                                "confidence": 0.9971577,
+                                "start": 25.545,
+                                "end": 25.705,
+                                "confidence": 0.9985055,
                                 "punctuated_word": "earn",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.19775390625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "a",
-                                "start": 25.74,
-                                "end": 25.82,
-                                "confidence": 0.99683565,
+                                "start": 25.705,
+                                "end": 25.785,
+                                "confidence": 0.9983367,
                                 "punctuated_word": "a",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.251953125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "living",
-                                "start": 25.82,
-                                "end": 26.32,
-                                "confidence": 0.99948823,
+                                "start": 25.785,
+                                "end": 26.285,
+                                "confidence": 0.99956906,
                                 "punctuated_word": "living.",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.241943359375
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "this",
-                                "start": 26.685,
-                                "end": 26.845,
-                                "confidence": 0.9995689,
+                                "start": 26.65,
+                                "end": 26.89,
+                                "confidence": 0.99935144,
                                 "punctuated_word": "This",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.560546875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "is",
-                                "start": 26.845,
-                                "end": 26.925,
-                                "confidence": 0.99877423,
+                                "start": 26.89,
+                                "end": 26.97,
+                                "confidence": 0.9987087,
                                 "punctuated_word": "is",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.51025390625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "a",
-                                "start": 26.925,
-                                "end": 27.164999,
-                                "confidence": 0.9989287,
+                                "start": 26.97,
+                                "end": 27.21,
+                                "confidence": 0.998719,
                                 "punctuated_word": "a",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.5400390625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "whole",
-                                "start": 27.164999,
-                                "end": 27.565,
-                                "confidence": 0.99976116,
+                                "start": 27.21,
+                                "end": 27.61,
+                                "confidence": 0.99980325,
                                 "punctuated_word": "whole",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.4677734375
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "new",
-                                "start": 27.565,
-                                "end": 27.965,
-                                "confidence": 0.9978672,
+                                "start": 27.61,
+                                "end": 28.01,
+                                "confidence": 0.9979814,
                                 "punctuated_word": "new",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.5029296875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "renaissance",
-                                "start": 27.965,
-                                "end": 28.465,
-                                "confidence": 0.93865,
+                                "start": 28.01,
+                                "end": 28.51,
+                                "confidence": 0.93967307,
                                 "punctuated_word": "renaissance",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.5869140625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "that",
-                                "start": 28.765,
-                                "end": 29.005,
-                                "confidence": 0.99776804,
+                                "start": 28.81,
+                                "end": 29.05,
+                                "confidence": 0.99891293,
                                 "punctuated_word": "that",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.68603515625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "we",
-                                "start": 29.005,
-                                "end": 29.164999,
-                                "confidence": 0.9997806,
+                                "start": 29.05,
+                                "end": 29.21,
+                                "confidence": 0.9998418,
                                 "punctuated_word": "we",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.6728515625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "may",
-                                "start": 29.164999,
-                                "end": 29.485,
-                                "confidence": 0.99812704,
+                                "start": 29.21,
+                                "end": 29.45,
+                                "confidence": 0.99808747,
                                 "punctuated_word": "may",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.673828125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "be",
-                                "start": 29.485,
-                                "end": 29.645,
-                                "confidence": 0.99875176,
+                                "start": 29.45,
+                                "end": 29.61,
+                                "confidence": 0.9984694,
                                 "punctuated_word": "be",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.6884765625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "able",
-                                "start": 29.645,
-                                "end": 30.145,
-                                "confidence": 0.9997055,
+                                "start": 29.61,
+                                "end": 30.11,
+                                "confidence": 0.9998056,
                                 "punctuated_word": "able",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.673828125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "to",
-                                "start": 30.285,
-                                "end": 30.525,
-                                "confidence": 0.9976573,
+                                "start": 30.33,
+                                "end": 30.57,
+                                "confidence": 0.9981268,
                                 "punctuated_word": "to",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.70751953125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "see",
-                                "start": 30.525,
-                                "end": 30.845,
-                                "confidence": 0.9993759,
+                                "start": 30.57,
+                                "end": 30.81,
+                                "confidence": 0.99939096,
                                 "punctuated_word": "see",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.74267578125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "actually",
-                                "start": 30.845,
-                                "end": 31.345,
-                                "confidence": 0.92441064,
+                                "start": 30.81,
+                                "end": 31.31,
+                                "confidence": 0.9335547,
                                 "punctuated_word": "actually",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.6328125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "in",
-                                "start": 31.564999,
-                                "end": 31.805,
-                                "confidence": 0.9957754,
+                                "start": 31.61,
+                                "end": 31.77,
+                                "confidence": 0.9982462,
                                 "punctuated_word": "in",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.6123046875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "our",
-                                "start": 31.805,
-                                "end": 31.965,
-                                "confidence": 0.9996687,
+                                "start": 31.77,
+                                "end": 32.01,
+                                "confidence": 0.9997305,
                                 "punctuated_word": "our",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.6171875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "lifetime",
-                                "start": 31.965,
-                                "end": 32.465,
-                                "confidence": 0.83445954,
+                                "start": 32.01,
+                                "end": 32.51,
+                                "confidence": 0.8298395,
                                 "punctuated_word": "lifetime,",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.65087890625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "where",
-                                "start": 32.684998,
-                                "end": 32.925,
-                                "confidence": 0.9994012,
+                                "start": 32.65,
+                                "end": 32.89,
+                                "confidence": 0.9994073,
                                 "punctuated_word": "where",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.59814453125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "humans",
-                                "start": 32.925,
-                                "end": 33.325,
-                                "confidence": 0.99949276,
+                                "start": 32.89,
+                                "end": 33.29,
+                                "confidence": 0.99961996,
                                 "punctuated_word": "humans",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.734375
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "can",
-                                "start": 33.325,
-                                "end": 33.67,
-                                "confidence": 0.9918933,
+                                "start": 33.29,
+                                "end": 33.69,
+                                "confidence": 0.9998591,
                                 "punctuated_word": "can",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.681640625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "can",
-                                "start": 33.75,
-                                "end": 33.989998,
-                                "confidence": 0.9998307,
+                                "start": 33.69,
+                                "end": 34.01,
+                                "confidence": 0.99881685,
                                 "punctuated_word": "can",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.69482421875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "can",
-                                "start": 33.989998,
-                                "end": 34.07,
-                                "confidence": 0.9948526,
+                                "start": 34.01,
+                                "end": 34.17,
+                                "confidence": 0.9642363,
                                 "punctuated_word": "can",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9980469,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.71240234375
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "do",
-                                "start": 34.07,
-                                "end": 34.149998,
-                                "confidence": 0.9987465,
+                                "start": 34.17,
+                                "end": 34.25,
+                                "confidence": 0.99792224,
                                 "punctuated_word": "do",
                                 "speaker": 0,
-                                "speaker_confidence": 0.73291016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.7099609375
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "what",
-                                "start": 34.149998,
-                                "end": 34.39,
-                                "confidence": 0.99891293,
+                                "start": 34.25,
+                                "end": 34.41,
+                                "confidence": 0.99889344,
                                 "punctuated_word": "what",
                                 "speaker": 0,
-                                "speaker_confidence": 0.73291016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.75830078125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "they",
-                                "start": 34.39,
-                                "end": 34.55,
-                                "confidence": 0.9994874,
+                                "start": 34.41,
+                                "end": 34.57,
+                                "confidence": 0.99958414,
                                 "punctuated_word": "they",
                                 "speaker": 0,
-                                "speaker_confidence": 0.73291016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.70458984375
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "were",
-                                "start": 34.55,
-                                "end": 34.71,
-                                "confidence": 0.9985638,
+                                "start": 34.57,
+                                "end": 34.73,
+                                "confidence": 0.9987903,
                                 "punctuated_word": "were",
                                 "speaker": 0,
-                                "speaker_confidence": 0.73291016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.6162109375
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "born",
-                                "start": 34.71,
-                                "end": 35.03,
-                                "confidence": 0.999665,
+                                "start": 34.73,
+                                "end": 34.97,
+                                "confidence": 0.9995628,
                                 "punctuated_word": "born",
                                 "speaker": 0,
-                                "speaker_confidence": 0.73291016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.65966796875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "to",
-                                "start": 35.03,
-                                "end": 35.109997,
-                                "confidence": 0.99896336,
+                                "start": 34.97,
+                                "end": 35.129997,
+                                "confidence": 0.99917114,
                                 "punctuated_word": "to",
                                 "speaker": 0,
-                                "speaker_confidence": 0.73291016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.716796875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "do",
-                                "start": 35.109997,
-                                "end": 35.589996,
-                                "confidence": 0.9979528,
+                                "start": 35.129997,
+                                "end": 35.53,
+                                "confidence": 0.998429,
                                 "punctuated_word": "do",
                                 "speaker": 0,
-                                "speaker_confidence": 0.73291016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.646484375
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "like",
-                                "start": 35.589996,
-                                "end": 35.829998,
-                                "confidence": 0.49724165,
+                                "start": 35.53,
+                                "end": 35.85,
+                                "confidence": 0.50785244,
                                 "punctuated_word": "like",
                                 "speaker": 0,
-                                "speaker_confidence": 0.73291016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.64697265625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "art",
-                                "start": 35.829998,
-                                "end": 36.23,
-                                "confidence": 0.99464107,
+                                "start": 35.85,
+                                "end": 36.09,
+                                "confidence": 0.99248815,
                                 "punctuated_word": "art",
                                 "speaker": 0,
-                                "speaker_confidence": 0.73291016,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.54150390625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "and",
-                                "start": 36.23,
-                                "end": 36.309998,
-                                "confidence": 0.68778116,
+                                "start": 36.09,
+                                "end": 36.33,
+                                "confidence": 0.7590597,
                                 "punctuated_word": "and",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.6591796875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "dance",
-                                "start": 36.309998,
-                                "end": 36.71,
-                                "confidence": 0.99978334,
+                                "start": 36.33,
+                                "end": 36.65,
+                                "confidence": 0.9998485,
                                 "punctuated_word": "dance",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.62109375
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "and",
-                                "start": 36.71,
-                                "end": 36.87,
-                                "confidence": 0.9888748,
+                                "start": 36.65,
+                                "end": 36.89,
+                                "confidence": 0.97589445,
                                 "punctuated_word": "and",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.68359375
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "music",
-                                "start": 36.87,
-                                "end": 37.269997,
-                                "confidence": 0.9998791,
+                                "start": 36.89,
+                                "end": 37.21,
+                                "confidence": 0.9998605,
                                 "punctuated_word": "music",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.6689453125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "and",
-                                "start": 37.269997,
-                                "end": 37.429996,
-                                "confidence": 0.99752444,
+                                "start": 37.21,
+                                "end": 37.45,
+                                "confidence": 0.99714154,
                                 "punctuated_word": "and",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.70654296875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "invention",
-                                "start": 37.429996,
-                                "end": 37.909996,
-                                "confidence": 0.99981993,
+                                "start": 37.45,
+                                "end": 37.93,
+                                "confidence": 0.9998754,
                                 "punctuated_word": "invention",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.67822265625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "and",
-                                "start": 37.909996,
-                                "end": 38.149998,
-                                "confidence": 0.98794824,
+                                "start": 37.93,
+                                "end": 38.17,
+                                "confidence": 0.9885727,
                                 "punctuated_word": "and",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.66943359375
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "caring",
-                                "start": 38.149998,
-                                "end": 38.469997,
-                                "confidence": 0.9982134,
+                                "start": 38.17,
+                                "end": 38.489998,
+                                "confidence": 0.9985537,
                                 "punctuated_word": "caring",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.67626953125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "for",
-                                "start": 38.469997,
-                                "end": 38.629997,
-                                "confidence": 0.9996753,
+                                "start": 38.489998,
+                                "end": 38.65,
+                                "confidence": 0.99980325,
                                 "punctuated_word": "for",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.6650390625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "others",
-                                "start": 38.629997,
-                                "end": 38.949997,
-                                "confidence": 0.9996345,
+                                "start": 38.65,
+                                "end": 38.97,
+                                "confidence": 0.99976295,
                                 "punctuated_word": "others",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.6650390625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "and",
-                                "start": 38.949997,
-                                "end": 39.109997,
-                                "confidence": 0.9308997,
+                                "start": 38.97,
+                                "end": 39.129997,
+                                "confidence": 0.9116709,
                                 "punctuated_word": "and",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.6796875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "whatever",
-                                "start": 39.109997,
-                                "end": 39.51,
-                                "confidence": 0.99955875,
+                                "start": 39.129997,
+                                "end": 39.45,
+                                "confidence": 0.99959487,
                                 "punctuated_word": "whatever",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.66259765625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "it",
-                                "start": 39.51,
-                                "end": 39.67,
-                                "confidence": 0.9988708,
+                                "start": 39.45,
+                                "end": 39.69,
+                                "confidence": 0.9990716,
                                 "punctuated_word": "it",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.65234375
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "is",
-                                "start": 39.67,
-                                "end": 40.07,
-                                "confidence": 0.99972814,
+                                "start": 39.69,
+                                "end": 40.01,
+                                "confidence": 0.99973565,
                                 "punctuated_word": "is",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.5576171875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "that",
-                                "start": 40.07,
-                                "end": 40.23,
-                                "confidence": 0.99691737,
+                                "start": 40.01,
+                                "end": 40.25,
+                                "confidence": 0.99781513,
                                 "punctuated_word": "that",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.58056640625
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "you",
-                                "start": 40.23,
-                                "end": 40.469997,
-                                "confidence": 0.999619,
+                                "start": 40.25,
+                                "end": 40.41,
+                                "confidence": 0.99964094,
                                 "punctuated_word": "you",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.60986328125
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "wanna",
-                                "start": 40.469997,
-                                "end": 40.71,
-                                "confidence": 0.93079424,
+                                "start": 40.41,
+                                "end": 40.65,
+                                "confidence": 0.974743,
                                 "punctuated_word": "wanna",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.5458984375
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "do",
-                                "start": 40.71,
-                                "end": 40.789997,
-                                "confidence": 0.97348684,
+                                "start": 40.65,
+                                "end": 40.809998,
+                                "confidence": 0.9905709,
                                 "punctuated_word": "do.",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.477294921875
+                                "speaker_confidence": 0.9166605
                             },
                             {
                                 "word": "now",
-                                "start": 40.789997,
-                                "end": 40.949997,
-                                "confidence": 0.98157537,
+                                "start": 40.809998,
+                                "end": 40.89,
+                                "confidence": 0.98935,
                                 "punctuated_word": "Now",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.09307861328125
+                                "speaker_confidence": 0.7770602
                             },
                             {
                                 "word": "there",
-                                "start": 40.949997,
-                                "end": 41.03,
-                                "confidence": 0.89950824,
+                                "start": 40.89,
+                                "end": 41.05,
+                                "confidence": 0.9424253,
                                 "punctuated_word": "there",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.042724609375
+                                "speaker_confidence": 0.7770602
                             },
                             {
                                 "word": "will",
-                                "start": 41.03,
-                                "end": 41.269997,
-                                "confidence": 0.5358676,
+                                "start": 41.05,
+                                "end": 41.21,
+                                "confidence": 0.5232336,
                                 "punctuated_word": "will",
                                 "speaker": 0,
-                                "speaker_confidence": 0.9267578,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.0458984375
+                                "speaker_confidence": 0.7770602
                             },
                             {
                                 "word": "be",
-                                "start": 41.269997,
-                                "end": 41.35,
-                                "confidence": 0.99750924,
+                                "start": 41.21,
+                                "end": 41.37,
+                                "confidence": 0.99839044,
                                 "punctuated_word": "be",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.06610107421875
+                                "speaker_confidence": 0.7770602
                             },
                             {
                                 "word": "fits",
-                                "start": 41.35,
-                                "end": 41.51,
-                                "confidence": 0.9809505,
+                                "start": 41.37,
+                                "end": 41.53,
+                                "confidence": 0.994618,
                                 "punctuated_word": "fits",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.11279296875
+                                "speaker_confidence": 0.7770602
                             },
                             {
                                 "word": "and",
-                                "start": 41.51,
-                                "end": 41.75,
-                                "confidence": 0.99670476,
+                                "start": 41.53,
+                                "end": 41.69,
+                                "confidence": 0.9949155,
                                 "punctuated_word": "and",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.11444091796875
+                                "speaker_confidence": 0.7770602
                             },
                             {
                                 "word": "starts",
-                                "start": 41.75,
-                                "end": 42.25,
-                                "confidence": 0.8136232,
+                                "start": 41.69,
+                                "end": 42.19,
+                                "confidence": 0.871933,
                                 "punctuated_word": "starts.",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.091796875
+                                "speaker_confidence": 0.7770602
                             },
                             {
                                 "word": "there'll",
-                                "start": 42.515003,
-                                "end": 42.675003,
-                                "confidence": 0.98060703,
+                                "start": 42.465,
+                                "end": 42.705,
+                                "confidence": 0.85292786,
                                 "punctuated_word": "There'll",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.207763671875
+                                "speaker_confidence": 0.7770602
                             },
                             {
                                 "word": "be",
-                                "start": 42.675003,
-                                "end": 42.835003,
-                                "confidence": 0.9923477,
+                                "start": 42.705,
+                                "end": 42.865,
+                                "confidence": 0.9960944,
                                 "punctuated_word": "be",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.23486328125
+                                "speaker_confidence": 0.7770602
                             },
                             {
                                 "word": "politics",
-                                "start": 42.835003,
-                                "end": 43.315002,
-                                "confidence": 0.9997806,
+                                "start": 42.865,
+                                "end": 43.345,
+                                "confidence": 0.99983287,
                                 "punctuated_word": "politics",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "negative",
-                                "sentiment_score": -0.355224609375
+                                "speaker_confidence": 0.7770602
                             },
                             {
                                 "word": "to",
-                                "start": 43.315002,
-                                "end": 43.475002,
-                                "confidence": 0.5891734,
+                                "start": 43.345,
+                                "end": 43.505,
+                                "confidence": 0.53701466,
                                 "punctuated_word": "to",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.222412109375
+                                "speaker_confidence": 0.7770602
                             },
                             {
                                 "word": "get",
-                                "start": 43.475002,
-                                "end": 43.635002,
-                                "confidence": 0.99965274,
+                                "start": 43.505,
+                                "end": 43.665,
+                                "confidence": 0.99978477,
                                 "punctuated_word": "get",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.261474609375
+                                "speaker_confidence": 0.7770602
                             },
                             {
                                 "word": "in",
-                                "start": 43.635002,
-                                "end": 43.795002,
-                                "confidence": 0.9987626,
+                                "start": 43.665,
+                                "end": 43.745,
+                                "confidence": 0.9987343,
                                 "punctuated_word": "in",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.299072265625
+                                "speaker_confidence": 0.7770602
                             },
                             {
                                 "word": "the",
-                                "start": 43.795002,
-                                "end": 43.875,
-                                "confidence": 0.99922395,
+                                "start": 43.745,
+                                "end": 43.825,
+                                "confidence": 0.9992687,
                                 "punctuated_word": "the",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.116455078125
+                                "speaker_confidence": 0.7770602
                             },
                             {
                                 "word": "way",
-                                "start": 43.875,
-                                "end": 44.355003,
-                                "confidence": 0.99627805,
+                                "start": 43.825,
+                                "end": 44.325,
+                                "confidence": 0.9957297,
                                 "punctuated_word": "way.",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "neutral",
-                                "sentiment_score": -0.2083740234375
+                                "speaker_confidence": 0.7770602
                             },
                             {
                                 "word": "this",
-                                "start": 44.355003,
-                                "end": 44.595,
-                                "confidence": 0.99837214,
+                                "start": 44.385,
+                                "end": 44.625,
+                                "confidence": 0.99829155,
                                 "punctuated_word": "This",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.0059814453125
+                                "speaker_confidence": 0.49235237
                             },
                             {
                                 "word": "is",
-                                "start": 44.595,
-                                "end": 44.675003,
-                                "confidence": 0.9963813,
+                                "start": 44.625,
+                                "end": 44.705,
+                                "confidence": 0.9967283,
                                 "punctuated_word": "is",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.04443359375
+                                "speaker_confidence": 0.49235237
                             },
                             {
                                 "word": "no",
-                                "start": 44.675003,
-                                "end": 44.915,
-                                "confidence": 0.9905261,
+                                "start": 44.705,
+                                "end": 45.025,
+                                "confidence": 0.9880973,
                                 "punctuated_word": "no",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.060546875
+                                "speaker_confidence": 0.49235237
                             },
                             {
                                 "word": "no",
-                                "start": 45.475002,
-                                "end": 45.715,
-                                "confidence": 0.8877564,
+                                "start": 45.585,
+                                "end": 45.745,
+                                "confidence": 0.9215863,
                                 "punctuated_word": "no.",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.08367919921875
+                                "speaker_confidence": 0.49235237
                             },
                             {
                                 "word": "it",
-                                "start": 45.715,
-                                "end": 45.795002,
-                                "confidence": 0.9945766,
+                                "start": 45.745,
+                                "end": 45.905,
+                                "confidence": 0.9939516,
                                 "punctuated_word": "It",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.38720703125
+                                "speaker_confidence": 0.49235237
                             },
                             {
                                 "word": "is",
-                                "start": 45.795002,
-                                "end": 46.035,
-                                "confidence": 0.99684876,
+                                "start": 45.905,
+                                "end": 46.065,
+                                "confidence": 0.9971288,
                                 "punctuated_word": "is",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.31787109375
+                                "speaker_confidence": 0.49235237
                             },
                             {
                                 "word": "a",
-                                "start": 46.035,
-                                "end": 46.115,
-                                "confidence": 0.97781575,
+                                "start": 46.065,
+                                "end": 46.145,
+                                "confidence": 0.9768126,
                                 "punctuated_word": "a",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.42333984375
+                                "speaker_confidence": 0.41736376
                             },
                             {
                                 "word": "utopia",
-                                "start": 46.115,
-                                "end": 46.615,
-                                "confidence": 0.9903064,
+                                "start": 46.145,
+                                "end": 46.645,
+                                "confidence": 0.9907543,
                                 "punctuated_word": "utopia",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.49951171875
+                                "speaker_confidence": 0.41736376
                             },
                             {
                                 "word": "actually",
-                                "start": 46.675003,
-                                "end": 47.075,
-                                "confidence": 0.60392106,
+                                "start": 46.705,
+                                "end": 47.025,
+                                "confidence": 0.59625936,
                                 "punctuated_word": "actually,",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.46337890625
+                                "speaker_confidence": 0.41736376
                             },
                             {
                                 "word": "come",
-                                "start": 47.075,
-                                "end": 47.235,
-                                "confidence": 0.99776375,
+                                "start": 47.025,
+                                "end": 47.265,
+                                "confidence": 0.99804974,
                                 "punctuated_word": "come",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.431640625
+                                "speaker_confidence": 0.41736376
                             },
                             {
                                 "word": "to",
-                                "start": 47.235,
-                                "end": 47.395,
-                                "confidence": 0.99948764,
+                                "start": 47.265,
+                                "end": 47.425,
+                                "confidence": 0.9996617,
                                 "punctuated_word": "to",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.4169921875
+                                "speaker_confidence": 0.41736376
                             },
                             {
                                 "word": "think",
-                                "start": 47.395,
-                                "end": 47.555,
-                                "confidence": 0.9996911,
+                                "start": 47.425,
+                                "end": 47.504997,
+                                "confidence": 0.99980146,
                                 "punctuated_word": "think",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.4951171875
+                                "speaker_confidence": 0.41736376
                             },
                             {
                                 "word": "of",
-                                "start": 47.555,
-                                "end": 47.789,
-                                "confidence": 0.9984926,
+                                "start": 47.504997,
+                                "end": 47.585,
+                                "confidence": 0.9988029,
                                 "punctuated_word": "of",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.59912109375
+                                "speaker_confidence": 0.61362183
                             },
                             {
                                 "word": "it",
-                                "start": 47.789,
-                                "end": 48.023,
-                                "confidence": 0.9893933,
+                                "start": 47.585,
+                                "end": 48.085,
+                                "confidence": 0.9783982,
                                 "punctuated_word": "it.",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.36181640625
+                                "speaker_confidence": 0.61362183
                             },
                             {
                                 "word": "and",
-                                "start": 48.183,
-                                "end": 48.423,
-                                "confidence": 0.9984289,
+                                "start": 48.145,
+                                "end": 48.385002,
+                                "confidence": 0.9972268,
                                 "punctuated_word": "And",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.53466796875
+                                "speaker_confidence": 0.61362183
                             },
                             {
                                 "word": "working",
-                                "start": 48.423,
-                                "end": 48.743,
-                                "confidence": 0.99932075,
+                                "start": 48.385002,
+                                "end": 48.785,
+                                "confidence": 0.9986877,
                                 "punctuated_word": "working",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.6806640625
+                                "speaker_confidence": 0.61362183
                             },
                             {
                                 "word": "together",
-                                "start": 48.743,
-                                "end": 49.243,
-                                "confidence": 0.99940753,
+                                "start": 48.785,
+                                "end": 49.285,
+                                "confidence": 0.9993273,
                                 "punctuated_word": "together",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.71728515625
+                                "speaker_confidence": 0.61362183
                             },
                             {
                                 "word": "towards",
-                                "start": 49.302998,
-                                "end": 49.703,
-                                "confidence": 0.99760723,
+                                "start": 49.345,
+                                "end": 49.665,
+                                "confidence": 0.9959579,
                                 "punctuated_word": "towards",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.79931640625
+                                "speaker_confidence": 0.61362183
                             },
                             {
                                 "word": "this",
-                                "start": 49.703,
-                                "end": 49.942997,
-                                "confidence": 0.9997311,
+                                "start": 49.665,
+                                "end": 49.985,
+                                "confidence": 0.9996697,
                                 "punctuated_word": "this",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.748046875
+                                "speaker_confidence": 0.61362183
                             },
                             {
                                 "word": "goal",
-                                "start": 49.942997,
-                                "end": 50.442997,
-                                "confidence": 0.99190116,
+                                "start": 49.985,
+                                "end": 50.485,
+                                "confidence": 0.98365176,
                                 "punctuated_word": "goal,",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.7373046875
+                                "speaker_confidence": 0.61362183
                             },
                             {
                                 "word": "this",
-                                "start": 50.583,
-                                "end": 50.822998,
-                                "confidence": 0.9994505,
+                                "start": 50.545,
+                                "end": 50.785,
+                                "confidence": 0.99917907,
                                 "punctuated_word": "this",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.86279296875
+                                "speaker_confidence": 0.61362183
                             },
                             {
                                 "word": "is",
-                                "start": 50.822998,
-                                "end": 50.982998,
-                                "confidence": 0.99921846,
+                                "start": 50.785,
+                                "end": 50.945,
+                                "confidence": 0.99897754,
                                 "punctuated_word": "is",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.84033203125
+                                "speaker_confidence": 0.61362183
                             },
                             {
                                 "word": "actually",
-                                "start": 50.982998,
-                                "end": 51.462997,
-                                "confidence": 0.99718326,
+                                "start": 50.945,
+                                "end": 51.445,
+                                "confidence": 0.9977731,
                                 "punctuated_word": "actually",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.83544921875
+                                "speaker_confidence": 0.61362183
                             },
                             {
                                 "word": "a",
-                                "start": 51.462997,
-                                "end": 51.703,
-                                "confidence": 0.9994754,
+                                "start": 51.505,
+                                "end": 51.745,
+                                "confidence": 0.9992878,
                                 "punctuated_word": "a",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.8388671875
+                                "speaker_confidence": 0.61362183
                             },
                             {
                                 "word": "great",
-                                "start": 51.703,
-                                "end": 52.023,
-                                "confidence": 0.9999,
+                                "start": 51.745,
+                                "end": 51.985,
+                                "confidence": 0.99984205,
                                 "punctuated_word": "great",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.84619140625
+                                "speaker_confidence": 0.61362183
                             },
                             {
                                 "word": "idea",
-                                "start": 52.023,
-                                "end": 52.523,
-                                "confidence": 0.9998441,
+                                "start": 51.985,
+                                "end": 52.485,
+                                "confidence": 0.9997358,
                                 "punctuated_word": "idea",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.83740234375
+                                "speaker_confidence": 0.7119325
                             },
                             {
                                 "word": "when",
-                                "start": 52.583,
-                                "end": 52.822998,
-                                "confidence": 0.9980683,
+                                "start": 52.545,
+                                "end": 52.785,
+                                "confidence": 0.9948979,
                                 "punctuated_word": "when",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.779296875
+                                "speaker_confidence": 0.7119325
                             },
                             {
                                 "word": "we",
-                                "start": 52.822998,
-                                "end": 52.903,
-                                "confidence": 0.9997354,
+                                "start": 52.785,
+                                "end": 52.864998,
+                                "confidence": 0.9995295,
                                 "punctuated_word": "we",
                                 "speaker": 0,
-                                "speaker_confidence": 0.97265625,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.71728515625
+                                "speaker_confidence": 0.7119325
                             },
                             {
                                 "word": "look",
-                                "start": 52.903,
-                                "end": 53.063,
-                                "confidence": 0.9996402,
+                                "start": 52.864998,
+                                "end": 53.105,
+                                "confidence": 0.9994394,
                                 "punctuated_word": "look",
                                 "speaker": 0,
-                                "speaker_confidence": 0.6152344,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.73193359375
+                                "speaker_confidence": 0.7119325
                             },
                             {
                                 "word": "at",
-                                "start": 53.063,
-                                "end": 53.302998,
-                                "confidence": 0.9988782,
+                                "start": 53.105,
+                                "end": 53.265,
+                                "confidence": 0.99865556,
                                 "punctuated_word": "at",
                                 "speaker": 0,
-                                "speaker_confidence": 0.6152344,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.72900390625
+                                "speaker_confidence": 0.7119325
                             },
                             {
                                 "word": "it",
-                                "start": 53.302998,
-                                "end": 53.543,
-                                "confidence": 0.99967957,
+                                "start": 53.265,
+                                "end": 53.505,
+                                "confidence": 0.99942845,
                                 "punctuated_word": "it",
                                 "speaker": 0,
-                                "speaker_confidence": 0.6152344,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.6845703125
+                                "speaker_confidence": 0.7119325
                             },
                             {
                                 "word": "from",
-                                "start": 53.543,
-                                "end": 53.863,
-                                "confidence": 0.99950933,
+                                "start": 53.505,
+                                "end": 53.825,
+                                "confidence": 0.9991436,
                                 "punctuated_word": "from",
                                 "speaker": 0,
-                                "speaker_confidence": 0.6152344,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.473876953125
+                                "speaker_confidence": 0.7119325
                             },
                             {
                                 "word": "this",
-                                "start": 53.863,
-                                "end": 54.183,
-                                "confidence": 0.9993247,
+                                "start": 53.825,
+                                "end": 54.145,
+                                "confidence": 0.9991335,
                                 "punctuated_word": "this",
                                 "speaker": 0,
-                                "speaker_confidence": 0.6152344,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.53271484375
+                                "speaker_confidence": 0.7119325
                             },
                             {
                                 "word": "vantage",
-                                "start": 54.183,
-                                "end": 54.503,
-                                "confidence": 0.9989592,
+                                "start": 54.145,
+                                "end": 54.465,
+                                "confidence": 0.9989893,
                                 "punctuated_word": "vantage",
                                 "speaker": 0,
-                                "speaker_confidence": 0.6152344,
-                                "sentiment": "positive",
-                                "sentiment_score": 0.423828125
+                                "speaker_confidence": 0.7119325
                             },
                             {
                                 "word": "point",
-                                "start": 54.503,
+                                "start": 54.465,
                                 "end": 54.768,
-                                "confidence": 0.99195963,
+                                "confidence": 0.9918269,
                                 "punctuated_word": "point.",
                                 "speaker": 0,
-                                "speaker_confidence": 0.6152344,
-                                "sentiment": "neutral",
-                                "sentiment_score": 0.3330078125
-                            }
-                        ],
-                        "summaries": [
-                            {
-                                "summary": "You know, rather than be scared by a jobless future, I started to rethink it and I can finally see a day in under 50 years when people don't have to work for pay. Because humans have labored for 1000 of years, slaves to their work primarily in most of the world. And soon, they'll be able to do what they wanted to do, what they were born to do.",
-                                "start_word": 0.0,
-                                "end_word": 196.0
+                                "speaker_confidence": 0.7119325
                             }
                         ],
                         "paragraphs": {
@@ -2212,221 +1798,72 @@
                                         {
                                             "text": "You know, rather than be scared by a jobless future, I started to rethink it and I said I could really be excited by a jobless future because I can finally see a day in under 50 years when people don't have to work for pay.",
                                             "start": 0.0,
-                                            "end": 13.215,
-                                            "sentiment": "neutral",
-                                            "sentiment_score": 0.21320376188858695
+                                            "end": 13.245
                                         },
                                         {
                                             "text": "Because humans have labored for 1000 of years, slaves to their work primarily in most of the world.",
-                                            "start": 13.434999,
-                                            "end": 18.7,
-                                            "sentiment": "neutral",
-                                            "sentiment_score": 0.074859619140625
+                                            "start": 13.385,
+                                            "end": 18.665
                                         },
                                         {
                                             "text": "And soon, they'll be able to do what they wanted to do, what they were born to do before someone came along and said, stop doing that.",
-                                            "start": 18.7,
-                                            "end": 25.02,
-                                            "sentiment": "neutral",
-                                            "sentiment_score": 0.29701176396122686
+                                            "start": 18.665,
+                                            "end": 24.985
                                         },
                                         {
                                             "text": "You gotta go earn a living.",
-                                            "start": 25.02,
-                                            "end": 26.32,
-                                            "sentiment": "neutral",
-                                            "sentiment_score": 0.20393880208333334
+                                            "start": 24.985,
+                                            "end": 26.285
                                         },
                                         {
                                             "text": "This is a whole new renaissance that we may be able to see actually in our lifetime, where humans can can can do what they were born to do like art and dance and music and invention and caring for others and whatever it is that you wanna do.",
-                                            "start": 26.685,
-                                            "end": 40.789997,
-                                            "sentiment": "positive",
-                                            "sentiment_score": 0.6409787547831632
+                                            "start": 26.65,
+                                            "end": 40.809998
                                         }
                                     ],
                                     "start": 0.0,
-                                    "end": 40.789997,
-                                    "num_words": 146.0,
-                                    "speaker": 0,
-                                    "sentiment": "positive",
-                                    "sentiment_score": 0.3548339425700985
+                                    "end": 40.809998,
+                                    "num_words": 146,
+                                    "speaker": 0
                                 },
                                 {
                                     "sentences": [
                                         {
                                             "text": "Now there will be fits and starts.",
-                                            "start": 40.789997,
-                                            "end": 42.25,
-                                            "sentiment": "neutral",
-                                            "sentiment_score": -0.029061453683035716
+                                            "start": 40.809998,
+                                            "end": 42.19
                                         },
                                         {
                                             "text": "There'll be politics to get in the way.",
-                                            "start": 42.515003,
-                                            "end": 44.355003,
-                                            "sentiment": "neutral",
-                                            "sentiment_score": -0.2382049560546875
+                                            "start": 42.465,
+                                            "end": 44.325
                                         },
                                         {
                                             "text": "This is no no.",
-                                            "start": 44.355003,
-                                            "end": 45.715,
-                                            "sentiment": "neutral",
-                                            "sentiment_score": 0.0486602783203125
+                                            "start": 44.385,
+                                            "end": 45.745
                                         },
                                         {
                                             "text": "It is a utopia actually, come to think of it.",
-                                            "start": 45.715,
-                                            "end": 48.023,
-                                            "sentiment": "positive",
-                                            "sentiment_score": 0.439599609375
+                                            "start": 45.745,
+                                            "end": 48.085
                                         },
                                         {
                                             "text": "And working together towards this goal, this is actually a great idea when we look at it from this vantage point.",
-                                            "start": 48.183,
-                                            "end": 54.768,
-                                            "sentiment": "positive",
-                                            "sentiment_score": 0.6992303757440477
+                                            "start": 48.145,
+                                            "end": 54.768
                                         }
                                     ],
-                                    "start": 40.789997,
+                                    "start": 40.809998,
                                     "end": 54.768,
-                                    "num_words": 50.0,
-                                    "speaker": 0,
-                                    "sentiment": "positive",
-                                    "sentiment_score": 0.34330810546875
+                                    "num_words": 50,
+                                    "speaker": 0
                                 }
                             ]
                         }
                     }
                 ]
             }
-        ],
-        "sentiments": {
-            "segments": [
-                {
-                    "text": "You know, rather than be scared by a jobless future, I started to rethink it and I said I could really be excited by a jobless future because I can finally see a day in under 50 years when people don't have to work for pay. Because humans have labored for 1000 of years, slaves to their work primarily in most of the world. And soon, they'll be able to do what they wanted to do, what they were born to do before someone came along and said, stop doing that. You gotta go earn a living.",
-                    "start_word": 0,
-                    "end_word": 96,
-                    "sentiment": "neutral",
-                    "sentiment_score": 0.1998291015625
-                },
-                {
-                    "text": "This is a whole new renaissance that we may be able to see actually in our lifetime, where humans can can can do what they were born to do like art and dance and music and invention and caring for others and whatever it is that you wanna do.",
-                    "start_word": 97,
-                    "end_word": 145,
-                    "sentiment": "positive",
-                    "sentiment_score": 0.630859375
-                },
-                {
-                    "text": "Now there will be fits and starts. There'll be politics to get in the way. This is no no.",
-                    "start_word": 146,
-                    "end_word": 164,
-                    "sentiment": "neutral",
-                    "sentiment_score": -0.1060791015625
-                },
-                {
-                    "text": "It is a utopia actually, come to think of it. And working together towards this goal, this is actually a great idea when we look at it from this vantage point.",
-                    "start_word": 165,
-                    "end_word": 195,
-                    "sentiment": "positive",
-                    "sentiment_score": 0.6025390625
-                }
-            ],
-            "average": {
-                "sentiment": "positive",
-                "sentiment_score": 0.33653846153846156
-            }
-        },
-        "topics": {
-            "segments": [
-                {
-                    "text": "You know, rather than be scared by a jobless future, I started to rethink it and I said I could really be excited by a jobless future because I can finally see a day in under 50 years when people don't have to work for pay.",
-                    "start_word": 1,
-                    "end_word": 46,
-                    "topics": [
-                        {
-                            "topic": "Unemployment",
-                            "confidence_score": 0.0007623608
-                        }
-                    ]
-                },
-                {
-                    "text": "Because humans have labored for 1000 of years, slaves to their work primarily in most of the world.",
-                    "start_word": 46,
-                    "end_word": 63,
-                    "topics": [
-                        {
-                            "topic": "Workforce",
-                            "confidence_score": 0.06865941
-                        }
-                    ]
-                },
-                {
-                    "text": "You gotta go earn a living. This is a whole new renaissance that we may be able to see actually in our lifetime, where humans can can can do what they were born to do like art and dance and music and invention and caring for others and whatever it is that you wanna do.",
-                    "start_word": 91,
-                    "end_word": 145,
-                    "topics": [
-                        {
-                            "topic": "Economies of living",
-                            "confidence_score": 0.0041973195
-                        }
-                    ]
-                },
-                {
-                    "text": "This is a whole new renaissance that we may be able to see actually in our lifetime, where humans can can can do what they were born to do like art and dance and music and invention and caring for others and whatever it is that you wanna do.",
-                    "start_word": 97,
-                    "end_word": 145,
-                    "topics": [
-                        {
-                            "topic": "Care for others",
-                            "confidence_score": 0.008536331
-                        }
-                    ]
-                }
-            ]
-        },
-        "intents": {
-            "segments": [
-                {
-                    "text": "You know, rather than be scared by a jobless future, I started to rethink it and I said I could really be excited by a jobless future because I can finally see a day in under 50 years when people don't have to work for pay.",
-                    "start_word": 1,
-                    "end_word": 46,
-                    "intents": [
-                        {
-                            "intent": "Reveal future",
-                            "confidence_score": 0.029173534
-                        }
-                    ]
-                },
-                {
-                    "text": "It is a utopia actually, come to think of it. And working together towards this goal, this is actually a great idea when we look at it from this vantage point.",
-                    "start_word": 165,
-                    "end_word": 195,
-                    "intents": [
-                        {
-                            "intent": "Express happiness",
-                            "confidence_score": 0.0006837307
-                        },
-                        {
-                            "intent": "Describe",
-                            "confidence_score": 7.179281e-06
-                        }
-                    ]
-                },
-                {
-                    "text": "And working together towards this goal, this is actually a great idea when we look at it from this vantage point.",
-                    "start_word": 175,
-                    "end_word": 195,
-                    "intents": [
-                        {
-                            "intent": "Provide guidance",
-                            "confidence_score": 0.00011293763
-                        }
-                    ]
-                }
-            ]
-        }
+        ]
     }
 }

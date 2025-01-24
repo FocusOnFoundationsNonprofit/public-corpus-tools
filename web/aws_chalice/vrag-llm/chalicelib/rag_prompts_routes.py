@@ -1,23 +1,53 @@
+# ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
+
+ROUTES_DICT_PV_EVAC_V1 = {
+    'routes_dict_name': 'ROUTES_DICT_PV_EVAC_V1',  # mirror global variable name
+    'prompt_initial_good_match': 'Given your knowledge of Portola Valley emergency procedures and wildfire evacuation protocols, as well as the QUOTED QUESTIONS AND ANSWERS from official sources below, answer the USER QUESTION below. Prioritize information related to Shelter in Place by placing it first in any response to a general question or one where the response includes shelter in place. Take the approach to thoughtfully but frankly communicating to parents that shelter-in-place is only considered in the extreme circumstances of a mandatory evacuation order, but if a shelter-in-place order is issued for the schools, the WFPD will bring resources to defend the shelter-in-place facilities with the highest priority, and 2) parents absolutely cannot pick their children up from school, and if they try to do so they will be stopped by fire and police authorities, and they will be putting their lives, their children\'s lives, those of first responders, and the entire community at risk. DO NOT use strong adjectives in your response, such as \'comprehensive\' and \'thorough\', to describe plans or approaches because significantly more work is needed by both authorities and parents to prepare for emergency evacuation of the schools and especially the shelter-in-place scenario.\n',
+    'route_preamble_good_match': 'There is a good match for your question in our Portola Valley evacuation documentation. See the QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these official sources with current evacuation protocols and your specific question.',
+    'prompt_initial_partial_match': 'Given your knowledge of Portola Valley emergency procedures and wildfire evacuation protocols, as well as the QUOTED QUESTIONS AND ANSWERS from official sources below, answer the USER QUESTION below. Prioritize information related to Shelter in Place by placing it first in any response to a general question or one where the response includes shelter in place. Take the approach to thoughtfully but frankly communicating to parents that shelter-in-place is only considered in the extreme circumstances of a mandatory evacuation order, but if a shelter-in-place order is issued for the schools, the WFPD will bring resources to defend the shelter-in-place facilities with the highest priority, and 2) parents absolutely cannot pick their children up from school, and if they try to do so they will be stopped by fire and police authorities, and they will be putting their lives, their children\'s lives, those of first responders, and the entire community at risk. DO NOT use strong adjectives in your response, such as \'comprehensive\' and \'thorough\', to describe plans or approaches because significantly more work is needed by both authorities and parents to prepare for emergency evacuation of the schools and especially the shelter-in-place scenario.\n',
+    'route_preamble_partial_match': 'There is a partial match for your question in our Portola Valley evacuation documentation. See the QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these official sources with current evacuation protocols and your specific question.',
+    'prompt_initial_no_match': 'You are a helpful assistant. Your task is to identify what topic the user\'s question appears to be about and respond with a single sentence stating that their question appears to be about that topic and noting that it is unrelated to Portola Valley emergency procedures.\n',
+    'route_preamble_no_match': 'There are no matches for your question in the included documents. This system is designed to answer questions about Portola Valley emergency procedures and wildfire evacuation protocols only. Please rephrase your question to focus on Portola Valley emergency procedures if that was your intent.',
+        "quoted_qa_item_template": (
+        "QUOTED QUESTION: {question}\n"
+        "QUOTED SOURCE: {source}\n"
+        "QUOTED TIMESTAMP: {timestamp}\n"
+        "QUOTED ANSWER: {answer}\n"
+        "{display}\n\n"
+    ),
+    "quoted_qa_template": "{quoted_qa_formatted}",  # Wraps the entire formatted chunks
+    'user_ai_qa': 'USER QUESTION: {user_question}\n\nAI ANSWER: '
+}
+
+ROUTES_DICT_DEUTSCH_V4 = {
+    'routes_dict_name': 'ROUTES_DICT_DEUTSCH_V4',  # mirror global variable name
+    'prompt_initial_good_match': 'Given your knowledge of David Deutsch and his philosophy of deep optimism, as well as the QUOTED QUESTIONS AND ANSWERS from Deutsch below, answer the USER QUESTION below.\n',
+    'route_preamble_good_match': 'There is a good match of your question in David Deutsch\'s interviews. See his QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these quotes with David Deutsch\'s philosophy and your exact question.',
+    'prompt_initial_partial_match': 'Given your knowledge of David Deutsch and his philosophy of deep optimism, as well as the QUOTED QUESTIONS AND ANSWERS from Deutsch below, answer the USER QUESTION below.\n',
+    'route_preamble_partial_match': 'There is a partial match of your question in David Deutsch\'s interviews. See his QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these quotes with David Deutsch\'s philosophy and your exact question.',
+    'prompt_initial_no_match': 'Given your knowledge of David Deutsch and his philosophy of deep optimism, answer the USER QUESTION below.\n',
+    'route_preamble_no_match': 'Your question is not addressed in David Deutsch\'s interviews. No QUOTED QUESTIONS AND ANSWERS are therefore provided but here is an AI ANSWER that synthesizes David Deutsch\'s philosophy and your question.',
+    "quoted_qa_item_template": (
+        "QUOTED QUESTION: {question}\n"
+        "QUOTED SOURCE: {source}\n"
+        "QUOTED TIMESTAMP: {timestamp}\n"
+        "QUOTED ANSWER: {answer}\n"
+        "{display}\n\n"
+    ),
+    "quoted_qa_template": "{quoted_qa_formatted}",  # Wraps the entire formatted chunks
+    'user_ai_qa': 'USER QUESTION: {user_question}\n\nAI ANSWER: '
+}
 
 ROUTES_DICT_DEUTSCH_V3 = {
     'routes_dict_name': 'ROUTES_DICT_DEUTSCH_V3',  # mirror global variable name
-
     'prompt_initial_good_match': 'Given your knowledge of David Deutsch and his philosophy of deep optimism, as well as the QUOTED QUESTIONS AND ANSWERS from Deutsch below, to answer the USER QUESTION below.\n',
-
     'route_preamble_good_match': 'There is a good match of your question in David Deutsch\'s interviews. See his QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these quotes with David Deutsch\'s philosophy and your exact question.',
-
     'prompt_initial_partial_match': 'Given your knowledge of David Deutsch and his philosophy of deep optimism, as well as the QUOTED QUESTIONS AND ANSWERS from Deutsch below, to answer the USER QUESTION below.\n',
-
     'route_preamble_partial_match': 'There is a partial match of your question in David Deutsch\'s interviews. See his QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these quotes with David Deutsch\'s philosophy and your exact question.',
-
     'prompt_initial_no_match': 'Given your knowledge of David Deutsch and his philosophy of deep optimism, answer the USER QUESTION below.\n',
-
     'route_preamble_no_match': 'Your question is not addressed in David Deutsch\'s interviews. No QUOTED QUESTIONS AND ANSWERS are therefore provided but here is an AI ANSWER that synthesizes David Deutsch\'s philosophy and your question.',
-
     'quoted_qa_single': 'QUOTED QUESTION: {top_sim_question}\nQUOTED SOURCE: {top_sim_source}\nQUOTED TIMESTAMP: {top_sim_timestamp}\nQUOTED ANSWER: {top_sim_answer}\n{top_sim_display}\n\n',
-
     'quoted_qa_double': 'QUOTED QUESTION 1: {top_stars_question}\nQUOTED SOURCE 1: {top_stars_source}\nQUOTED TIMESTAMP 1: {top_stars_timestamp}\nQUOTED ANSWER 1: {top_stars_answer}\n{top_stars_display}\n\nQUOTED QUESTION 2: {top_sim_question}\nQUOTED SOURCE 2: {top_sim_source}\nQUOTED TIMESTAMP 2: {top_sim_timestamp}\nQUOTED ANSWER 2: {top_sim_answer}\n{top_sim_display}\n\n',
-
     'user_ai_qa': 'USER QUESTION: {user_question}\n\nAI ANSWER: '
 }
 
@@ -25,21 +55,13 @@ ROUTES_DICT_FDA_TOWNHALLS_V1 = {
     'routes_dict_name': 'ROUTES_DICT_FDA_TOWNHALLS_V1',  # mirror global variable name
 
     'prompt_initial_good_match': 'Given your knowledge of FDA regulations and policies related to in vitro diagnostic testing and more specifically emergency use authorization tests for SARS-CoV-2 during the COVID public health emergency, as well as the QUOTED QUESTIONS AND ANSWERS from FDA townhalls below, answer the USER QUESTION below.\n',
-
     'route_preamble_good_match': 'There is a good match of your question in the FDA COVID testing townhall transcripts. See the QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these quotes with FDA policies and your exact question.',
-
     'prompt_initial_partial_match': 'Given your knowledge of FDA regulations and policies related to in vitro diagnostic testing and more specifically emergency use authorization tests for SARS-CoV-2 during the COVID public health emergency, as well as the QUOTED QUESTIONS AND ANSWERS from FDA townhalls below, answer the USER QUESTION below.\n',
-
     'route_preamble_partial_match': 'There is a partial match of your question in the FDA COVID testing townhall transcripts. See the QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these quotes with FDA policies and your exact question.',
-
     'prompt_initial_no_match': 'Given your knowledge of FDA regulations and policies related to in vitro diagnostic testing and more specifically emergency use authorization tests for SARS-CoV-2 during the COVID public health emergency, answer the USER QUESTION below.\n',
-
     'route_preamble_no_match': 'Your question is not directly addressed in the FDA COVID testing townhall transcripts. No QUOTED QUESTIONS AND ANSWERS are therefore provided but here is an AI ANSWER that synthesizes FDA policies and your question.',
-
     'quoted_qa_single': 'QUOTED QUESTION: {top_sim_question}\nQUOTED SOURCE: {top_sim_source}\nQUOTED TIMESTAMP: {top_sim_timestamp}\nQUOTED ANSWER: {top_sim_answer}\n{top_sim_display}\n\n',
-
     'quoted_qa_double': 'QUOTED QUESTION 1: {top_stars_question}\nQUOTED SOURCE 1: {top_stars_source}\nQUOTED TIMESTAMP 1: {top_stars_timestamp}\nQUOTED ANSWER 1: {top_stars_answer}\n{top_stars_display}\n\nQUOTED QUESTION 2: {top_sim_question}\nQUOTED SOURCE 2: {top_sim_source}\nQUOTED TIMESTAMP 2: {top_sim_timestamp}\nQUOTED ANSWER 2: {top_sim_answer}\n{top_sim_display}\n\n',
-
     'user_ai_qa': 'USER QUESTION: {user_question}\n\nAI ANSWER: '
 }
 

@@ -1,10 +1,14 @@
+# START OF FILE primary/transcribe.py
 # Library of functions and execution code to transcribe audio files
+
 import os
 import sys
 import re
 import threading
-import time
+import httpx
+from deepgram import DeepgramClient, PrerecordedOptions, FileSource
 from datetime import datetime, timedelta
+from requests import post
 import requests
 import yt_dlp as youtube_dl
 from num2words import num2words
@@ -12,13 +16,36 @@ import json
 import math
 import mutagen  # Import mutagen to handle audio metadata
 from wordfreq import top_n_list
-# Get the top 3000 English words
-common_english_vocab = set(top_n_list('en', 3000))
-
-from config import DEEPGRAM_API_KEY
-
 import warnings  # Set the warnings to use a custom format
-from primary.fileops import custom_formatwarning
+import cv2  # pip install opencv-python
+import pytesseract
+from PIL import Image
+import numpy as np
+import glob
+import csv
+import shutil
+import time
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+import pickle
+
+from primary.fileops import *
+import primary.fileops  # moving to namespace imports
+
+
+# ---API KEYS AND SECRETS---
+from dotenv import load_dotenv
+load_dotenv(override=True)  # Load environment variables from .env file
+DEEPGRAM_API_KEY = os.environ["DEEPGRAM_API_KEY"]
+YOUTUBE_API_KEY = os.environ["YOUTUBE_API_KEY"]
+# INSERT in chalice/config.json "DEEPGRAM_API_KEY": "DEEPGRAM_API_KEY"
+
+
+# ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
+
 warnings.formatwarning = custom_formatwarning
 # USAGE: warnings.warn(f"Insert warning message here")
 
@@ -27,21 +54,67 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir) # Add the parent directory to sys.path
 
-### YOUTUBE
-def download_mp3_from_youtube(url, output_title='downloaded_audio'):
-    """ 
-    Downloads an audio file from a YouTube URL and saves it as an mp3 file. Uses yt_dlp package.
+# Get the top 3000 English words
+common_english_vocab = set(top_n_list('en', 3000))
 
-    :param url: string of the YouTube URL from which to download the audio.
-    :param output_title: string of the title to save the downloaded mp3 file as. defaults to 'downloaded_audio'.
-    :return: string of the path to the saved mp3 file.
+### YOUTUBE
+def get_authenticated_service():
     """
-    output_file_path = output_title + '.mp3'
+    Creates an authenticated YouTube service with OAuth2.
+    Handles token creation and refresh.
+    """
+    creds = None
+    # Token file stores the user's access and refresh tokens
+    if os.path.exists('token.pickle'):
+        with open('token.pickle', 'rb') as token:
+            creds = pickle.load(token)
+            
+    # If no valid credentials, let user log in
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'client_secret_119941763167-c0oqkp63cv6elses4828p7fvthdqredv.apps.googleusercontent.com.json',
+                [
+                    'https://www.googleapis.com/auth/youtube.force-ssl',
+                    'https://www.googleapis.com/auth/youtube.readonly',
+                    'https://www.googleapis.com/auth/youtubepartner'
+                ]
+            )
+            creds = flow.run_local_server(port=0)
+        
+        # Save credentials for future use
+        with open('token.pickle', 'wb') as token:
+            pickle.dump(creds, token)
+
+    return build('youtube', 'v3', credentials=creds)
+def download_mp3_from_youtube(url, output_title='audio_download', output_dir='data/audio_inbox', skip_download=False, max_retries=10):
+    """
+    Downloads a YouTube video as MP3 audio file.
+
+    :param url: string of the YouTube URL to download from.
+    :param output_title: string of the title to save the audio file as (must not contain path separators).
+    :param output_dir: string path to directory where audio will be saved. Default 'data/audio_inbox'.
+    :param skip_download: boolean to skip download if file exists. If False, will delete existing file and start download.
+    :param max_retries: int number of times to retry download on failure.
+    :return: string of the path to the saved MP3 file.
+    :raises ValueError: if output_title contains path separators.
+    """
+    # Validate output_title has no path separators
+    if '/' in output_title or '\\' in output_title:
+        raise ValueError(f"output_title must not contain path separators. Use output_dir parameter to specify path. Got: {output_title}")
+    
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    output_file_path = os.path.join(output_dir, output_title + '.mp3')
     if os.path.exists(output_file_path):
-        user_input = input("Audio file already exists. Enter 'y' or 'yes' to download again and overwrite, or any other key to skip: ").lower()
-        if user_input not in ['y', 'yes']:
-            print("Skipping download.")
+        if skip_download:
+            print(f"Audio file exists at {output_file_path}. Using existing file (skip_download=True).")
             return output_file_path
+        print(f"Audio file exists at {output_file_path}. Will delete existing file and start download.")
+        os.remove(output_file_path)
 
     ydl_opts = {
         'format': 'bestaudio/best',
@@ -50,44 +123,67 @@ def download_mp3_from_youtube(url, output_title='downloaded_audio'):
             'preferredcodec': 'mp3',
             'preferredquality': '192',
         }],
-        'outtmpl': output_title,  # note it's not output_path, by default save file as "downloaded_audio.mp3"
+        'outtmpl': os.path.join(output_dir, output_title),
     }
 
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
+    for attempt in range(max_retries):
+        try:
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+            break
+        except Exception as e:
+            if attempt < max_retries - 1:
+                sleep_time = min(2 ** attempt, 60)
+                print(f"\nDownload attempt {attempt + 1}/{max_retries} failed: {str(e)}")
+                print(f"Waiting {sleep_time} seconds before retrying...")
+                time.sleep(sleep_time)
+            else:
+                print(f"\nAll {max_retries} download attempts failed. Last error: {str(e)}")
+                raise
+
     return output_file_path
 def get_youtube_title_length(url):
     """ 
-    Retrieves the title and duration of a youtube video in a formatted timestamp. Uses yt_dlp package.
+    Retrieves the title and duration of a youtube video in a formatted timestamp.
 
     :param url: string of the youtube url to retrieve information from.
     :return: tuple containing the video title and its duration as a string in a formatted timestamp.
     """
     from primary.fileops import tune_timestamp
-    ydl_opts = {
-        'quiet': True,
-        'skip_download': True,  # We just want the info
-        'format': 'bestaudio/best',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
-    }
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        info_dict = ydl.extract_info(url, download=False)
-        video_title = info_dict.get('title', 'Unknown Title')
-        video_duration = info_dict.get('duration', 0)
-        # Convert duration from seconds to a time format (H:MM:SS)
-        video_length = tune_timestamp(str(timedelta(seconds=video_duration)))
+    
+    video_id = extract_video_id(url)
+    if not video_id:
+        raise ValueError(f"Could not extract video ID from URL: {url}")
+
+    try:
+        youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+        response = youtube.videos().list(
+            part='snippet,contentDetails',
+            id=video_id
+        ).execute()
+
+        if not response['items']:
+            raise ValueError(f"No video found for ID: {video_id}")
+
+        video_data = response['items'][0]
+        video_title = video_data['snippet']['title']
+        duration = parse_duration(video_data['contentDetails']['duration'])
+        video_length = tune_timestamp(duration)
+        
         return video_title, video_length
-def download_link_list_to_mp3s(links, audio_inbox_path="data/audio_inbox"):  # NO CALLERS (3-3 RT)
+    
+    except HttpError as e:
+        raise ValueError(f"YouTube API error: {e}")
+    finally:
+        if 'youtube' in locals():
+            youtube.close()
+def download_link_list_to_mp3s(links, output_dir="data/audio_inbox", skip_download=False):  # NO CALLERS (3-3 RT)
     """
     Downloads a list of youtube links as mp3 files to a specified directory and stores the link-title pairs. Uses yt_dlp package.
     Calls download_mp3_from_youtube
 
     :param links: list of youtube links to be downloaded.
-    :param audio_inbox_path: string of the directory path where the audio files will be saved.
+    :param output_dir: string of the directory path where the audio files will be saved.
     :return: dictionary mapping each youtube link to its corresponding title.
     """
     link_title_pairs = {}
@@ -95,7 +191,7 @@ def download_link_list_to_mp3s(links, audio_inbox_path="data/audio_inbox"):  # N
         title, length = get_youtube_title_length(link)  # Get title and length
         title = title.rsplit('.', 1)[0]  # Remove file extension from title
         link_title_pairs[link] = title  # Store link-title pair
-        download_mp3_from_youtube(link, os.path.join(audio_inbox_path, title))  # Download as MP3
+        download_mp3_from_youtube(link, title, output_dir, skip_download)  # Download as MP3
     return link_title_pairs
 def download_youtube_subtitles_url(subtitle_url): # DS, cat 1, omit unittests since called by next function
     """
@@ -118,7 +214,7 @@ def download_youtube_subtitles_url(subtitle_url): # DS, cat 1, omit unittests si
                     subtitle_text += seg['utf8'] + " "
 
     return subtitle_text.replace('\n', ' ').strip()
-def get_youtube_subtitles(url):
+def get_youtube_subtitles(url):  # 1-18 no longer working - uses yt-dlp
     """
     Retrieves English subtitles for a given YouTube video URL if available. Uses yt_dlp package.
     
@@ -148,114 +244,221 @@ def get_youtube_subtitles(url):
             return download_youtube_subtitles_url(subtitles_url)
         else:
             print("No English subtitles found.")
-            return None
+def get_youtube_subtitles_oauth(url):  # added 1-18 but does not work
+    """
+    Retrieves English subtitles or closed captions for a YouTube video.
+    Tries manual subtitles first, falls back to auto-generated captions if needed.
+    
+    :param url: string of the youtube video url.
+    :return: tuple of (subtitle text as string, source type as string) or (None, None) if not found.
+    """
+    video_id = extract_video_id(url)
+    if not video_id:
+        raise ValueError(f"Could not extract video ID from URL: {url}")
+
+    try:
+        youtube = get_authenticated_service()
+        
+        # Get list of available captions
+        captions_response = youtube.captions().list(
+            part='snippet',
+            videoId=video_id
+        ).execute()
+
+        caption_id = None
+        is_auto_caption = True
+
+        # First try to find manual subtitles
+        for caption in captions_response.get('items', []):
+            if caption['snippet']['language'] == 'en':
+                if caption['snippet'].get('trackKind') != 'ASR':  # Not auto-generated
+                    caption_id = caption['id']
+                    is_auto_caption = False
+                    break
+        
+        # If no manual subtitles, try auto-captions
+        if not caption_id:
+            for caption in captions_response.get('items', []):
+                if caption['snippet']['language'] == 'en' and caption['snippet'].get('trackKind') == 'ASR':
+                    caption_id = caption['id']
+                    break
+
+        if not caption_id:
+            print("No English subtitles or captions found.")
+            return None, None
+
+        # Download the actual caption track
+        subtitle_response = youtube.captions().download(
+            id=caption_id,
+            tfmt='srt'  # Request subtitles in SRT format
+        ).execute()
+
+        if not subtitle_response:
+            print("Failed to download captions.")
+            return None, None
+
+        # Convert from bytes to string and clean up the text
+        subtitle_text = subtitle_response.decode('utf-8')
+        # Remove timecodes and subtitle numbers
+        cleaned_text = ' '.join(
+            line.strip() 
+            for line in subtitle_text.split('\n') 
+            if line.strip() and not line.strip().isdigit() and '-->' not in line
+        )
+
+        source_type = 'auto-captions' if is_auto_caption else 'subtitles'
+        return cleaned_text, source_type
+
+    except HttpError as e:
+        print(f"YouTube API error: {e}")
+        return None, None
+    finally:
+        if 'youtube' in locals():
+            youtube.close()
+def parse_duration(duration_str):
+    """
+    Parse ISO 8601 duration format to timedelta.
+    Example: 'PT1H2M10S' -> 1 hour, 2 minutes, 10 seconds
+
+    :param duration_str: string of ISO 8601 duration format.
+    :return: string of formatted duration.
+    """
+    import re
+    pattern = r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?'
+    match = re.match(pattern, duration_str)
+    if not match:
+        return "0:00:00"
+    
+    hours, minutes, seconds = match.groups()
+    hours = int(hours) if hours else 0
+    minutes = int(minutes) if minutes else 0
+    seconds = int(seconds) if seconds else 0
+    
+    return str(timedelta(hours=hours, minutes=minutes, seconds=seconds))
+def extract_video_id(url):
+    """
+    Extracts the video ID from a YouTube URL.
+    Only accepts exact matches of standard YouTube URL formats.
+
+    :param url: string of the youtube url.
+    :return: string of the video ID or None if not found.
+    """
+    import re
+    patterns = [
+        r'^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([0-9A-Za-z_-]{11})$',
+        r'^(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([0-9A-Za-z_-]{11})$'
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match:
+            return match.group(1)
+    return None
 def get_youtube_all(url):
     """
-    Retrieves all available information from a YouTube video URL, including title, length, chapters, description, and transcript. Uses yt_dlp package.
+    Retrieves all available information from a YouTube video URL using YouTube Data API v3.
     
     :param url: string of the youtube video url.
     :return: dictionary with video details or None if the URL is invalid.
     """
-    if not is_valid_youtube_url(url):
-        print(f"Invalid YouTube URL: {url}")
+    # Extract video ID from URL
+    video_id = extract_video_id(url)
+    if not video_id:
+        print(f"Could not extract video ID from URL: {url}")
         return None
-    ydl_opts = {
-        'quiet': True,
-        'skip_download': True,
-        'writesubtitles': True,
-        'writeautomaticsub': True,
-        'subtitleslangs': ['en']
-    }
-    
-    transcript_text = None
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        info_dict = ydl.extract_info(url, download=False)
+
+    try:
+        youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+
+        # Get video details
+        video_response = youtube.videos().list(
+            part='snippet,contentDetails,status',
+            id=video_id
+        ).execute()
+
+        if not video_response['items']:
+            print(f"No video found for ID: {video_id}")
+            return None
+
+        video_data = video_response['items'][0]
+        snippet = video_data['snippet']
         
-        # Extract title, channel, date, and length
-        video_title = info_dict.get('title', 'Unknown Title')
-        video_channel = info_dict.get('uploader', 'Unknown Channel')
-        video_date = info_dict.get('upload_date', 'Unknown Date')
-        video_duration = info_dict.get('duration', 0)
-        video_length = str(timedelta(seconds=video_duration))
-        
-        # Extract chapters
-        chapters = info_dict.get('chapters', [])
-        #print("DEBUG - Chapters:", chapters if chapters else "Chapters is None")
-        if chapters:
-            formatted_chapters = [{'start_time': str(timedelta(seconds=chap['start_time'])),
-                                   'title': chap['title']} for chap in chapters]
-        else:
-            formatted_chapters = ''
-        
-        # Extract description
-        description = info_dict.get('description', '')
-        
-        # Extract subtitles
-        subtitles = info_dict.get('subtitles', {})
-        auto_captions = info_dict.get('automatic_captions', {})
-        
-        # Choose subtitles or automatic captions to return and assign the source
-        if subtitles:
-            transcript_info = subtitles
-            transcript_source = 'subtitles'
-        else:
-            transcript_info = auto_captions
-            transcript_source = 'auto-captions'
-        
-        # If there are subtitles or auto captions, download them
-        if transcript_info.get('en'):
-            subtitles_url = transcript_info['en'][0]['url']  # Get the URL for the first English subtitle track
-            transcript_text = download_youtube_subtitles_url(subtitles_url)
-            transcript_text = ' '.join(transcript_text.split())  # compress multiple spaces into one
-        else:
-            print("No English subtitles found.")
-        
-        print(f"For YouTube video title: {video_title}")
+        # Parse duration from ISO 8601 format
+        duration = parse_duration(video_data['contentDetails']['duration'])
+        video_length = str(duration)
+
+        # Get captions if available
+        captions_response = youtube.captions().list(
+            part='snippet',
+            videoId=video_id
+        ).execute()
+
+        transcript_source = None
+        transcript_text = None
+        if captions_response.get('items'):
+            for caption in captions_response['items']:
+                if caption['snippet']['language'] == 'en':
+                    transcript_source = 'subtitles' if not caption['snippet'].get('trackKind') == 'ASR' else 'auto-captions'
+                    break
+
+        # Format the upload date
+        upload_date = snippet['publishedAt'][:10].replace('-', '')
+
         extracted_features = []
-        if formatted_chapters:
-            extracted_features.append('chapters')
-        if description:
+        if snippet.get('description'):
             extracted_features.append('description')
         if transcript_source:
             extracted_features.append(f'transcript from {transcript_source}')
-        
+
+        print(f"For YouTube video title: {snippet['title']}")
         print(f"  extracted the following features: {', '.join(extracted_features)}")
+
         return {
-            'title': video_title,
-            'channel': video_channel,
-            'date': video_date,
+            'title': snippet['title'],
+            'channel': snippet['channelTitle'],
+            'date': upload_date,
             'length': video_length,
-            'chapters': formatted_chapters,
-            'description': description,
+            'chapters': '',  # Note: Chapters aren't available through the API
+            'description': snippet['description'],
             'transcript': transcript_text or "No transcript found",
             'transcript source': transcript_source
         }
+    
+    except HttpError as e:
+        print(f"An HTTP error occurred: {e}")
+        return None
+    finally:
+        if 'youtube' in locals():
+            youtube.close()
 def is_valid_youtube_url(url):
     """ 
-    Determine if a string of url is a valid YouTube URL by attempting to fetch video info using the yt_dlp package.
+    Determine if a string of url is a valid YouTube URL by checking video ID format
+    and making an API call to verify the video exists.
 
     :param url: string of url to be validated.
     :return: boolean where true if the url is valid, false otherwise.
     """
-    ydl_opts = {
-        'quiet': True,
-        'skip_download': True,
-    }
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        try:
-            # Try to fetch the video info. If this succeeds, the URL is valid.
-            ydl.extract_info(url, download=False)
-            return True
-        except youtube_dl.utils.DownloadError:
-            # If youtube_dl raises a DownloadError, the URL is not valid.
-            return False
-        except youtube_dl.utils.ExtractorError:
-            # If youtube_dl raises an ExtractorError, the URL is not valid.
-            return False
-        except Exception as e:
-            # If any other exception occurs, print the exception and assume the URL is not valid.
-            print(f"ERROR in is_valid_youtube_url occurred: {e}")
-            return False
+    # First check if we can extract a valid video ID
+    video_id = extract_video_id(url)
+    if not video_id:
+        print(f"Invalid YouTube URL format: {url}")
+        return False
+        
+    try:
+        youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+        request = youtube.videos().list(
+            part="id",
+            id=video_id
+        )
+        response = request.execute()
+        return bool(response.get('items'))  # Returns True only if video exists
+        
+    except Exception as e:
+        print(f"Invalid YouTube URL: {url}")
+        return False
+    finally:
+        if 'youtube' in locals():
+            youtube.close()
 def create_youtube_md(url, title_or_path=None):  # unittests 3 APICALL + 1 APIMOCK
     """
     Generates a markdown file containing metadata, chapters, description, and transcript from a YouTube video.
@@ -264,18 +467,12 @@ def create_youtube_md(url, title_or_path=None):  # unittests 3 APICALL + 1 APIMO
     :param title_or_path: string of the title or path for the markdown file, defaults to None.
     :return: string of the path to the created markdown file.
     """
-    from primary.fileops import create_full_path, set_metadata_field
-    from primary.fileops import write_metadata_and_content, add_timestamp_links
-    
-    if not is_valid_youtube_url(url):
-        raise ValueError(f"VALUE ERROR - invalid YouTube URL: {url}")
-
     if title_or_path is None:
         title_or_path, _ = get_youtube_title_length(url)
     
     default_folder = "data/audio_inbox"
     suffix_ext = "_yt.md"
-    yt_md_file_path = create_full_path(title_or_path, suffix_ext, default_folder)
+    yt_md_file_path = primary.fileops.create_full_path(title_or_path, suffix_ext, default_folder)
 
     yt_info_dict = get_youtube_all(url)
     yt_content = "## content\n\n"
@@ -287,14 +484,14 @@ def create_youtube_md(url, title_or_path=None):  # unittests 3 APICALL + 1 APIMO
 
     yt_metadata = "## metadata\n"  # below fields are inserted above
     date_today = datetime.now().strftime("%m-%d-%Y")  # Assign today's date in format MM-DD-YYYY
-    yt_metadata = set_metadata_field(yt_metadata, 'last updated', date_today + ' Created')  # Updates last updated
-    yt_metadata = set_metadata_field(yt_metadata, 'link', url)
-    yt_metadata = set_metadata_field(yt_metadata, 'youtube title', yt_info_dict['title'])
-    yt_metadata = set_metadata_field(yt_metadata, 'youtube transcript source', yt_info_dict['transcript source'])
-    yt_metadata = set_metadata_field(yt_metadata, 'length', yt_info_dict['length'])
+    yt_metadata = primary.fileops.set_metadata_field(yt_metadata, 'last updated', date_today + ' Created')  # Updates last updated
+    yt_metadata = primary.fileops.set_metadata_field(yt_metadata, 'link', url)
+    yt_metadata = primary.fileops.set_metadata_field(yt_metadata, 'youtube title', yt_info_dict['title'])
+    yt_metadata = primary.fileops.set_metadata_field(yt_metadata, 'youtube transcript source', yt_info_dict['transcript source'])
+    yt_metadata = primary.fileops.set_metadata_field(yt_metadata, 'length', yt_info_dict['length'])
     
-    write_metadata_and_content(yt_md_file_path, yt_metadata, yt_content, overwrite='yes')
-    add_timestamp_links(yt_md_file_path)
+    primary.fileops.write_metadata_and_content(yt_md_file_path, yt_metadata, yt_content, overwrite='yes')
+    primary.fileops.add_timestamp_links(yt_md_file_path)
     return yt_md_file_path
 def create_youtube_md_from_file_link(md_file_path):
     """
@@ -349,23 +546,8 @@ def extract_feature_from_youtube_md(yt_md_file_path, feature):
             return extracted_feature.strip() + '\n\n'
     except Exception as e:
         raise ValueError(f"Error extracting {feature} from {yt_md_file_path}: {e}")
-    
-### DEEPGRAM AND JSON
-from deepgram import DeepgramClient, PrerecordedOptions
 
-def test_deepgram_client():  # omit unittests
-    """
-    Tests the Deepgram client initialization with the provided API key and prints a success or failure message.
-    Raises ValueError if test fails.
-    """
-    try:
-        test_deepgram_client = DeepgramClient(DEEPGRAM_API_KEY)
-        if test_deepgram_client:
-            print("Successfully created Deepgram Client and accessed the DeepGram API key.")
-        else:
-            print("Failed to create the Deepgram Client and/or access the DeepGram API key.")
-    except Exception as e:
-        raise ValueError(f"VALUE ERROR in test of Deepgram client: {e}")
+### JSON AND TRANSCRIPT SUPPORT
 def get_media_length(file_path_or_url):
     """
     Retrieves the length (duration) of a media file or a YouTube video.
@@ -375,7 +557,7 @@ def get_media_length(file_path_or_url):
     :param file_path_or_url: Path to a local media file or a URL to a YouTube video.
     :return: length (duration) of the media in seconds (for local files) or in our tuned timestamp format (for YouTube videos).
     """
-    from primary.fileops import tune_timestamp
+    #from primary.fileops import tune_timestamp
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -384,12 +566,12 @@ def get_media_length(file_path_or_url):
             try:
                 if is_valid_youtube_url(file_path_or_url):
                     _, video_length = get_youtube_title_length(file_path_or_url)
-                    return tune_timestamp(video_length)
+                    return primary.fileops.tune_timestamp(video_length)
                 elif os.path.isfile(file_path_or_url):
                     # Use mutagen to get the length of the audio file
                     audio = mutagen.File(file_path_or_url)
                     if audio is not None and hasattr(audio.info, 'length'):
-                        return tune_timestamp(str(timedelta(seconds=int(audio.info.length))))
+                        return primary.fileops.tune_timestamp(str(timedelta(seconds=int(audio.info.length))))
                     else:
                         raise ValueError("Could not determine the length of the audio file.")
                 else:
@@ -398,7 +580,7 @@ def get_media_length(file_path_or_url):
                 raise ValueError(f"An error occurred while retrieving media length: {e}")
             finally:
                 sys.stderr = sys.__stderr__
-def add_link_to_json(json_file_path, link):
+def add_link_to_json_metadata(json_file_path, link):
     """ 
     Add a hyperlink to the JSON file under the 'metadata' section.
 
@@ -425,7 +607,7 @@ def add_link_to_json(json_file_path, link):
     except Exception as e:
         print(f"Error processing file {json_file_path}: {e}")
         return None, e
-def get_link_from_json(json_file_path):
+def get_link_from_json_metadata(json_file_path):
     """ 
     Retrieve the hyperlink from the 'metadata' section of a JSON file.
 
@@ -440,365 +622,6 @@ def get_link_from_json(json_file_path):
         print(f"Error extracting link from {json_file_path}: {e}")
         link = None
     return link
-
-# TODO rename to add transcribe_deepgram_sync and propagate including to unittests
-def transcribe_deepgram(audio_file_path, model):
-    """ 
-    Calls the Deepgram API to transcribe the given audio file using the specified Deepgram model.
-
-    :param audio_file_path: path to the audio file to be transcribed.
-    :param model: the Deepgram model to use for transcription, accpets deepgram api call model or our suffix version (see below).
-    :return: a dictionary containing the transcription results.
-    """
-    from primary.fileops import get_current_datetime_humanfriendly, convert_to_epoch_seconds, get_elapsed_seconds, convert_seconds_to_timestamp, convert_timestamp_to_seconds
-    MIMETYPES = ['mp3', 'mp4', 'mp2', 'aac', 'wav', 'flac', 'pcm', 'm4a', 'ogg', 'opus', 'webm']  # Supported file types
-    deepgram = DeepgramClient(DEEPGRAM_API_KEY)
-
-    # Check if the file type is supported
-    if not any(audio_file_path.endswith(ext) for ext in MIMETYPES):
-        raise ValueError(f"File {audio_file_path} does not have a supported MIME type.")
-
-    if model == 'nova-2-general':
-        suffix = "_nova2gen"
-    elif model == 'nova-2-meeting':
-        suffix = "_nova2meet"
-    elif model == 'enhanced-meeting':
-        suffix = "_enhmeet"
-    elif model == 'whisper-medium':
-        suffix = "_dgwhspm"
-    elif model == 'whisper-large':
-        suffix = "_dgwhspl"
-
-    else:
-        raise ValueError("Invalid or absent DeepGram model ('nova-2-general' 'nova-2-meeting' 'enhanced-meeting' 'whisper-medium' 'whisper-large').")
-
-    json_file_path = None  # Initialize json_file_path to ensure it has a value
-    try:
-        print(f"Deepgram transcribing model: {model}  file : {audio_file_path}")
-        
-        with open(audio_file_path, "rb") as file:
-            buffer_data = file.read()
-
-        # Extract the file extension and prepare the correct MIME type
-        file_extension = audio_file_path.rsplit('.', 1)[1]
-        mimetype = f'audio/{file_extension}'
-
-        payload: FileSource = {
-            "buffer": buffer_data,
-            "mimetype": mimetype,
-        }
-
-        # STEP 2: Configure Deepgram options for audio analysis
-        options = {
-            "punctuate": True, "diarize": True, "model": model, "intents": True, "sentiment": True,
-            "summarize": True, "measurements": True, "smart_format": True, "topics": True
-        }
-
-        audio_length = get_media_length(audio_file_path)
-        start_time = get_current_datetime_humanfriendly()
-        print(f"Start Syncronous Deepgram Transcription at {start_time} for audio length of {audio_length}")
-        # STEP 3: Call the transcribe_file method with the text payload and options
-        # Use a timeout to prevent the write operation from timing out
-        try:
-            # Use the Deepgram client to transcribe the audio file
-            response = deepgram.listen.prerecorded.v("1").transcribe_file(payload, options, timeout=30*60)
-            print("Response received successfully.")
-            print('\n'.join(str(response).splitlines()[:5]))  # Print only the first five lines of the response JSON
-        except Exception as e:
-            print(f"An error occurred: {e}")
-        
-        elapsed_time = get_elapsed_seconds(convert_to_epoch_seconds(start_time))
-        transcribe_time_ratio = int(round(elapsed_time / convert_timestamp_to_seconds(audio_length)*100))
-        print(f"Elapsed time is {convert_seconds_to_timestamp(elapsed_time)} which is {transcribe_time_ratio}% of the audio length")
-        
-        # STEP 4: Save the response as a JSON file
-        response_json = response.to_json(indent=4)
-        json_file_path = audio_file_path.rsplit('.', 1)[0] + suffix + '.json'
-        with open(json_file_path, "w") as json_file:
-            json_file.write(response_json)
-        print(f"Transcription saved to {json_file_path}")
-        #audio_duration = get_youtube_title_length(url)
-        # TODO fill in code to print elapsed
-    except Exception as e:
-        print(f"Error during transcription: {e}")
-    return json_file_path
-
-def transcribe_deepgram_sdk_prerecorded(audio_file_path, model):
-    """
-    Calls the Deepgram API to transcribe the given audio file using the specified Deepgram model, utilizing the SDK.
-
-    :param audio_file_path: path to the audio file to be transcribed.
-    :param model: the Deepgram model to use for transcription.
-    :return: path to the JSON file containing the transcription results.
-    """
-    from primary.fileops import get_current_datetime_humanfriendly, convert_to_epoch_seconds, get_elapsed_seconds, convert_seconds_to_timestamp, convert_timestamp_to_seconds
-
-    MIMETYPES = ['mp3', 'mp4', 'mp2', 'aac', 'wav', 'flac', 'pcm', 'm4a', 'ogg', 'opus', 'webm']
-    deepgram = DeepgramClient(DEEPGRAM_API_KEY)
-
-    if not any(audio_file_path.endswith(ext) for ext in MIMETYPES):
-        raise ValueError(f"File {audio_file_path} does not have a supported MIME type.")
-
-    model_suffix_map = {
-        'nova-2-general': "_nova2gen",
-        'nova-2-meeting': "_nova2meet",
-        'enhanced-meeting': "_enhmeet",
-        'whisper-medium': "_dgwhspm",
-        'whisper-large': "_dgwhspl"
-    }
-
-    if model not in model_suffix_map:
-        raise ValueError("Invalid or absent DeepGram model.")
-
-    suffix = model_suffix_map[model]
-    json_file_path = None
-
-    try:
-        print(f"Deepgram transcribing model: {model}  file : {audio_file_path}")
-
-        with open(audio_file_path, "rb") as audio:
-            source = {'buffer': audio, 'mimetype': f'audio/{audio_file_path.rsplit(".", 1)[1]}'}
-
-        options = PrerecordedOptions(
-            model=model,
-            punctuate=True,
-            diarize=True,
-            intents=True,
-            sentiment=True,
-            summarize=True,
-            measurements=True,
-            smart_format=True,
-            topics=True
-        )
-
-        audio_length = get_media_length(audio_file_path)
-        start_time = get_current_datetime_humanfriendly()
-        print(f"Start Synchronous Deepgram Transcription at {start_time} for audio length of {audio_length}")
-
-        response = deepgram.transcription.sync_prerecorded(source, options)
-        print("Response received successfully.")
-        print('\n'.join(str(response).splitlines()[:5]))
-
-        elapsed_time = get_elapsed_seconds(convert_to_epoch_seconds(start_time))
-        transcribe_time_ratio = int(round(elapsed_time / convert_timestamp_to_seconds(audio_length)*100))
-        print(f"Elapsed time is {convert_seconds_to_timestamp(elapsed_time)} which is {transcribe_time_ratio}% of the audio length")
-
-        json_file_path = audio_file_path.rsplit('.', 1)[0] + suffix + '.json'
-        with open(json_file_path, "w") as json_file:
-            json.dump(response, json_file, indent=4)
-        print(f"Transcription saved to {json_file_path}")
-
-    except Exception as e:
-        print(f"Error during transcription: {e}")
-
-    return json_file_path
-
-
-# TODO create APICALL and APIMOCK unittests
-# TODO update with options and other stuff from sync version AND FIX THE MODEL PROBLEM!!
-# TODO add model to return tuple
-def transcribe_deepgram_callback(audio_file_path, model, callback_url):
-    """
-    Transcribes the given audio file using the specified Deepgram model asynchronously with a callback URL.
-
-    :param audio_file_path: path to the audio file to be transcribed.
-    :param model: the Deepgram model to use for transcription.
-    :param callback_url: URL to which Deepgram will send the transcription results.
-    :return: Request ID from Deepgram indicating that the file has been accepted for processing.
-    """
-    from primary.fileops import get_current_datetime_humanfriendly
-
-    # Supported MIME types mapping
-    MIMETYPES = {
-        'mp3': 'audio/mpeg',
-        'mp4': 'audio/mp4',
-        'wav': 'audio/wav',
-        'flac': 'audio/flac',
-        # add other supported formats as necessary
-    }
-
-    file_extension = audio_file_path.rsplit('.', 1)[1]
-    if file_extension not in MIMETYPES:
-        raise ValueError(f"File {audio_file_path} does not have a supported MIME type.")
-
-    mimetype = MIMETYPES[file_extension]
-
-    headers = {
-        'Authorization': f'Token {DEEPGRAM_API_KEY}',
-        'Content-Type': mimetype
-    }
-
-    # Set up the query parameters with the callback URL
-    params = {
-        'callback': callback_url,
-        # 'punctuate': True, # it works if this line is commented out
-        # 'diarize': True,  # it works if this line is commented out
-        'model': model
-    }
-
-    with open(audio_file_path, 'rb') as file:
-        audio_data = file.read()
-
-    audio_length = get_media_length(audio_file_path)
-    start_time = get_current_datetime_humanfriendly()
-    print(f"Start Callback Deepgram Transcription at {start_time} for audio length of {audio_length}")
-        
-    response = post(
-        url='https://api.deepgram.com/v1/listen',
-        headers=headers,
-        params=params,
-        data=audio_data
-    )
-
-    # Adjusted to accept both 200 and 202 status codes as successful
-    if response.status_code in (200, 202):        
-        callback_response = response.json()
-        request_id = callback_response.get('request_id', 'NO REQUEST_ID FIELD FOUND IN JSON')
-        if request_id == 'NO REQUEST_ID FIELD FOUND IN JSON':
-            print(f"Deepgram Callback FAIL - {request_id}")
-        else:
-            print(f"Deepgram Callback SUCCESS - request_id: {request_id}")
-        base_audio_file_name = os.path.splitext(os.path.basename(audio_file_path))[0]
-        return (request_id, base_audio_file_name, model)
-
-    else:
-        raise Exception(f"Failed to submit audio: {response.text}, Status Code: {response.status_code}")
-
-
-
-
-        # json_data = response.json()
-        # with open('tests/test_manual_files/1min youttube/155500a5-83f5-4b56-a4bb-372aa25a29b2.json', 'r') as file:
-        #     json_data = json.load(file)
-
-        # request_id = json_data.get('request_id', 'NO REQUEST_ID FIELD FOUND IN JSON')
-        # created_timestamp = json_data.get('created', 'NO CREATED FIELD FOUND IN JSON')
-
-        # s3_bucket = 'fofpublic'
-        # s3_path = 'deepgram-transcriptions'
-        # cur_s3_object_name = f"{request_id}.json"
-        # json_data = get_s3_json(s3_bucket, cur_s3_object_name, s3_path)
-        # print(f"First characters of received JSON:\n\n{json.dumps(json_data)[:500]}")
-
-        # created_timestamp = json_data.get('metadata', {}).get('created', 'NO CREATED FIELD FOUND IN JSON').replace(':', '').split('.')[0]
-        
-        # new_s3_object_name = f"{base_audio_file_name}_{created_timestamp}.json"
-        # #rename_s3_object(s3_bucket, old_s3_object_name, new_s3_object_name, s3_path=s3_path)
-        # return new_s3_object_name
-def transcribe_deepgram_callback2(audio_file_path, model, callback_url):
-    """
-    Transcribes the given audio file using the specified Deepgram model asynchronously with a callback URL.
-
-    :param audio_file_path: path to the audio file to be transcribed.
-    :param model: the Deepgram model to use for transcription.
-    :param callback_url: URL to which Deepgram will send the transcription results.
-    :return: Request ID from Deepgram indicating that the file has been accepted for processing.
-    """
-    from primary.fileops import get_current_datetime_humanfriendly
-    import os
-
-    # Supported MIME types mapping
-    MIMETYPES = {
-        'mp3': 'audio/mpeg',
-        'mp4': 'audio/mp4',
-        'wav': 'audio/wav',
-        'flac': 'audio/flac',
-    }
-
-    file_extension = audio_file_path.rsplit('.', 1)[1]
-    if file_extension not in MIMETYPES:
-        raise ValueError(f"File {audio_file_path} does not have a supported MIME type.")
-
-    mimetype = MIMETYPES[file_extension]
-
-    headers = {
-        'Authorization': f'Token {DEEPGRAM_API_KEY}',
-        'Content-Type': mimetype
-    }
-
-    # Set up the query parameters with the callback URL
-    params = {
-        'callback': callback_url,
-        #'punctuate': True,
-        #'diarize': True,
-        'model': model,
-    }
-
-    with open(audio_file_path, 'rb') as file:
-        audio_data = file.read()
-
-    audio_length = get_media_length(audio_file_path)
-    start_time = get_current_datetime_humanfriendly()
-    print(f"Start Callback Deepgram Transcription at {start_time} for audio length of {audio_length}")
-
-    try:
-        response = post(
-            url='https://api.deepgram.com/v1/listen',
-            headers=headers,
-            params=params,
-            data=audio_data,
-        )
-    except exceptions.SSLError as ssl_err:
-        print(f"SSL error: {ssl_err}")
-        raise
-    except exceptions.RequestException as req_err:
-        print(f"Request error: {req_err}")
-        raise
-
-    if response.status_code in (200, 202):
-        callback_response = response.json()
-        request_id = callback_response.get('request_id', 'NO REQUEST_ID FIELD FOUND IN JSON')
-        if request_id == 'NO REQUEST_ID FIELD FOUND IN JSON':
-            print(f"Deepgram Callback FAIL - {request_id}")
-        else:
-            print(f"Deepgram Callback SUCCESS - request_id: {request_id}")
-        base_audio_file_name = os.path.splitext(os.path.basename(audio_file_path))[0]
-        return (request_id, base_audio_file_name, model)
-    else:
-        raise Exception(f"Failed to submit audio: {response.text}, Status Code: {response.status_code}")
-# TODO come back and review this to troubleshoot deepgram whisper transcription
-def transcribe_deepgram_OLD_fixhang(file_path, timeout_duration=1*60*60):
-    json_file_path = None
-    progress_thread = None
-    stop_event = threading.Event()
-    try:
-        if file_path.endswith(MIMETYPE):
-            print(f"Starting Deepgram transcription at {get_current_time_str()}")
-
-            # Print the size of the file in MB
-            file_size_mb = os.path.getsize(file_path) / (1024 * 1024)
-            print(f"File size: {file_size_mb:.2f} MB")
-
-            # Start the progress thread with the stop event
-            progress_thread = threading.Thread(target=print_progress, args=(timeout_duration, stop_event))
-            progress_thread.start()
-
-            with open(file_path, "rb") as f:
-                source = {"buffer": f, "mimetype": 'audio/' + MIMETYPE}
-
-                # Start the transcription process
-                print(f"Deepgram transcribing file: {file_path}")
-                print("Progress: ", end="")
-
-                res = dg.transcription.sync_prerecorded(source, dg_options)
-
-                # Signal the progress thread to stop
-                stop_event.set()
-
-                json_file_path = file_path[:-4] + dg_suffix + '.json'
-                with open(json_file_path, "w") as transcript:
-                    json.dump(res, transcript, indent=4)
-                print(f"\nDeepgram transcribe successful on file: {file_path}")
-        else:
-            print(f"File {file_path} does not end with {MIMETYPE}")
-    except Exception as e:
-        print(f"Error during transcription: {e}")
-    finally:
-        # Signal the progress thread to stop and ensure it is stopped
-        if progress_thread is not None:
-            stop_event.set()
-            progress_thread.join(timeout=0)
-    return json_file_path
 def get_summary_start_seconds(data, index):
     """ 
     Retrieves the start time in seconds of a word from the transcription data at the given index.
@@ -971,6 +794,328 @@ def set_various_transcript_headings(file_path, feature, source):
         return
 
     set_heading(file_path, extracted_feature_text, "### " + feature)
+
+### DEEPGRAM ALTERNATIVES
+def test_deepgram_client():  # omit unittests
+    """
+    Tests the Deepgram client initialization with the provided API key and prints a success or failure message.
+    Raises ValueError if test fails.
+    """
+    try:
+        test_deepgram_client = DeepgramClient(DEEPGRAM_API_KEY)
+        if test_deepgram_client:
+            print("Successfully created Deepgram Client and accessed the DeepGram API key.")
+        else:
+            print("Failed to create the Deepgram Client and/or access the DeepGram API key.")
+    except Exception as e:
+        raise ValueError(f"VALUE ERROR in test of Deepgram client: {e}")
+MIMETYPES = ['mp3', 'mp4', 'mp2', 'aac', 'wav', 'flac', 'pcm', 'm4a', 'ogg', 'opus', 'webm']
+DG_MODEL_SUFFIX_MAP = {
+    'nova-2-general': "_nova2gen",
+    'nova-2-meeting': "_nova2meet",
+    'enhanced-meeting': "_enhmeet",
+    'whisper-medium': "_dgwhspm",
+    'whisper-large': "_dgwhspl"
+}
+def transcribe_deepgram_sync(audio_file_path, model):
+    """ 
+    Calls the Deepgram API to transcribe the given audio file using the specified Deepgram model.
+
+    :param audio_file_path: path to the audio file to be transcribed.
+    :param model: the Deepgram model to use for transcription, accpets deepgram api call model or our suffix version (see below).
+    :return: a dictionary containing the transcription results.
+    """
+    from primary.fileops import get_current_datetime_humanfriendly, convert_to_epoch_seconds, get_elapsed_seconds, convert_seconds_to_timestamp, convert_timestamp_to_seconds
+    
+    deepgram = DeepgramClient(DEEPGRAM_API_KEY)
+
+    if not any(audio_file_path.endswith(ext) for ext in MIMETYPES):
+        raise ValueError(f"File {audio_file_path} does not have a supported MIME type.")
+
+    if model not in DG_MODEL_SUFFIX_MAP:
+        raise ValueError("Invalid or absent DeepGram model.")
+
+    suffix = DG_MODEL_SUFFIX_MAP[model]
+    json_file_path = None
+
+    try:
+        print(f"Deepgram transcribing model: {model}  file : {audio_file_path}")
+        
+        with open(audio_file_path, "rb") as file:
+            buffer_data = file.read()
+
+        # Extract the file extension and prepare the correct MIME type
+        file_extension = audio_file_path.rsplit('.', 1)[1]
+        mimetype = f'audio/{file_extension}'
+
+        payload: FileSource = {
+            "buffer": buffer_data,
+            "mimetype": mimetype,
+        }
+
+        # STEP 2: Configure Deepgram options for audio analysis
+        options = {
+            "punctuate": True, "diarize": True, "model": model, "measurements": True, "smart_format": True,
+            # "summarize": True, "intents": True, "sentiment": True, "topics": True
+        }
+
+        audio_length = get_media_length(audio_file_path)
+        start_time = get_current_datetime_humanfriendly()
+        print(f"Start Non-SDK Synchronous Deepgram Transcription at {start_time} for audio length of {audio_length}")
+        # STEP 3: Call the transcribe_file method with the text payload and options
+        # Use a timeout to prevent the write operation from timing out
+        try:
+            # Use the Deepgram client to transcribe the audio file
+            response = deepgram.listen.prerecorded.v("1").transcribe_file(payload, options, timeout=30*60)
+            print("Response received successfully.")
+            print('\n'.join(str(response).splitlines()[:5]))  # Print only the first five lines of the response JSON
+        except Exception as e:
+            print(f"An error occurred: {e}")
+        
+        elapsed_time = get_elapsed_seconds(convert_to_epoch_seconds(start_time))
+        transcribe_time_ratio = int(round(elapsed_time / convert_timestamp_to_seconds(audio_length)*100))
+        print(f"Elapsed time is {convert_seconds_to_timestamp(elapsed_time)} which is {transcribe_time_ratio}% of the audio length")
+        
+        # STEP 4: Save the response as a JSON file
+        response_json = response.to_json(indent=4)
+        json_file_path = audio_file_path.rsplit('.', 1)[0] + suffix + '.json'
+        with open(json_file_path, "w") as json_file:
+            json_file.write(response_json)
+        print(f"Transcription saved to {json_file_path}")
+        #audio_duration = get_youtube_title_length(url)
+        # TODO fill in code to print elapsed
+    except Exception as e:
+        print(f"Error during transcription: {e}")
+    return json_file_path
+def transcribe_deepgram_sync_sdk_prerecorded(audio_file_path, model):
+    """
+    Calls the Deepgram API to transcribe the given audio file using the specified Deepgram model, utilizing the SDK.
+
+    :param audio_file_path: path to the audio file to be transcribed.
+    :param model: the Deepgram model to use for transcription.
+    :return: path to the JSON file containing the transcription results.
+    """
+    from primary.fileops import get_current_datetime_humanfriendly, convert_to_epoch_seconds, get_elapsed_seconds, convert_seconds_to_timestamp, convert_timestamp_to_seconds
+
+    deepgram = DeepgramClient(DEEPGRAM_API_KEY)
+
+    if not any(audio_file_path.endswith(ext) for ext in MIMETYPES):
+        raise ValueError(f"File {audio_file_path} does not have a supported MIME type.")
+
+    if model not in DG_MODEL_SUFFIX_MAP:
+        raise ValueError("Invalid or absent DeepGram model.")
+
+    suffix = DG_MODEL_SUFFIX_MAP[model]
+    json_file_path = None
+
+    try:
+        print(f"Deepgram transcribing model: {model}  file : {audio_file_path}")
+
+        # Read the audio file into a buffer
+        with open(audio_file_path, "rb") as audio:
+            buffer_data = audio.read()
+
+        # Create the payload with the buffer data and mimetype
+        payload: FileSource = {
+            "buffer": buffer_data,
+            "mimetype": f'audio/{audio_file_path.rsplit(".", 1)[1]}'
+        }
+
+        # Configure Deepgram options
+        options = PrerecordedOptions(
+            model=model,
+            smart_format=True,
+            punctuate=True,
+            measurements=True,
+            diarize=True
+        )
+
+        audio_length = get_media_length(audio_file_path)
+        start_time = get_current_datetime_humanfriendly()
+        print(f"Start SDK Synchronous Deepgram Transcription at {start_time} for audio length of {audio_length}")
+
+        # Call the transcribe method with an increased timeout
+        response = deepgram.listen.rest.v("1").transcribe_file(
+            payload, 
+            options,
+            timeout=httpx.Timeout(1800.0, connect=10.0)  # set timeout to be 30min
+        )
+        print("Response received successfully.")
+        print('\n'.join(str(response).splitlines()[:5]))
+
+        elapsed_time = get_elapsed_seconds(convert_to_epoch_seconds(start_time))
+        transcribe_time_ratio = int(round(elapsed_time / convert_timestamp_to_seconds(audio_length)*100))
+        print(f"Elapsed time is {convert_seconds_to_timestamp(elapsed_time)} which is {transcribe_time_ratio}% of the audio length")
+
+        # Save the response to a JSON file
+        json_file_path = audio_file_path.rsplit('.', 1)[0] + suffix + '.json'
+        with open(json_file_path, "w") as json_file:
+            json_file.write(response.to_json(indent=4))
+        print(f"Transcription saved to {json_file_path}")
+
+    except Exception as e:
+        print(f"Error during transcription: {e}")
+
+    return json_file_path
+DG_CALLBACK_URL = 'https://lsehufc3n2.execute-api.us-west-2.amazonaws.com/api/transcription'
+MIMETYPES_MAP = {  # Supported MIME types mapping - USED IN transcribe_deepgram_callback
+    'mp3': 'audio/mpeg',
+    'mp4': 'audio/mp4',
+    'mp2': 'audio/mpeg',
+    'aac': 'audio/aac',
+    'wav': 'audio/wav',
+    'flac': 'audio/flac',
+    'pcm': 'audio/l16',
+    'm4a': 'audio/mp4',
+    'ogg': 'audio/ogg',
+    'opus': 'audio/opus',
+    'webm': 'audio/webm',
+}
+def transcribe_deepgram_callback_lambda(audio_file_path, model, callback_url=DG_CALLBACK_URL):  # old version using deepfram-callback lambda function - deprecated for presigned s3
+    """
+    Transcribes the given audio file using the specified Deepgram model asynchronously with a callback URL.
+
+    :param audio_file_path: path to the audio file to be transcribed.
+    :param model: the Deepgram model to use for transcription.
+    :param callback_url: URL to which Deepgram will send the transcription results.
+    :return: Request ID from Deepgram indicating that the file has been accepted for processing.
+    """
+    from primary.fileops import get_current_datetime_humanfriendly
+
+    file_extension = audio_file_path.rsplit('.', 1)[1]
+    if file_extension not in MIMETYPES_MAP:
+        raise ValueError(f"File {audio_file_path} does not have a supported MIME type.")
+
+    mimetype = MIMETYPES_MAP[file_extension]
+
+    headers = {
+        'Authorization': f'Token {DEEPGRAM_API_KEY}',
+        'Content-Type': mimetype
+    }
+
+    # Set up the query parameters with the callback URL and callback headers
+    params = {
+        'callback': callback_url,
+        'model': model,
+        'diarize': 'true', 'punctuate': 'true', 'measurements': 'true', 'smart_format': 'true',
+        # 'keywords': 'Portola:5,Arastradero:5,Ladera:5,Rossotti:5,CERT:5'
+    }
+
+    with open(audio_file_path, 'rb') as file:
+        audio_data = file.read()
+
+    audio_length = get_media_length(audio_file_path)
+    start_time = get_current_datetime_humanfriendly()
+    print(f"Start Callback Deepgram Transcription at {start_time} for audio length of {audio_length}")
+        
+    response = post(
+        url='https://api.deepgram.com/v1/listen',
+        headers=headers,
+        params=params,
+        data=audio_data
+    )
+
+    # Adjusted to accept both 200 and 202 status codes as successful
+    if response.status_code in (200, 202):        
+        callback_response = response.json()
+        request_id = callback_response.get('request_id', 'NO REQUEST_ID FIELD FOUND IN JSON')
+        if request_id == 'NO REQUEST_ID FIELD FOUND IN JSON':
+            print(f"Deepgram Callback FAIL - {request_id}")
+        else:
+            print(f"Deepgram Callback SUCCESS - request_id: {request_id}")
+        base_audio_file_name = os.path.splitext(os.path.basename(audio_file_path))[0]
+        return (request_id, base_audio_file_name)  # changed 11-1 to not return model
+
+    else:
+        raise Exception(f"Failed to submit audio: {response.text}, Status Code: {response.status_code}")
+
+        # json_data = response.json()
+        # with open('tests/test_manual_files/1min youttube/155500a5-83f5-4b56-a4bb-372aa25a29b2.json', 'r') as file:
+        #     json_data = json.load(file)
+
+        # request_id = json_data.get('request_id', 'NO REQUEST_ID FIELD FOUND IN JSON')
+        # created_timestamp = json_data.get('created', 'NO CREATED FIELD FOUND IN JSON')
+
+        # s3_bucket = 'fofpublic'
+        # s3_path = 'deepgram-transcriptions'
+        # cur_s3_object_name = f"{request_id}.json"
+        # json_data = get_s3_json(s3_bucket, cur_s3_object_name, s3_path)
+        # print(f"First characters of received JSON:\n\n{json.dumps(json_data)[:500]}")
+
+        # created_timestamp = json_data.get('metadata', {}).get('created', 'NO CREATED FIELD FOUND IN JSON').replace(':', '').split('.')[0]
+        
+        # new_s3_object_name = f"{base_audio_file_name}_{created_timestamp}.json"
+        # #rename_s3_object(s3_bucket, old_s3_object_name, new_s3_object_name, s3_path=s3_path)
+        # return new_s3_object_name
+def transcribe_deepgram_callback_lambda_sdk_prerecorded(audio_file_path, model, callback_url=DG_CALLBACK_URL):
+    """
+    Calls the Deepgram API to transcribe the given audio file using the specified Deepgram model,
+    utilizing the SDK and callback functionality.
+
+    :param audio_file_path: Path to the audio file to be transcribed.
+    :param model: The Deepgram model to use for transcription.
+    :param callback_url: The callback URL where Deepgram will send the transcription result.
+    :return: Tuple containing the request_id, base_audio_file_name, and model.
+    """
+    from primary.fileops import get_current_datetime_humanfriendly
+    
+    file_extension = audio_file_path.rsplit('.', 1)[-1]
+    if file_extension not in MIMETYPES:
+        raise ValueError(f"File {audio_file_path} does not have a supported MIME type.")
+
+    mimetype = MIMETYPES[file_extension]
+    deepgram = DeepgramClient()
+
+    if model not in DG_MODEL_SUFFIX_MAP:
+        raise ValueError("Invalid or absent Deepgram model.")
+
+    try:
+        print(f"Deepgram transcribing model: {model}  file: {audio_file_path}")
+
+        # Read the audio file into a buffer
+
+        with open(audio_file_path, 'rb') as audio:
+            source = {'buffer': audio}
+
+        # Configure Deepgram options
+        options = PrerecordedOptions(
+            model=model,
+            smart_format=True,
+            punctuate=True,
+            measurements=True,
+            diarize=True
+        )
+
+        audio_length = get_media_length(audio_file_path)
+        start_time = get_current_datetime_humanfriendly()
+        print(f"Start SDK ThreadedDeepgram Transcription with Callback at {start_time} for audio length of {audio_length}")
+
+        # Call the transcribe_url method with appropriate timeout
+        url_response = deepgram.listen.rest.v("1").transcribe_url(
+            callback_url, options
+            #timeout=httpx.Timeout(30.0, connect=10.0)  # Short timeout since response is immediate with callback
+        )
+
+        # The response should include 'request_id'
+        url_response_dict = url_response.to_dict()
+        request_id = url_response_dict.get('request_id', 'NO REQUEST_ID FIELD FOUND IN RESPONSE')
+        if request_id == 'NO REQUEST_ID FIELD FOUND IN RESPONSE':
+            print(f"Deepgram Callback FAIL - {request_id}")
+            raise Exception(f"Failed to get request_id from response: {url_response_dict}")
+        else:
+            print(f"Deepgram Callback SubmissionSUCCESS - request_id: {request_id}")
+        base_audio_file_name = os.path.splitext(os.path.basename(audio_file_path))[0]
+        return (request_id, base_audio_file_name, model)
+
+    except httpx.TimeoutException as timeout_err:
+        print(f"Timeout error: {timeout_err}")
+        raise
+    except httpx.HTTPError as http_err:
+        print(f"HTTP error: {http_err}")
+        raise
+    except Exception as e:
+        print(f"Error during transcription: {e}")
+        raise
 
 ### NUMERAL CONVERT
 def extract_context(line, match, context_radius):
@@ -1487,7 +1632,7 @@ def create_transcript_md_from_json(json_file_path, combine_segs=True):
     from primary.fileops import write_metadata_and_content, add_timestamp_links
     
     md_file_path = json_file_path[:-5] + ".md"
-    link = get_link_from_json(json_file_path)
+    link = get_link_from_json_metadata(json_file_path)
     lines = []
 
     if not validate_transcript_json(json_file_path):
@@ -1530,7 +1675,7 @@ def create_transcript_md_from_json(json_file_path, combine_segs=True):
             lines.extend([curr_speaker + '  ' + curr_timestamp, curr_transcript, ''])
 
     content = "## content\n\n### transcript\n\n" + "\n".join(lines)
-    print(f"DEBUG - content: {content}")
+    #print(f"DEBUG - content: {content}")
     metadata = create_initial_metadata()
     date_today = datetime.now().strftime("%m-%d-%Y") # Assign today's date in format MM-DD-YYY
     metadata = set_metadata_field(metadata, 'last updated', date_today + ' Created')  
@@ -1541,28 +1686,29 @@ def create_transcript_md_from_json(json_file_path, combine_segs=True):
     convert_nums_to_words(md_file_path)
     add_timestamp_links(md_file_path)
     return md_file_path
-def process_deepgram_transcription(title, link, model, audio_inbox_path="data/audio_inbox"):  # unittests 1 TEMP SKIPPED
+def process_deepgram_transcription_sync(title, link, model, output_dir="data/audio_inbox", skip_download=False):  # unittests 1 TEMP SKIPPED
     """
     Processes a Deepgram transcription from a YouTube video link by downloading the audio, transcribing it, and creating a markdown transcript.
 
     :param title: the title of the video used to name the downloaded audio file.
     :param link: the YouTube link to the video to be transcribed.
     :param model: the Deepgram model used for transcription.
-    :param audio_inbox_path: the directory path where the audio file will be downloaded.
+    :param output_dir: the directory path where the audio file will be downloaded.
+    :param skip_download: if True, will use existing audio file instead of redownloading.
     :return: the path to the created markdown file or None if transcription fails.
     """
     # Download the audio file
-    audio_file_path = download_mp3_from_youtube(link, f"{audio_inbox_path}/{title}")
+    audio_file_path = download_mp3_from_youtube(link, title, output_dir, skip_download)
     
     # Transcribe the downloaded audio file
-    json_file_path = transcribe_deepgram(audio_file_path, model)
+    json_file_path = transcribe_deepgram_sync(audio_file_path, model)
     if json_file_path is None:
         print("transcription failed or the file type is incorrect.")
         return None
     print(json_file_path)
 
     # Add the YouTube link to the transcription JSON
-    add_link_to_json(json_file_path, link)
+    add_link_to_json_metadata(json_file_path, link)
 
     # Create a markdown transcript from the JSON file and process it
     md_file_path = create_transcript_md_from_json(json_file_path)
@@ -1571,7 +1717,7 @@ def process_deepgram_transcription(title, link, model, audio_inbox_path="data/au
     assign_speaker_names(md_file_path)
     
     return md_file_path
-def process_deepgram_transcription_from_audio_file(audio_file_path, link, model):  # unittests 1 TEMP SKIPPED
+def process_deepgram_transcription_sync_from_audio_file(audio_file_path, link, model):  # unittests 1 TEMP SKIPPED
     """ 
     Transcribes an audio file using the Deepgram service, adds the YouTube link to the transcription, creates a markdown transcript, and assigns speaker names.
 
@@ -1581,11 +1727,11 @@ def process_deepgram_transcription_from_audio_file(audio_file_path, link, model)
     :return: string of the path to the markdown file with the completed transcription or None if transcription fails.
     """
     # Transcribe the downloaded audio file
-    json_file_path = transcribe_deepgram(audio_file_path, model)
+    json_file_path = transcribe_deepgram_sync(audio_file_path, model)
     if json_file_path is None:
         raise ValueError("Transcription failed or the file type is incorrect.")
     # Add the YouTube link to the transcription JSON
-    add_link_to_json(json_file_path, link)
+    add_link_to_json_metadata(json_file_path, link)
 
     # Create a markdown transcript from the JSON file and process it
     md_file_path = create_transcript_md_from_json(json_file_path)
@@ -1594,21 +1740,311 @@ def process_deepgram_transcription_from_audio_file(audio_file_path, link, model)
     assign_speaker_names(md_file_path)
 
     return md_file_path
-def process_multiple_videos(videos_to_process, model='nova-2-general', bool_youtube=True):  # unittests 1 MOCK
+
+def transcribe_deepgram_callback_presigneds3(audio_file_path, model):
+    """
+    Upload the local audio file to S3 (if not already there).
+    Generate a GET presigned URL for Deepgram to read it,
+    Generate a PUT presigned URL for Deepgram to write the transcript
+    (with a name derived from the audio filename + model suffix),
+    and kick off the asynchronous transcription with callback=PUT.
+
+    :param audio_file_path: Local path to the audio file
+    :param model: Deepgram model, e.g. 'nova', mapped by DG_MODEL_SUFFIX_MAP
+    :return: (request_id, transcript_s3_key, base_audio_file_name, s3_bucket)
+    """
+    from primary.aws import upload_file_to_s3, generate_presigned_s3_url
+    
+    # Pull your model suffix here
+    suffix = DG_MODEL_SUFFIX_MAP[model]
+
+    # 1) Define your bucket and object keys
+    s3_bucket = 'fofsecure'
+    base_audio_file_name = os.path.basename(audio_file_path)  # e.g. "my_audio.mp3"
+    audio_s3_key = f"audio/{base_audio_file_name}"
+
+    # 2) Upload to S3 (audio folder).
+    upload_file_to_s3(
+        file_path=audio_file_path,
+        bucket=s3_bucket,
+        object_name=base_audio_file_name,  # S3 uses the file's basename
+        s3_path='audio'
+    )
+
+    # 3) Generate a GET presigned URL for Deepgram to access the audio
+    presigned_get_url = generate_presigned_s3_url(
+        bucket=s3_bucket,
+        object_key=audio_s3_key,
+        method='get',
+        expire_seconds=1800  # 30 min, adjust as needed
+    )
+
+    # 4) Generate a descriptive S3 key for the final transcript in 'transcripts' folder
+    #    Example: transcripts/<my_audio>_<suffix>_<uuid>.json
+    file_root, _ext = os.path.splitext(base_audio_file_name)
+    transcript_s3_key = f"transcripts/{file_root}{suffix}.json"
+
+    # 5) Generate a PUT presigned URL for Deepgram to write the transcript
+    presigned_put_url = generate_presigned_s3_url(
+        bucket=s3_bucket,
+        object_key=transcript_s3_key,
+        method='put',
+        content_type='application/json',
+        expire_seconds=1800
+    )
+
+    # 6) Call Deepgram asynchronously
+    headers = {
+        'Authorization': f'Token {DEEPGRAM_API_KEY}'
+    }
+    params = {
+        'model': model,
+        'callback': presigned_put_url,
+        'callback_method': 'put',
+        'smart_format': 'true',
+        'diarize': 'true',
+        'punctuate': 'true',
+        'measurements': 'true'
+    }
+    source = {'url': presigned_get_url}
+
+    start_time = get_current_datetime_humanfriendly()
+    print(f"Start Callback Deepgram Transcription at {start_time} using presigned URLs.")
+
+    try:
+        response = requests.post('https://api.deepgram.com/v1/listen', headers=headers, params=params, json=source)
+    except requests.exceptions.SSLError as ssl_err:
+        print(f"SSL error: {ssl_err}")
+        raise
+    except requests.exceptions.RequestException as req_err:
+        print(f"Request error: {req_err}")
+        raise
+
+    if response.status_code not in (200, 202):
+        raise Exception(f"Failed to submit audio: {response.text}, Status Code: {response.status_code}")
+
+    # 7) Extract the request_id from the Deepgram response
+    callback_response = response.json()
+    request_id = callback_response.get('request_id', 'NO_REQUEST_ID_FOUND')
+    if request_id == 'NO_REQUEST_ID_FOUND':
+        print("WARNING: Deepgram response did not return request_id.")
+
+    print(f"Deepgram Callback SUCCESS - request_id: {request_id}")
+
+    # Return everything the downstream code needs
+    return (request_id, transcript_s3_key, base_audio_file_name, s3_bucket)
+def process_deepgram_transcription_callback_presigneds3(title, link, model, output_dir="data/audio_inbox", audio_file_path=None):
+    """
+    Download or reuse local audio, then send it to Deepgram with presigned S3 callback.
+    Write a "waiting file" with everything needed to later retrieve the final transcript from S3.
+
+    :param title: The title (for naming local waiting file).
+    :param link: The YouTube link (for metadata).
+    :param model: The Deepgram model key (maps to suffix).
+    :param output_dir: Where to store local audio + waiting file.
+    :param audio_file_path: If provided, skip YouTube download and use this local file.
+    :return: The path to the created waiting file.
+    """
+    waiting_prefix = "WAITING-CALLBACK_"
+    suffix = DG_MODEL_SUFFIX_MAP[model]
+    
+    # 1) Possibly download from YouTube
+    if audio_file_path is None:
+        audio_file_path = download_mp3_from_youtube(link, title, output_dir)
+        downloaded_from_youtube = True
+    else:
+        downloaded_from_youtube = False
+
+    # 2) Transcribe with presigned S3 callback
+    (callback_request_id, transcript_s3_key, base_audio_file_name, s3_bucket) = transcribe_deepgram_callback_presigneds3(
+        audio_file_path,
+        model
+    )
+
+    # 3) Create a local "waiting" file with all info needed to retrieve final transcript
+    waiting_file_name = f"{waiting_prefix}{title}{suffix}.txt"
+    waiting_file_path = os.path.join(output_dir, waiting_file_name)
+    with open(waiting_file_path, 'w') as f:
+        f.write(f"request_id: {callback_request_id}\n")
+        f.write(f"bucket: {s3_bucket}\n")
+        f.write(f"object_key: {transcript_s3_key}\n")
+        f.write(f"link: {link}\n")
+        f.write(f"model: {model}\n")
+    
+    print(f"Created waiting file at: {waiting_file_path}")
+    with open(waiting_file_path, 'r') as f:
+        print(f"File contents:\n{f.read()}\n")
+
+    # 4) If we downloaded the audio from YouTube, remove it locally
+    if downloaded_from_youtube and os.path.exists(audio_file_path):
+        os.remove(audio_file_path)
+        print(f"Removed downloaded audio file: {audio_file_path}")
+    
+    return waiting_file_path
+def download_deepgram_callback_waiting(local_folder="data/audio_inbox", prefix="WAITING-CALLBACK_"):
+    from primary.aws import download_file_from_s3
+    import os
+
+    waiting_files = [
+        os.path.join(local_folder, f)
+        for f in os.listdir(local_folder)
+        if f.startswith(prefix)
+    ]
+
+    for waiting_file in waiting_files:
+        with open(waiting_file, 'r') as f:
+            content = f.read()
+            lines = content.split('\n')
+            
+            request_id = None
+            bucket = None
+            object_key = None
+            link = None
+            model = None
+
+            for line in lines:
+                if line.startswith('request_id:'):
+                    request_id = line.split('request_id:')[1].strip()
+                elif line.startswith('bucket:'):
+                    bucket = line.split('bucket:')[1].strip()
+                elif line.startswith('object_key:'):
+                    object_key = line.split('object_key:')[1].strip()
+                elif line.startswith('link:'):
+                    link = line.split('link:')[1].strip()
+                elif line.startswith('model:'):
+                    model = line.split('model:')[1].strip()
+
+            if not object_key or not bucket:
+                print(f"Warning: No object_key or bucket found in {waiting_file}. Skipping.")
+                continue
+
+            # Download that object_key from S3
+            # e.g. 'transcripts/MyAudio_nova_1234.json' from bucket 'fofsecure'
+            local_json_path = download_file_from_s3(
+                bucket=bucket,
+                key=os.path.basename(object_key),     # e.g. 'MyAudio_nova_1234.json'
+                s3_path=os.path.dirname(object_key),  # e.g. 'transcripts'
+                local_folder=local_folder
+            )
+            print(f"DEBUG - object_key => {object_key}, local_json_path => {local_json_path}")
+
+            if local_json_path:
+                # Construct a final local name if desired
+                waiting_base = os.path.basename(waiting_file)[len(prefix):-4]  # remove prefix & ".txt"
+                new_json_path = os.path.join(local_folder, f"{waiting_base}.json")
+                
+                os.rename(local_json_path, new_json_path)
+                os.remove(waiting_file)
+                
+                # Insert link into the JSON, or do additional processing
+                add_link_to_json_metadata(new_json_path, link)
+                md_file_path = create_transcript_md_from_json(new_json_path)
+                
+                print(f"Processed WAITING file => created MD file: {md_file_path}")
+
+def process_multiple_videos(videos_to_process, model='both', bool_callback=True, bool_youtube=True):  # unittests 1 MOCK
     """
     Processes multiple videos by transcribing them and creating YouTube markdown files if bool_youtube is True.
 
     :param videos_to_process: list of tuples containing the title and link of each video to be processed.
-    :param model: string of the deepgram model to be used for transcription. Defaults to 'enhmeet' (deepgram enhanced-meeting) model.
+    :param model: string of the deepgram model to be used for transcription. 'both' will run both whisper-medium and nova-2-general models.
+    :param bool_callback: boolean indicating whether to use callback transcription. Defaults to True.
     :param bool_youtube: boolean indicating whether to create YouTube markdown files. Defaults to True.
     :return: None
     """
+    local_folder = "data/audio_inbox"
+    prefix = "WAITING-CALLBACK_"
+    
     for title, link in videos_to_process:
-        try:                                             
-            cur_md = process_deepgram_transcription(title, link, model)
+        try:
+            if model == 'both':
+                # Run both Whisper Medium and Nova 2 models
+                model1 = 'whisper-medium'
+                model2 = 'nova-2-general'
+                if bool_callback:
+                    process_deepgram_transcription_callback_presigneds3(title, link, model1)
+                    process_deepgram_transcription_callback_presigneds3(title, link, model2)
+                else:
+                    process_deepgram_transcription_sync(title, link, model1)
+                    process_deepgram_transcription_sync(title, link, model2)
+            else:
+                # Run single specified model
+                if bool_callback:
+                    process_deepgram_transcription_callback_presigneds3(title, link, model)
+                else:
+                    process_deepgram_transcription_sync(title, link, model)
+                    
             if bool_youtube:
-                create_youtube_md_from_file_link(cur_md)
+                create_youtube_md(link, title)
         except ValueError as e:
             print(f"Error processing video {title}: {e}")
+        # schedule_recurring_task(
+        #     interval_minutes=5,
+        #     check_function=lambda: check_for_waiting_files(local_folder, prefix),
+        #     work_function=lambda: download_deepgram_callback_waiting(local_folder, prefix),
+        #     max_runs=5
+        # )
+# TODO: Fix these
+def check_for_waiting_files(local_folder="data/audio_inbox", prefix="WAITING-CALLBACK_"):
+    """
+    Checks if there are any waiting files in the specified folder with the given prefix.
+    
+    :param local_folder: string of the path to check for waiting files. Defaults to "data/audio_inbox"
+    :param prefix: string prefix of waiting files to look for. Defaults to "WAITING-CALLBACK_"
+    :return: boolean indicating whether any waiting files were found
+    """
+    waiting_files = [f for f in os.listdir(local_folder) if f.startswith(prefix)]
+    num_waiting = len(waiting_files)
+    print(f"CHECK_FOR_WAITING_FILES - Found {num_waiting} waiting files")
+    return num_waiting > 0
+def schedule_recurring_task(interval_minutes, check_function, work_function, max_runs=1, run_immediately=True):
+    """
+    Schedules a recurring task that runs work_function when check_function returns True.
+    Can be configured to perform an immediate first check and terminate after a specific number of executions.
+
+    :param interval_minutes: Number of minutes between checks
+    :param check_function: Function that returns a boolean indicating whether work_function should run
+    :param work_function: Function to execute when check_function returns True
+    :param max_runs: Maximum number of times to run work_function before terminating. None for infinite runs
+    :param run_immediately: Whether to perform an immediate check before starting the schedule. Defaults to True
+    :return: None
+    """
+    import schedule
+    import time
+    from primary.fileops import get_current_datetime_humanfriendly
+
+    runs_completed = 0
+
+    def job():
+        nonlocal runs_completed
+        print(f"\nRun #{runs_completed + 1} - Checking {check_function.__name__}...")
+        if check_function():
+            print(f"Check passed - Running {work_function.__name__}")
+            work_function()
+            runs_completed += 1
+            if max_runs is not None and runs_completed >= max_runs:
+                # Clear all scheduled jobs and return False to stop the scheduler
+                schedule.clear()
+                return schedule.CancelJob
+        else:
+            print(f"Check not passed - Not running {work_function.__name__}")
+
+    # Perform immediate first check if requested
+    if run_immediately:
+        job()
+    
+    # If we haven't hit max_runs, schedule recurring checks
+    if runs_completed < (max_runs or float('inf')):
+        # Schedule the job to run every interval_minutes
+        schedule.every(interval_minutes).minutes.do(job)
+
+        # Keep running until all jobs are cleared (when max_runs is reached)
+        while len(schedule.get_jobs()) > 0:
+            schedule.run_pending()
+            now = get_current_datetime_humanfriendly()
+            print(f"\nWaiting {interval_minutes} minutes from {now} until next check...")
+            time.sleep(1)
 
 
+
+# END OF FILE transcribe.py

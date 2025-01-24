@@ -1,17 +1,30 @@
 import sys
 import os
 import json
-import glob
-import shutil
 import warnings
-import tiktoken
-from termcolor import colored
-from chalicelib.config import OPENAI_API_KEY_CONFIG_LLM, ANTHROPIC_API_KEY_CONFIG_LLM
 import requests
+import tiktoken
+# import anthropic  # removed 10-6 for qrag-routing
+from termcolor import colored
 from tenacity import retry, wait_random_exponential, stop_after_attempt
+
 from chalicelib.fileops import *
 
 
+# ---API KEYS AND SECRETS---
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+# ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY_LOCAL"]
+
+
+# ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
+
+
+# OpenAI model name - comment one out
+#OPENAI_MODEL = "gpt-4o-mini"  # cost $0.15/$0.60, use instead of gpt3.5
+OPENAI_MODEL = "gpt-4o" # cost $5/$15, use for all gpt4
+ANTHROPIC_MODEL = "claude-3-5-sonnet-20240620"
+
+# Set the warnings to use a custom format
 warnings.formatwarning = custom_formatwarning
 # USAGE: warnings.warn(f"Insert warning message here")
 
@@ -19,19 +32,12 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir) # Add the parent directory to sys.path
 
-os.environ["OPENAI_API_KEY_CONFIG_LLM"] = OPENAI_API_KEY_CONFIG_LLM  # updated 7-20-24 RT as new Project Key (User Keys have been replace by OpenAI for Project Keys but our old User Keys still work)
-os.environ['ANTHROPIC_API_KEY'] = ANTHROPIC_API_KEY_CONFIG_LLM
-
-# OpenAI model name - comment one out
-#OPENAI_MODEL = "gpt-4o-mini"  # cost $0.15/$0.60, use instead of gpt3.5
-OPENAI_MODEL = "gpt-4o" # cost $5/$15, use for all gpt4
-ANTHROPIC_MODEL = "claude-3-5-sonnet-20240620"
-# NOT IMPLEMENTED YET   ANT_LLM = "claude-3-5-sonnet"  # cost $3/$15 60% less gpt4o, not sure if works without -20240620
-
 TOKEN_COST_DICT = {
-    'gpt-4o':{'input_token_cost':5, 'output_token_cost':15}, # costs in $/million tokens
-    'gpt-4-turbo':{'input_token_cost':10, 'output_token_cost':15},
-    'gpt-3.5-turbo':{'input_token_cost':0.5, 'output_token_cost':1.5}
+    'gpt-4o':{'input_token_cost':2.5, 'output_token_cost':10},  # costs in $/million tokens
+    'gpt-4o-mini':{'input_token_cost':.15, 'output_token_cost':.6},
+    'o1-mini':{'input_token_cost':3, 'output_token_cost':12},
+    'o1-preview':{'input_token_cost':15, 'output_token_cost':60},
+    'claude-3-5-sonnet-20241022':{'input_token_cost':3, 'output_token_cost':15}
     }
 BLOCK_DELIMITER = '\n---\n'
 
@@ -260,7 +266,11 @@ def add_token_counts_to_headings(text):
     
     result = '\n'.join(updated_lines)
     total_tokens = count_tokens(result)
-    return f"Total tokens: {total_tokens:,}\n\n{result}"
+    
+    # Add total token count to the first line
+    first_line, *rest = result.split('\n', 1)
+    result = f"{first_line} ({total_tokens:,} tokens)\n" + (rest[0] if rest else "")
+    return result
 
 
 ### SPLIT FILES
@@ -372,7 +382,7 @@ def group_segments_select_speaker(segments, speaker):
     :param speaker: string of the speaker's name to select segments
     :return: list of text segments where the speaker's name is found before the timestamp
     """
-    from primary.fileops import get_timestamp
+    from chalicelib.fileops import get_timestamp
 
     final_segments = []
     temp_segments = []
@@ -445,7 +455,7 @@ def split_file_select_speaker(file_path, speaker, skip_string='SKIPQA', suffix_n
     :param suffix_new: suffix for the new file with block delimiters
     :return: file_path of new file with separator delimiters ("---") with suffix_new='_blocks' by default
     """
-    from primary.fileops import read_metadata_and_content, write_metadata_and_content
+    from chalicelib.fileops import read_metadata_and_content, write_metadata_and_content
 
     metadata, _ = read_metadata_and_content(file_path)
     segments = get_speaker_segments(file_path, skip_string)
@@ -464,7 +474,7 @@ def split_file_every_speaker(file_path, skip_string=None, suffix_new='_blocks'):
     :param suffix_new: suffix for the new file with block delimiters
     :return: file_path of new file with separator delimiters ("---") with suffix_new='_blocks' by default
     """
-    from primary.fileops import read_metadata_and_content, write_metadata_and_content
+    from chalicelib.fileops import read_metadata_and_content, write_metadata_and_content
 
     metadata, _ = read_metadata_and_content(file_path)
     segments = get_speaker_segments(file_path, skip_string)
@@ -481,7 +491,7 @@ def split_file_token_cap(file_path, token_cap, skip_string='SKIPQA', suffix_new=
     :param suffix_new: suffix for the new file with block delimiters
     :return: file_path of new file with separator delimiters ("---") with suffix_new='_blocks' by default
     """
-    from primary.fileops import read_metadata_and_content, write_metadata_and_content
+    from chalicelib.fileops import read_metadata_and_content, write_metadata_and_content
 
     metadata, _ = read_metadata_and_content(file_path)
     segments = get_speaker_segments(file_path, skip_string)
@@ -492,20 +502,29 @@ def split_file_token_cap(file_path, token_cap, skip_string='SKIPQA', suffix_new=
 
 
 ### OPENAI LLM
-def test_openai_chat(model=OPENAI_MODEL):# DS, cat 5, unittests 2 APIMOCK
+def generate_openai_testcurl_command():
     """
-    Sends a predefined message to the OpenAI chat API and prints the response.
-
-    :param model: string of the model name to be used for the chat completion request
-    :return: None
+    Generates a single-line curl command for testing the OpenAI API connection.
+    Prints the command to the console for easy copy-pasting.
     """
+    curl_command = (f"curl https://api.openai.com/v1/chat/completions "
+                    f"-H \"Content-Type: application/json\" "
+                    f"-H \"Authorization: Bearer {OPENAI_API_KEY}\" "
+                    f"-d '{{\"model\": \"{OPENAI_MODEL}\", "
+                    f"\"messages\": [{{\"role\": \"user\", \"content\": \"Hello!\"}}]}}'")
+    
+    print("Copy and paste the following curl command into your terminal:")
+    print(curl_command)
+def test_openai_chat(model=OPENAI_MODEL):
     try:
         messages = [{"role": "user", "content": "Tell me a knock knock joke about science."}]
         response = openai_chat_completion_request(messages, model=model)
-        if response:
-            print("API chat response:", response.text)
+        if response and response.status_code == 200:
+            print("API chat response:", response.json()['choices'][0]['message']['content'])
+        else:
+            print("Failed to get a valid response from the API")
     except Exception as e:
-        print(f"Failed to access the OpenAI API: {e}")
+        print(f"An error occurred: {e}")
 @retry(wait=wait_random_exponential(multiplier=1, max=40), stop=stop_after_attempt(3))
 def openai_chat_completion_request(messages, tools=None, tool_choice=None, model=OPENAI_MODEL):  # APIMOCK unittests 2
     """
@@ -519,7 +538,7 @@ def openai_chat_completion_request(messages, tools=None, tool_choice=None, model
     """
     headers = {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + OPENAI_API_KEY_CONFIG_LLM,  # Use the imported API key instead of this way "openai.api_key,"
+        "Authorization": f"Bearer {OPENAI_API_KEY}"  # Use the global variable
     }
     json_data = {"model": model, "messages": messages}
     if tools is not None:
@@ -541,7 +560,7 @@ def openai_chat_completion_request(messages, tools=None, tool_choice=None, model
 def simple_openai_chat_completion_request(prompt, model):  # no unittests
     headers = {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + OPENAI_API_KEY_CONFIG_LLM,  # Use the imported API key instead of this way "openai.api_key,"
+        "Authorization": f"Bearer {OPENAI_API_KEY}"  # Use the global variable, changed from string literal on 10-5-24 see Coding Notes
     }
 
     messages = [{"role": "user", "content": prompt}]
@@ -559,22 +578,27 @@ def simple_openai_chat_completion_request(prompt, model):  # no unittests
         print("Unable to generate ChatCompletion response")
         print(f"Exception: {e}")
         return str(e)
-def openai_function_call(fcall_prompt, content, tools, verbose=False):  # APIMOCK unittests 3
+# The comment about concatenating a boolean with a string is incorrect.
+# The function is not attempting to concatenate verbose (a boolean) with a string.
+# The issue mentioned is not present in this code.
+
+def openai_function_call(fcall_prompt, content, tools, model=OPENAI_MODEL, verbose=False):  # APIMOCK unittests 3
     """
     Sends a prompt and content to the OpenAI LLM and returns the assistant's message.
 
-    :param prompt_system: string of the system's prompt to initiate the conversation
+    :param fcall_prompt: string of the system's prompt to initiate the conversation
     :param content: string of the user's content to process
     :param tools: list of dictionaries containing tool configurations
+    :param model: string specifying the OpenAI model to use
     :param verbose: boolean indicating whether to print detailed response text
     :return: string of the assistant's message from the LLM response
     """
     messages = [{"role": "system", "content": fcall_prompt}, {"role": "user", "content": content}]
-    verbose_print(verbose, "OPENAI_MODEL = " + OPENAI_MODEL)
-    chat_response = openai_chat_completion_request(messages, tools=tools)
+    verbose_print(verbose, f"OPENAI_MODEL = {model}")
+    chat_response = openai_chat_completion_request(messages, tools=tools, model=model)
 
-    verbose_print(verbose, "Response Status Code:", chat_response.status_code)
-    verbose_print(verbose, "Response Text:", chat_response.text)
+    verbose_print(verbose, f"Response Status Code: {chat_response.status_code}")
+    verbose_print(verbose, f"Response Text: {chat_response.text}")
 
     assistant_message = None  # Initialize to None or a sensible default
     try:
@@ -584,8 +608,8 @@ def openai_function_call(fcall_prompt, content, tools, verbose=False):  # APIMOC
             pretty_print_function(messages, tools)
         # print(f"DEBUG openai_function_call print full messages:\n {messages}")
     except Exception as e:
-        print("Error parsing response:", e)
-    return(assistant_message)
+        print(f"Error parsing response: {e}")
+    return assistant_message
 
 
 ### ANTHROPIC LLM
@@ -600,8 +624,7 @@ def anthropic_chat_completion_request(messages, model=ANTHROPIC_MODEL, system=No
     :param temperature: Controls randomness in the output (0 to 1, default: 0.7)
     :return: The generated message content or None if an error occurs
     """
-    # Initialize the client
-    client = anthropic.Anthropic()
+    anthropic_client = anthropic.Anthropic()
 
     # Prepare the request parameters
     request_params = {
@@ -622,7 +645,7 @@ def anthropic_chat_completion_request(messages, model=ANTHROPIC_MODEL, system=No
 
     try:
         # Make the API call
-        message = client.messages.create(**request_params)
+        message = anthropic_client.messages.create(**request_params)
 
         # Return the content of the message
         return message.content[0].text
@@ -644,7 +667,7 @@ def simple_anthropic_chat_completion_request(prompt, model=ANTHROPIC_MODEL):
     """
     headers = {
         "Content-Type": "application/json",
-        "X-API-Key": os.environ['ANTHROPIC_API_KEY'],
+        "X-API-Key": ANTHROPIC_API_KEY,
         "anthropic-version": "2023-06-01"
     }
 
@@ -713,7 +736,7 @@ def llm_process_file_blocks(blocks_file_path, prompt, suffix_new, mode, provider
     :param retain_delimiters: boolean indicating whether to retain the original block delimiters in the new content
     :return: the path to the file with the updated content
     """
-    from primary.fileops import read_metadata_and_content, write_metadata_and_content
+    from chalicelib.fileops import read_metadata_and_content, write_metadata_and_content
     
     if mode not in ['replace', 'append']:
         raise ValueError("mode must be 'replace' or 'append'.")
@@ -787,7 +810,7 @@ def create_simple_llm_file(file_path, prompt, suffix_new, mode, split_file_funct
     :param kwargs: additional keyword arguments passed to the block separation function
     :return: string of the path to the file with the updated content
     """
-    from primary.fileops import delete_file
+    from chalicelib.fileops import delete_file
 
     # Call the block separation function without 'retain_delimiters'
     # Make a shallow copy of kwargs without 'retain_delimiters' for the separation function
@@ -848,9 +871,93 @@ If an existing quotation is found your response should be the quote itself in cu
 If there is a section that, according to the rules should have a quote, then return the section that should be quoted, with a few extra words from the text on either side. the quotes should be applied and flagged by curly braces and a description that uses the number of the rule that is being referenced to make the call.
 If no changes at all are to be needed, please only respond with 'N/A'. Only use 'N/A' when there are no errors or quotes in the entire block."""
 
-### COPYEDIT
+### COPYEDITS
 PROMPT_COPYEDIT = """
-copyedit the text WIP"""
+You are an expert in copyediting interview transcripts. Your task is to refine the transcript while preserving its verbatim nature. Follow these guidelines:
+1. General Principles:
+- Maintain verbatim transcription: Preserve the speaker's original words and speech patterns as much as possible.
+- Aim for a polished and readable transcript while keeping the original meaning and style intact.
+- Don't rephrase.
+- Don't make drastic changes, don't make any changes that does not align with the given guidelines.
+- Don't correct grammatical errors.
+- Don't remove words if unnecessary or if it does not fall in any of the following guidelines mentioned.
+
+2. Speaker Transitions and Segmentation based on context:
+- Correct unsplit speaker segments based on context and conversation flow.
+
+3. Proper Names and Terminology:
+- Correct and standardize spelling of proper names, places, and specialized terms.
+- Capitalize proper nouns appropriately.
+- Capitalize also the positions and organizations (e.g., Town Manager, Town Council, Fire Marshal)
+- Use unpunctuated acronyms, please don't add periods in between (e.g., ASCC instead of A.S.C.C.)
+
+4. Transcription Error Correction:
+- Identify and fix words that don't make sense given the surrounding context. (e.g., 'The cat jumped over the moon'  might be an error for 'The cat jumped over the broom.')
+- Replace the informal word 'gonna' with 'going to' and 'wanna' with 'want to' 
+
+5. Punctuations and Formatting:
+- Use appropriate punctuation: commas, periods, question marks.
+- Use double quotation marks ("") for quoted speech or phrase, meaning when the speaker is quoting someone else's words.
+- Don't use exclamation marks (!) replace them with periods (.).
+- If there are any forward slash (/) or backslash (\), replace them with dashes (-).
+- Don't use semicolons (;) and colons (:), if needed then use commas (,) instead.
+- Don't use hyphens (—) or dashes (-), if needed then use commas (,) instead.
+- Don't use this format of ellipsis '…', use three periods (...) instead.
+
+6. Disfluencies and Filler Words:
+- Remove repetitions unless they add meaning (e.g., 'I I' change to 'I', 'this this' chang to 'this', 'he said that he said that' change to 'he said that').
+- Remove 'uh' and 'um' unless they significantly impact meaning.
+- Retain 'you know,' 'I mean,' 'like,' and 'yeah' if they add meaning to the statement.
+- Only use commas for restarts, hesitations, and self-corrections (e.g., I want to, I mean, I need to fix, or rather, correct this issue.).
+- Don't use hyphen (—) or dashes (-) for restarts, hesitations, and self-corrections.
+
+7. Time and Dates:
+- Change time format from 24-hour to 12-hour when appropriate (e.g., 14:00 to 2 o'clock).   
+- Format dates consistently, as much as possible use the long format date (e.g., June 1st, June 4th).
+
+8. Special Characters and Formatting:
+- Spell out currency types (e.g., change $123 to 123 dollars).
+- Use the special character '&' only if needed in the proper name (e.g., AT&T).
+- Replace special characters with their standard English equivalents (e.g., Gödel to Godel).
+
+9. Quotations and Specific Terms:
+- Use double quotation marks if the speaker is quoting someone's words (e.g., Popper said, “Science must begin with myths, and with criticism of myths.").
+- Follow the American style for quotations, place periods and commas inside quotation marks.
+
+Here are examples with explanations of the kinds of edits I'm looking:
+<example1>
+Before: Dale Pfau (EPC Chair)  [9:14](https://youtu.be/hNFjjFll1EY&t=554)
+When the new ones come out? We we will probably review them at least in September. We'll review full committing yet. Do you have any do you have any idea when that might happen?
+
+After: Dale Pfau (EPC Chair)  [9:14](https://youtu.be/hNFjjFll1EY&t=554)
+When the new ones come out? We will probably review them at least in subcommittee and may bring them to full committee. Yeah. Do you have any idea when that might happen?
+
+Explanation:
+- Removed repetition of "we".
+- Corrected "full committing" to "full committee" based on context.
+- Removed repetition of "do you have any".
+- Added "Yeah." to separate the response to the previous question from the new question.
+</example1>
+
+<example2>
+Before: Dale Pfau (EPC Chair)  [15:30](https://youtu.be/hNFjjFll1EY&t=930)
+To add to that. I've had Starlink a little over a year now. I use it. I primarily got it as a backup to another Internet connection I have that goes out. StarLink never goes out. As long as you've got power, it's gonna be there. So even AT and T Fiber goes out occasionally when they lose power.
+
+After: Dale Pfau (EPC Chair)  [15:30](https://youtu.be/hNFjjFll1EY&t=930)
+To add to that, I've had Starlink a little over a year now. I use it. I primarily got it as a backup to another internet connection I have that goes out. Starlink never goes out. As long as you've got power, it's going to be there. So even AT&T Fiber goes out occasionally when they lose power.
+
+Explanation:
+- Added a comma after "To add to that".
+- Changed "Internet" to lowercase "internet" as it's not a proper noun.
+- Corrected the proper noun "StarLink" to "Starlink".
+- Changed "gonna" to "going to" for formality.
+- Corrected the proper noun "AT and T" to "AT&T".
+</example2>
+
+Please apply the necessary corrections to the transcript while maintaining the integrity of the spoken content. Remember that when in doubt and it's not specified in the given guidelines, prioritize preserving the original speech over making grammatical improvements. If you're unsure about a potential edit, flag it for human review, add *** in the beginning and end of the word or phrase that needs to be reviewed.
+
+Before providing your final response, think through your edits step by step to ensure consistency and adherence to the provided guidelines.
+"""
 # TODO need to test - not tested after removing ffop code
 def create_copyedit_file(file_path, split_file_function, prompt, *args, **kwargs):
     """
@@ -864,14 +971,14 @@ def create_copyedit_file(file_path, split_file_function, prompt, *args, **kwargs
     :param kwargs: additional keyword arguments passed to the block separation function
     :return: string of the path to the file with the updated content
     """
-    from primary.fileops import delete_file
+    from chalicelib.fileops import delete_file
     
     blocks_file_path = split_file_function(file_path, *args, **kwargs)
-    copyedit_file_path = scall_append(blocks_file_path, prompt, retain_delimiters=True, suffix_new='_copyedit')
+    copyedit_file_path = scall_replace(blocks_file_path, prompt, retain_delimiters=True, suffix_new='_llmce')
     delete_file(blocks_file_path)
     return copyedit_file_path
 
-### SPEAKER SEGMENT TRANSITIONS
+### TRANSCRIPT TRANSITIONS
 PROMPT_TRANSITIONS = """
     Your task is to analyze transcripts for speaker transition errors. 
     You will do this on a single speaker segment where the speaker segments are identified by a speaker name followed by a time stamp with a link. And then on the next line, the segment text, which is the dialogue of what that speaker
@@ -910,7 +1017,7 @@ def mod_blocks_file_with_adjacent_words(blocks_file_path, num_adjacent_words):
     :param num_adjacent_words: integer indicating the number of words to add from adjacent blocks
     :return: None
     """
-    from primary.fileops import read_metadata_and_content, write_metadata_and_content
+    from chalicelib.fileops import read_metadata_and_content, write_metadata_and_content
 
     metadata, content = read_metadata_and_content(blocks_file_path)
     content = content.lstrip("## content\n\n")
@@ -957,7 +1064,7 @@ def create_transitions_file(file_path, split_file_function, prompt, *args, **kwa
     :param prompt: string of the prompt to process each block with
     :return: string of the path to the transitions file
     """
-    from primary.fileops import delete_file
+    from chalicelib.fileops import delete_file
     adjacent_words = 10
 
     blocks_file_path = split_file_function(file_path, *args, **kwargs)
@@ -965,17 +1072,20 @@ def create_transitions_file(file_path, split_file_function, prompt, *args, **kwa
     delete_file(blocks_file_path)
     return transitions_file_path
 
-### QA EXTRACTION
+### QA GENERATION
 FCALL_PROMPT_QA_DIALOGUE_STATEDQA = """
 You are an expert text analyzer that is trained in identifying stated questions and answers in transcripts of dialogue. You will be given blocks of dialogue and your role is to return extracted question and answer pairs that faithfully capture the meaningful content in the dialogue, while removing filler words and minimally modifying the text for clarity and readability. You will use your tool to only return exact JSON in the format specified.
 """
+
 FCALL_PROMPT_QA_DIALOGUE_FROMANSWER = """
 You are an expert text analyzer that is trained in identifying questions or implied questions. You will be given dialogue and your role is to return a create a general, simple question from the provided answer. This created general question may or may not be related to the question actually asked by the speaker in the dialogue preceding the answer. The created general question will be part of a question and answer set used for Retrieval Augmented Generation. The question must not mention the speaker name. You will use your tool to only return exact JSON in the format specified.
 """
+FCALL_PROMPT_QA_DEUTSCH = """
+You are an expert text analyzer that is trained in identifying questions or implied questions. You will be given dialogue and your role is to return a create a general, simple question from the provided answer. This created general question may or may not be related to the question actually asked by the speaker in the dialogue preceding the answer. The created general question will be part of a question and answer set used for Retrieval Augmented Generation. The question must not mention the speaker name. The question should be written in such a way that it assumes that the answer provided is the best knowledge humanity has about this topic at present moment.  Some specific phrases to use include: 1) 'multiverse quantum theory' - rather than 'many-worlds interpretation of quantum'. You will use your tool to only return exact JSON in the format specified. 
+"""
 CUSTOM_INSTRUCTIONS_DEUTSCH_GENERALQ = """
-Analyze the following passage and create a general, simple question for which the answer will be the response. This will be part of a question and answer set such that new questions are compared against the questions, and answers retrieved. The question should not mention the author, or David Deutsch. The question should be written in such a way that it assumes that the answer provided is the best knowledge humanity has about this topic at present moment. Some specific phrases to use include:
-
-'multiverse quantum theory' - rather than 'many-worlds interpretation of quantum'"""
+Analyze the following passage and create a general, simple question for which the answer will be the response. This will be part of a question and answer set such that new questions are compared against the questions, and answers retrieved. The question should not mention the author, or David Deutsch. The question should be written in such a way that it assumes that the answer provided is the best knowledge humanity has about this topic at present moment. Use the phrase 'multiverse quantum theory' rather than 'many-worlds interpretation of quantum'
+"""
 # TODO modify to use the FCALL_PROMPT_QA_DIALOGUE_FROMANSWER above
 def tools_qa_speaker(speaker):  # no unittests
     """
@@ -996,7 +1106,7 @@ def tools_qa_speaker(speaker):  # no unittests
                 "question": {
                     "type": "string",
                     "description":f"""
-                    The question should capture the essence of the original query posed by the interviewer in a simplified, generic form. It should focus on the core topic or idea, removing extraneous contextual details. The modified question should have semantic alignment with {speaker}'s answer. The question should be rephrased for a third-person audience, ensuring it is generalized and does not include direct references to {speaker}. DO NOT mention the name {speaker} in the question. The question should be written in such a way that it assumes that the answer provided is the best knowledge humanity has about this topic at present moment.  Some specific phrases to use include: 1) 'multiverse quantum theory' - rather than 'many-worlds interpretation of quantum'.
+                    The question should capture the essence of the original query posed by the interviewer in a simplified, generic form. It should focus on the core topic or idea, removing extraneous contextual details. The modified question should have semantic alignment with {speaker}'s answer. The question should be rephrased for a third-person audience, ensuring it is generalized and does not include direct references to {speaker}. DO NOT mention the name {speaker} in the question.
                     """ , 
                 },
                 "timestamp": {
@@ -1023,13 +1133,14 @@ def fcall_qa_speaker(block_file_path, speaker, fcall_prompt, suffix_new="_qa"): 
     :param suffix_new: string of the suffix to be appended to the original filename for the new file. Defaults to "_qa".
     :return: string of the path to the newly created file with QA
     """
-    from primary.fileops import read_metadata_and_content, add_timestamp_links
-    from primary.fileops import sub_suffix_in_str, set_last_updated, write_metadata_and_content
+    from chalicelib.fileops import read_metadata_and_content, add_timestamp_links, set_last_updated
+    from chalicelib.fileops import sub_suffix_in_str, set_metadata_field, write_metadata_and_content
 
     print("***Running fcall_qa on file: " + block_file_path)
     
     metadata, block_content = read_metadata_and_content(block_file_path)
-    metadata = set_last_updated(metadata, 'Created QA')
+    # Corrected line: pass file_path instead of metadata
+    metadata = set_metadata_field(metadata, "last updated", 'Created QA')
 
     blocks = block_content.split(BLOCK_DELIMITER)
 
@@ -1094,9 +1205,9 @@ FCALL_SYSTEM_PROMPT_QA_INCREMENTAL_TRANSCTIPRT_FDA_TOWNHALLS_1ST_DRAFT = """
 
     This specific corpus comprises transcripts of the dialogue from virtual townhall meetings held by the United States Food and Drug Administration (FDA) to help answer technical questions about the development and validation of tests for the virus SARS-CoV2, and the updated policy on COVID-19 diagnostics policy for diagnostics test for coronavirus disease 2019 during the public health emergency caused by the COVID-19 global pandemic.
 
-    Authority Speakers in this FDA Townhall Transcript Corpus are specified by the inclusion of the string ‘FDA’ in the role portion of the speaker line.
+    Authority Speakers in this FDA Townhall Transcript Corpus are specified by the inclusion of the string ‘FDA' in the role portion of the speaker line.
 
-    The criteria for qualification for important information to be extracted as question-answer pairs is that the information be technical in nature, procedural, or legal. Information that should not be considered important and excluded from the question-answer extraction process is information related to the orchestration of the call such as which caller or speaker is being selected by the moderator. Information, whether questions by call-in speakers or answers by FDA staff, that is related to whether the FDA authorities can answer the question are considered to be legal and always to be included. These typical include answers from the FDA Authority Speakers similar to ‘we are not able to respond to questions about specific submissions that might be under review’. If you are not sure whether information qualifies as important information, then includeit and set the review_flag property of the response to True.
+    The criteria for qualification for important information to be extracted as question-answer pairs is that the information be technical in nature, procedural, or legal. Information that should not be considered important and excluded from the question-answer extraction process is information related to the orchestration of the call such as which caller or speaker is being selected by the moderator. Information, whether questions by call-in speakers or answers by FDA staff, that is related to whether the FDA authorities can answer the question are considered to be legal and always to be included. These typical include answers from the FDA Authority Speakers similar to ‘we are not able to respond to questions about specific submissions that might be under review'. If you are not sure whether information qualifies as important information, then includeit and set the review_flag property of the response to True.
     """
 
 FCALL_SYSTEM_PROMPT_QA_INCREMENTAL_TRANSCTIPRT_FDA_TOWNHALLS = """
@@ -1293,10 +1404,10 @@ def create_qa_file_from_transcript_incremental(file_path, fcall_prompt):
     :param fcall_prompt: String of the prompt to be used for function calling.
     :return: String of the path to the newly created QA file.
     """
-    from primary.structured import count_blocks
+    from chalicelib.structured import count_blocks
 
     metadata, content = read_metadata_and_content(file_path)
-    metadata = set_last_updated(metadata, 'Created QA Incremental')
+    metadata = set_metadata_field(metadata, "last updated", 'Created QA Incremental')
     metadata = set_metadata_field(metadata, "source file", file_path)
     
     print("OPENAI_MODEL = " + OPENAI_MODEL)
@@ -1354,6 +1465,44 @@ def create_qa_file_from_transcript_incremental(file_path, fcall_prompt):
     return qa_file_path
 
 
+
+SYSTEM_PROMPT_GET_LINE_NUMBERS = """
+Please analyze the following transcript of a town hall meeting and identify the line numbers where a delimiter ('---') should be applied to break the text into chunks for structured question and answer extraction.
+Instructions:
+Break the text into chunks so that dialogue that should go together stays together.
+Apply a delimiter when transitioning to a new question or a new audience member asking a question.
+If an exchange between a single person asking a question includes conceptually distinct questions and answers, and can be broken apart, then break it apart.
+Delete and combine unimportant segments.
+Lines marked with 'SKIPQA' can be skipped or combined.
+Output:
+Provide a list of line numbers where the delimiter should be applied.
+For example: "[28, 37, 42, 55, 64, 79, 96, 108, 132, 141, 154, 192, 205, 214, 223, 238, 246, 252, 261, 300]"
+Make your response only the line numbers separated by commas and surrounded by the square brackets. DO NOTinclude any other text in your response.
+Transcript:
+
+"""
+def get_chunk_line_numbers(file_path, model, system_prompt=SYSTEM_PROMPT_GET_LINE_NUMBERS, heading="### transcript"):
+    # Get the heading text and find the starting line number
+    heading_text = get_heading(file_path, heading)
+    heading_line_start = heading_text.find(heading) + len(heading) + 1
+    print(f"heading line start: {heading_line_start}")
+    
+    # Get the response from OpenAI
+    prompt = system_prompt + heading_text
+    response = simple_openai_chat_completion_request(prompt, model)
+    print(f"response: {response}")
+    
+    # Convert string response to Python list
+    # Remove brackets and split by commas
+    numbers_str = response.strip('[]').split(',')
+    # Convert strings to integers and add heading_line_start to each
+    line_numbers = [int(num.strip()) + heading_line_start for num in numbers_str]
+    
+    return line_numbers
+
+
+
+
 ### QA EVAL
 def validate_qa_transcript_positions(transcript, qa_dict):
     """
@@ -1386,7 +1535,7 @@ def evaluate_qa_extraction(transcript, qa_file_path):
     :param qa_file_path: String path to the file containing extracted QA blocks.
     :return: List of dictionaries containing evaluation results for each QA block.
     """
-    from primary.structured import get_all_fields_dict
+    from chalicelib.structured import get_all_fields_dict, count_blocks
     _, qa_content = read_metadata_and_content(qa_file_path)
     
     # Split the QA content into blocks, excluding empty blocks and those starting with '#'
@@ -1514,3 +1663,47 @@ def run_automated_evaluation(transcript_file, qa_file):
     generate_evaluation_report(evaluation_results, output_file)
     
     print(f"Evaluation completed. Report written to {output_file}")
+
+PROMPT_QUESTION_ERRORS = """
+Analyze the questions from interview transcripts which are in a question and answer format. Identify any questions ('questions' are the ones in 'QUESTIONS:' field, not in 'ANSWERS:', not in 'ORIGINAL QUESTION:', and not in 'NOTES') that exhibit one or more of the following problems:
+1. Mentions 'David Deutsch' explicitly.
+- Only flag questions that explicitly mention "David Deutsch".
+2. Written in first-person.
+- flag questions that use "I".
+- some first-person questions may be acceptable if they are autobiographical and difficult to generalize without losing meaning.
+3. Contains special characters.
+- flag questions containing colons (:) or semicolons (;).
+- do not flag if it does not contain any special characters at all.
+
+Output format:
+QUESTION: [Full text of the question]
+PROBLEM TYPE(S): [List of applicable problem numbers]
+
+Example Output:
+QUESTION: How did David Deutsch feel about the New York Times book review on The Beginning of Infinity?
+PROBLEM TYPE(S): Problem 1 (mentions 'David Deutsch' explicitly)
+
+QUESTION: What would happen if I am unable to create new knowledge?
+PROBLEM TYPE(S): Problem 2 (written in first-person)
+
+If a question does not exhibit any of the specified problems, do not include it in the output. Only flag questions that genuinely need generalization.
+Analyze all questions in the provided transcript and only output those that are problematic according to these criteria. Do not hallucinate. Do not include questions that don't even exist in the provided transcript.
+"""
+
+def create_question_errors_file(file_path, split_file_function, prompt, *args, **kwargs):
+    """
+    Creates a file containing corrected question-answer pairs from a QA fixed file.
+
+    :param file_path: string of the path to the original file
+    :param split_file_function: function used to separate the original file into blocks
+    :param prompt: string of the prompt to process each block with
+    :param args: additional positional arguments passed to the block separation function
+    :param kwargs: additional keyword arguments passed to the block separation function
+    :return: string of the path to the file with corrected question-answer pairs
+    """
+    from chalicelib.fileops import delete_file
+
+    blocks_file_path = split_file_function(file_path, *args, **kwargs)
+    errors_file_path = scall_replace(blocks_file_path, prompt, retain_delimiters=True, suffix_new='_errors')
+    delete_file(blocks_file_path)
+    return errors_file_path

@@ -1,17 +1,21 @@
+# ===== START OF FILE primary/transcribe_mtests.py =====
+# Library for manual testing of transcribe functions
+
 from fileops import *
 from transcribe import *
 
-if True:
-    pass
-if __name__ == "__main__":        
-    cur_file_path = "tests/test_manual_files/1900-01-01_Test file for do fileop_prepqa.md"
-           
+
 ### YOUTUBE FUNCTIONS
 def mtest_download_mp3_from_youtube():
+    pass
+if __name__ == "__main__":        
     cur_url = "https://youtu.be/RNNfkIE7uYs"
-    cur_path = "tests/test_manual_files/transcribe"
-    print(download_mp3_from_youtube(cur_url, output_title = cur_path + '/download_yt_test'))  # WORKS 3-2 RT
+    output_title = 'Youtube_download_test_Feynman'
+    cur_output_dir = "data/0_gitignore"
+    print(download_mp3_from_youtube(cur_url, output_title=output_title, output_dir=cur_output_dir))  # WORKS 3-2 RT
 def mtest_get_youtube_title_length():
+    pass
+#if __name__ == "__main__":        
     cur_url = "https://youtu.be/RNNfkIE7uYs"
     print(get_youtube_title_length(cur_url))  # WORKS 3-3 RT
     # should print ('Richard Feynman on Getting Arrested by Los Alamos Fence Security - Funny Clip!', '0:39')
@@ -20,19 +24,28 @@ def mtest_download_link_list_to_mp3s():
     print(download_link_list_to_mp3s(cur_urls))  # WORKS 3-3 RT
     # should print {'https://youtu.be/RNNfkIE7uYs': 'Richard Feynman on Getting Arrested by Los Alamos Fence Security - Funny Clip!', 'https://youtu.be/VW6LYuli7VU': 'Richard Feynman talks about Algebra'}
 def mtest_get_youtube_subtitles():
-    cur_url = "https://youtu.be/RNNfkIE7uYs"
+    pass
+#if __name__ == "__main__":        
+    cur_url = "https://youtu.be/RNNfkIE7uYs"  # Feynman
+    #cur_url = "https://youtu.be/yAj5EnyuakI"  # Arjun Naval interview
     print(get_youtube_subtitles(cur_url))  # WORKS 3-3 RT
     # should print 'there  was  a  little  annoyances  from   censorship ...'
 def mtest_get_youtube_all():
     pass
 #if __name__ == "__main__":        
-    cur_url = "https://youtu.be/RNNfkIE7uYs"  #"https://youtu.be/mNP5w4n9sFU"
+    #cur_url = "https://youtu.be/RNNfkIE7uYs"
+    cur_url = "https://youtu.be/mNP5w4n9sFU"
     print(get_youtube_all(cur_url))
     # should print {'title': 'Richard Feynman on Getting Arrested by Los Alamos Fence Security - Funny Clip!', 'length': '0:00:39', 'chapters': '', 'description': 'Please Help Support This Channel:https://www.paypal.com/donate/?cmd=_s-xclick&hosted_button_id=BLJ283JMTMT7S\nThe famous physicist Richard P. Feynman always loved to test complex systems in the spirit of curiosity and fun and nowhere was this more true than in the security systems of the most complex scientific project in history, the Manhattan Project, where the greatest scientists of the age were gathered to create the first atomic bomb and in the process develop much of the scientific underpinnings of our modern civilization. \n\nFeynman, being Feynman, found that the best way to challenge the rigor of the establishment was with good old-fashioned mischief. He earned fame (or infamy) inside the safes of Los Alamos, cracking them with ease and leaving cryptic messages pretending to be a spy (all while real Soviet spies were inside and really learning the new nuclear secrets!) - hence his seemingly bizarre mischief making was indeed prophetic in many ways. \n\nHere, Richard Feynman talks briefly about how he tested fence security simply by "taking the path of least action" - through the holes in the fence! Funny stuff straight from the legendary man\'s mouth! Enjoy!', 'transcript': "there was a little annoyances from censorship and so forth but and checking in at gates and all kinds of things but there was it was understandable that such a thing had to go in fact most of the complaints was of a security was rather lacks in places there would be big holes in the outside fence the demand could walk through standing up and I used to enjoy going out through the gate coming in through the fence hole and going out through the gate again and then through the fence hole until the poor sergeant at the gate would gradually realize that this guy's come out of place four times without going in once and he kind of arrests me sort of", 'transcript source': 'auto-captions'}
 def mtest_is_valid_youtube_url():
-    #print(is_valid_youtube_url("https://youtu.be/RNNfkIE7uYs"))  # WORKS True 3-3 RT
+    pass
+#if __name__ == "__main__":        
+    print(is_valid_youtube_url("https://youtu.be/RNNfkIE7uYs"))  # WORKS True 3-3 RT
+    print(is_valid_youtube_url("https://youtu.be/RNNfkIE7uYsXXXX"))  # WORKS True 3-3 RT
     print(is_valid_youtube_url("https://youtu.be/XXXXXXX"))  # expected: False - ERROR: Unsupported URL:
 def mtest_create_youtube_md():
+    pass
+#if __name__ == "__main__":        
     # Make sure to delete all files with this video title in the audio inbox and at any of the specified file paths below.
     cur_url = "https://youtu.be/RNNfkIE7uYs"
     #print(create_youtube_md(cur_url))  # expected: data/audio_inbox/Richard Feynman on Getting Arrested by Los Alamos Fence Security - Funny Clip_yt.md
@@ -51,11 +64,7 @@ def mtest_extract_feature_from_youtube_md():
     cur_file_path = "data/p_Mervin Praison/2023-11-06_Mervin Praison - OpenAI Assistants plus Python_yt.md"
     print(extract_feature_from_youtube_md(cur_file_path, "chapters"))  # expected: same file_path with suffix replaced with _yt
 
-### DEEPGRAM AND JSON FUNCTIONS
-def mtest_test_deepgram_client():
-    pass
-#if __name__ == "__main__":        
-    test_deepgram_client()
+### JSON AND TRANSCRIPT SUPPORT
 def mtest_get_media_length():
     pass
 #if __name__ == "__main__":        
@@ -63,18 +72,6 @@ def mtest_get_media_length():
     cur_url = "https://youtu.be/1j0X9QMF--M"
     print(get_media_length(cur_file_path))
     print(get_media_length(cur_url))
-def mtest_transcribe_deepgram():
-    pass
-if __name__ == "__main__":        
-    cur_audio_file_path = "tests/test_manual_files/1min youttube/1 Minute TED Talk.mp3"
-    #transcribe_deepgram(cur_audio_file_path, model='whisper-medium')
-    transcribe_deepgram(cur_audio_file_path, model='nova-2-general')
-def mtest_transcribe_deepgram_with_callback():
-    pass
-#if __name__ == "__main__":        
-    cur_audio_file_path = "tests/test_manual_files/1min youttube/1 Minute TED Talk.mp3"
-    cur_callback_url = "https://lsehufc3n2.execute-api.us-west-2.amazonaws.com/api/transcription"
-    print(transcribe_deepgram_callback(cur_audio_file_path, "enhanced-meeting", cur_callback_url))
 def mtest_extract_feature_from_deepgram_json():
     pass
 #if __name__ == "__main__":        
@@ -97,6 +94,33 @@ def mtest_set_various_transcript_headings_ffop():  # NOT TESTED AFTER REMOVING F
     #set_various_transcript_headings_ffop(cur_file_path, "chapters", "youtube")
     #set_various_transcript_headings_ffop(cur_file_path, "summaries", "deepgram")
     # expected: UserWarning when feature not present
+
+### DEEPGRAM ALTERNATIVES
+def mtest_test_deepgram_client():
+    pass
+#if __name__ == "__main__":        
+    test_deepgram_client()
+def mtest_transcribe_deepgram_sync():
+    pass
+#if __name__ == "__main__":        
+    #cur_audio_file_path = "tests/test_manual_files/1min youttube/1 Minute TED Talk.mp3"
+    cur_audio_file_path = "tests/test_manual_files/transcribe/Shortest Interview Ever.mp3"
+    transcribe_deepgram_sync(cur_audio_file_path, model='nova-2-general')
+    #transcribe_deepgram(cur_audio_file_path, model='whisper-medium')
+def mtest_transcribe_deepgram_sync_sdk_prerecorded():
+    pass
+#if __name__ == "__main__":        
+    #cur_audio_file_path = "tests/test_manual_files/1min youttube/1 Minute TED Talk.mp3"
+    cur_audio_file_path = "tests/test_manual_files/transcribe/soul/2023-11-10_Lex Clip - Elon Musk on the existence of a soul.mp3"
+    #transcribe_deepgram_sdk_prerecorded(cur_audio_file_path, model='nova-2-general')
+    transcribe_deepgram_sync_sdk_prerecorded(cur_audio_file_path, model='whisper-medium')
+def mtest_transcribe_deepgram_callback_lambda():
+    pass
+#if __name__ == "__main__":        
+    cur_audio_file_path = "tests/test_manual_files/transcribe/soul/2023-11-10_Lex Clip - Elon Musk on the existence of a soul.mp3"
+    cur_callback_url = "https://lsehufc3n2.execute-api.us-west-2.amazonaws.com/api/transcription"
+    #print(transcribe_deepgram_sdk_prerecorded_callback(cur_audio_file_path, "nova-2-general", cur_callback_url))
+    print(transcribe_deepgram_callback_lambda(cur_audio_file_path, "nova-2-general", cur_callback_url))
     
 def mtest_add_dg_summaries_to_md():
     pass
@@ -159,7 +183,7 @@ def mtest_assign_speaker_names():
 def mtest_create_transcript_md_from_json():
     pass
 #if __name__ == "__main__":        
-    cur_json = 'tests/test_manual_files/jsons/2024-03-08_Test Deepgram with all features_nova2.json'
+    cur_json = 'data/deutsch/f9_done_json_yt_host/2024-03-06_Peter Boghossian Podcast - Ideological Contagion_nova2gen.json'
     #cur_json = 'tests/test_manual_files/1min youttube/1 Minute TED Talk_dgwhspm.json'
     print(create_transcript_md_from_json(cur_json))
 def mtest_process_deepgram_transcription():
@@ -171,7 +195,7 @@ def mtest_process_deepgram_transcription():
     # print(process_deepgram_transcription(cur_title, cur_link, model='nova-2'))
     cur_title = 'Closer to Truth - for test'
     cur_link = 'https://www.youtube.com/watch?v=mNP5w4n9sFU'
-    print(process_deepgram_transcription(cur_title, cur_link, model='nova-2'))
+    print(process_deepgram_transcription(cur_title, cur_link, model='nova-2-general'))
 def mtest_process_deepgram_transcription_from_audio_file():
     pass
 #if __name__ == "__main__":        
@@ -179,12 +203,61 @@ def mtest_process_deepgram_transcription_from_audio_file():
     cur_audio_file_path = 'tests/test_manual_files/transcribe/Shortest Interview Ever.mp3'
     cur_link = 'https://youtu.be/6pMcXSixdVQ'
     print(process_deepgram_transcription_from_audio_file(cur_audio_file_path, cur_link, model='nova-2'))
+def mtest_process_deepgram_transcription_callback():
+    pass
+#if __name__ == "__main__":
+    # cur_title = "2023-11-10_Lex Clip - Elon Musk on the existence of a soul"
+    # cur_link = "https://youtu.be/1_wT3NEGT6s"
+    # process_deepgram_transcription_callback(cur_title, cur_link, model='nova-2-general')
+    
+    cur_title = "Shortest Interview Ever - Audio file test"
+    cur_link = "https://open.spotify.com/episode/1ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    cur_audio_file_path = 'tests/test_manual_files/transcribe/Shortest Interview Ever.mp3'
+    process_deepgram_transcription_callback(cur_title, cur_link, model='whisper-medium', audio_file_path=cur_audio_file_path)
+def mrun_process_deepgram_transcription_callback():
+    pass
+#if __name__ == "__main__":
+    cur_title = "2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child"
+    cur_link = "https://youtu.be/2bZSzObqAjE"
+    cur_audio_file_path = "data/0_gitignore/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child.mp3"
+    #process_deepgram_transcription_callback_presigneds3(cur_title, cur_link, model='nova-2-general', audio_file_path=cur_audio_file_path)
+    process_deepgram_transcription_callback_presigneds3(cur_title, cur_link, model='whisper-medium', audio_file_path=cur_audio_file_path)
+def mrun_download_deepgram_callback_waiting():
+    pass
+#if __name__ == "__main__":
+    print("RUNNING DOWNLOAD DEEPGRAM CALLBACK WAITING")
+    download_deepgram_callback_waiting()
 def mtest_process_multiple_videos():
     pass
 #if __name__ == "__main__":        
-    videos_to_process = [  #  (title, link)
-        ("2023-11-10_Lex Clip - Elon Musk on the existence of a soul", "https://youtu.be/1_wT3NEGT6s"),
-        ("Feynman - There are No Miracle People", "https://youtu.be/IIDLcaQVMqw"),
+    videos_to_process = [("2023-11-10_Lex Clip - Elon Musk on the existence of a soul", "https://youtu.be/1_wT3NEGT6s")
     ] 
-    process_multiple_videos(videos_to_process)  # default set to audio_inbox
+    process_multiple_videos(videos_to_process)  # default set to audio_inbox   
+    input("Hit enter after verifying the JSON file is in S3 OR hit ctrl C to abort and run download_deepgram_callback_waiting() manually ...")
+    download_deepgram_callback_waiting()    
+def mrun_process_multiple_videos():
+    pass
+#if __name__ == "__main__":        
+    videos_to_process = [  #  (title, link)
+        #("2024-12-19_Arjun Khemani - Naval Ravikant on The Beginning of Infinity", "https://youtu.be/yAj5EnyuakI"),
+        #("2024-11-11_Arjun Khemani - David Deutsch on the Era of Man Popper and Western Civilization", "https://youtu.be/I3FzAjgPztU"),
+        
+    ] 
+    process_multiple_videos(videos_to_process, model='nova-2-general', bool_youtube=False)  # default set to audio_inbox
+def mtest_download_deepgram_callback_waiting():
+    pass
+#if __name__ == "__main__":
+    download_deepgram_callback_waiting()
+def mtest_schedule_recurring_task():
+    pass
+#if __name__ == "__main__":        
+    local_folder = "data/audio_inbox"
+    prefix = "WAITING-CALLBACK_"
+    schedule_recurring_task(
+        interval_minutes=5,
+        check_function=lambda: check_for_waiting_files(local_folder, prefix),
+        work_function=lambda: download_deepgram_callback_waiting(local_folder, prefix),
+        max_runs=1
+    )
 
+# ===== END OF FILE primary/transcribe_mtests.py =====

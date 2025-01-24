@@ -1,0 +1,200 @@
+{
+    "metadata": {
+        "timestamp": "2024-10-25T05:11:11.155954",
+        "user_id": "default",
+        "vector_index_name": "pv-evac-qrag-2f-20241024",
+        "qrag_version": "1.0",
+        "llm_model": "gpt-4o",
+        "routes_info": {
+            "routes_flow_name": "3 routes, separate route prompts",
+            "upper_sim_bound": 0.9,
+            "lower_sim_bound": 0.3,
+            "max_sim": "0.671",
+            "max_stars": 0,
+            "routes_dict_content": {
+                "routes_dict_name": "ROUTES_DICT_PV_EVAC_V1",
+                "prompt_initial_good_match": "Given your knowledge of Portola Valley emergency procedures and wildfire evacuation protocols, as well as the QUOTED QUESTIONS AND ANSWERS from official sources below, answer the USER QUESTION below.\n",
+                "route_preamble_good_match": "There is a good match for your question in our Portola Valley evacuation documentation. See the QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these official sources with current evacuation protocols and your specific question.",
+                "prompt_initial_partial_match": "Given your knowledge of Portola Valley emergency procedures and wildfire evacuation protocols, as well as the QUOTED QUESTIONS AND ANSWERS from official sources below, answer the USER QUESTION below.\n",
+                "route_preamble_partial_match": "There is a partial match for your question in our Portola Valley evacuation documentation. See the QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these official sources with current evacuation protocols and your specific question.",
+                "prompt_initial_no_match": "Given your knowledge of Portola Valley emergency procedures and wildfire evacuation protocols, answer the USER QUESTION below.\n",
+                "route_preamble_no_match": "Your question is not directly addressed in our Portola Valley evacuation documentation. No QUOTED QUESTIONS AND ANSWERS are therefore provided but here is an AI ANSWER that synthesizes current evacuation protocols and your question.",
+                "quoted_qa_item_template": "QUOTED QUESTION: {question}\nQUOTED SOURCE: {source}\nQUOTED TIMESTAMP: {timestamp}\nQUOTED ANSWER: {answer}\n{display}\n\n",
+                "quoted_qa_template": "{quoted_qa_formatted}",
+                "user_ai_qa": "USER QUESTION: {user_question}\n\nAI ANSWER: "
+            }
+        }
+    },
+    "content": {
+        "user_question": "What is the PSVD school evacuation plan?",
+        "route_preamble": "There is a partial match for your question in our Portola Valley evacuation documentation. See the QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these official sources with current evacuation protocols and your specific question.",
+        "quoted_qa": "QUOTED QUESTION: What is the school's plan for off-site evacuation and reunification with parents?\nQUOTED SOURCE: 2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md\nQUOTED TIMESTAMP: [12:30](https://youtu.be/eTdLvgPXSLk&t=750)\nQUOTED ANSWER: The school has an option for off-site evacuation when circumstances allow. If they receive information early enough and the school is in session, they may transport students to an off-site location for reunification. They use a process called the Standard Reunification Method, where parents are notified via ParentSquare to pick up their child at a specified location and are instructed to bring identification.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 67%\n\nQUOTED QUESTION: How was the Shelter-in-Place plan developed for the school?\nQUOTED SOURCE: 2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md\nQUOTED TIMESTAMP: [12:07](https://youtu.be/eTdLvgPXSLk&t=727)\nQUOTED ANSWER: The Shelter-in-Place plan was developed through thorough consideration and multiple meetings over the past couple of years. It was carefully decided as the best and safest approach for dealing with fast-approaching wildfires.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 59%\n\nQUOTED QUESTION: What are the plans for offsite assembly locations in case of evacuation?\nQUOTED SOURCE: 2023-09-20_PVSD WFPD - Wildfire Preparedness Parent Presentation 1_qa-draft.md\nQUOTED TIMESTAMP: [13:32](https://youtu.be/64DB-MIcIQY&t=812)\nQUOTED ANSWER: The district is working with various agencies to establish offsite assembly locations such as Woodside Priory, Woodside High School, Ca\u00f1ada College, or Stanford University. The specific location would depend on the circumstances and the direction of the hazard.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 53%\n\nQUOTED QUESTION: What's the plan regarding bus availability for evacuation, given the limited routes and risks?\nQUOTED SOURCE: 2023-09-20_PVSD WFPD - Wildfire Preparedness Parent Presentation 1_qa-draft.md\nQUOTED TIMESTAMP: [26:56](https://youtu.be/64DB-MIcIQY&t=1616)\nQUOTED ANSWER: The district is working on a Memorandum of Understanding (MOU) with Sequoia Union High School District and is also in discussions with SamTrans to potentially use their buses for evacuation. However, bus availability during an emergency is uncertain due to demand and logistical challenges. The primary focus is on sheltering in place and early dismissal, with busing as a backup plan if circumstances allow.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 53%\n\nQUOTED QUESTION: Under what conditions would the school decide to Shelter-in-Place?\nQUOTED SOURCE: 2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md\nQUOTED TIMESTAMP: [21:54](https://youtu.be/eTdLvgPXSLk&t=1314)\nQUOTED ANSWER: The school would decide to Shelter-in-Place if conditions are so severe that evacuating would put staff and students at greater risk. This decision is made after asking many questions and collaborating with the fire district to assess the situation thoroughly.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 52%\n\nQUOTED QUESTION: What measures has the school taken to prepare for wildfires?\nQUOTED SOURCE: 2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md\nQUOTED TIMESTAMP: [12:07](https://youtu.be/eTdLvgPXSLk&t=727)\nQUOTED ANSWER: The school has hardened its building structures to be fire-resistant and maintains defensible space around the campus. These measures improve safety during wildfires, making the school a safer place to Shelter-in-Place if necessary.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 52%\n\nQUOTED QUESTION: How does the district decide whether to evacuate, cancel school, or shelter-in-place during a wildfire situation?\nQUOTED SOURCE: 2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md\nQUOTED TIMESTAMP: [0:06](https://youtu.be/eTdLvgPXSLk&t=6)\nQUOTED ANSWER: The district uses a decision-making process that considers various factors, such as the presence of a rapidly approaching wildfire or a red flag warning day. Based on the situation, they decide whether to evacuate the site, cancel school altogether, or implement shelter-in-place procedures. This decision process is part of their planning and is communicated to parents and community members so they understand the actions that will be taken during different wildfire scenarios.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 51%\n\nQUOTED QUESTION: What emergency response protocols does the school district follow during a wildfire?\nQUOTED SOURCE: 2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md\nQUOTED TIMESTAMP: [0:06](https://youtu.be/eTdLvgPXSLk&t=6)\nQUOTED ANSWER: The school district follows the \"Big Five\" emergency response action protocols, which are standard across all school districts in San Mateo County. Specifically, for wildfires, they focus on the evacuation emergency preparedness protocol. This involves evacuating school buildings and moving students and staff to predetermined safe locations in the event of a wildfire.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 51%\n\nQUOTED QUESTION: What happens during shelter-in-place at schools?\nQUOTED SOURCE: 2023-09-20_PVSD WFPD - Wildfire Preparedness Parent Presentation 1_qa-draft.md\nQUOTED TIMESTAMP: [9:28](https://youtu.be/64DB-MIcIQY&t=568)\nQUOTED ANSWER: During a shelter-in-place at schools, students and staff stay inside designated safe areas, such as multi-use rooms or gyms. These buildings are constructed with protective, non-combustible materials to withstand hazards like wildfires. The fire department may provide additional resources for structure protection to ensure everyone's safety.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 51%\n\nQUOTED QUESTION: In a complete system failure, is there autonomy for staff to take emergency actions like evacuating students in personal vehicles?\nQUOTED SOURCE: 2023-09-20_PVSD WFPD - Wildfire Preparedness Parent Presentation 1_qa-draft.md\nQUOTED TIMESTAMP: [48:43](https://youtu.be/64DB-MIcIQY&t=2923)\nQUOTED ANSWER: This scenario hasn't been thoroughly discussed with staff yet, but it's a consideration for emergency planning. The current plan emphasizes sheltering in place as the safest option when other evacuation methods are not feasible. The idea of staff evacuating students in personal vehicles is complex and would need further discussion and coordination with emergency services.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 51%\n\nQUOTED QUESTION: What actions does the fire department take when the school is sheltering in place?\nQUOTED SOURCE: 2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md\nQUOTED TIMESTAMP: [23:26](https://youtu.be/eTdLvgPXSLk&t=1406)\nQUOTED ANSWER: When the school is sheltering in place, the fire department prioritizes surrounding the building with personnel and equipment. Fire departments from various areas will assist in providing structure protection, putting all efforts into mitigating and keeping the fire away from the school to ensure the safety of students and staff.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 49%\n\nQUOTED QUESTION: Who is involved in making decisions about evacuation or shelter-in-place?\nQUOTED SOURCE: 2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md\nQUOTED TIMESTAMP: [23:26](https://youtu.be/eTdLvgPXSLk&t=1406)\nQUOTED ANSWER: Decisions about evacuation or shelter-in-place are made collaboratively by multiple parties, including school district administrators, principals, and the fire department. It's not just one person making the decision; everyone works together, and the fire department provides vital communication and support since they are actively involved in the situation.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 48%\n\nQUOTED QUESTION: Were the school buildings designed to serve as Shelters-in-Place?\nQUOTED SOURCE: 2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md\nQUOTED TIMESTAMP: [26:06](https://youtu.be/eTdLvgPXSLk&t=1566)\nQUOTED ANSWER: No, the new school buildings were not designed to serve as Shelters-in-Place according to the highest fire-resistant standards. Although they have undergone recent fire mitigation work and meet current building codes, they do not technically qualify as Shelters-in-Place. The buildings incorporate fire-resistant features such as treated wood framing, fire-resistant siding, roofing, and windows, but they were not constructed to the stringent requirements\u2014like Type I construction\u2014that would classify them as official Shelters-in-Place.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 48%\n\nQUOTED QUESTION: Are there any additional measures the schools can take now to increase their protective ability to meet Shelter-in-Place requirements?\nQUOTED SOURCE: 2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md\nQUOTED TIMESTAMP: [26:06](https://youtu.be/eTdLvgPXSLk&t=1566)\nQUOTED ANSWER: No, the schools have already implemented all possible measures to enhance fire resistance within the constraints of their existing construction. They have incorporated fire-resistant siding, roofing, windows, and treated wood framing. Further upgrades to meet Shelter-in-Place requirements would necessitate rebuilding the structures entirely to meet higher construction ratings, which is not practical or feasible.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 47%\n\nQUOTED QUESTION: How does the school collaborate with local authorities during wildfire emergencies?\nQUOTED SOURCE: 2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md\nQUOTED TIMESTAMP: [12:30](https://youtu.be/eTdLvgPXSLk&t=750)\nQUOTED ANSWER: The school works closely with law enforcement and the fire protection district to assess situations and make informed decisions. This collaboration involves sharing information and jointly determining actions like school closures or evacuations to ensure the safety of students and staff during wildfire emergencies.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 47%\n\nQUOTED QUESTION: Why might Shelter-in-Place be the safest option for students during a wildfire?\nQUOTED SOURCE: 2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md\nQUOTED TIMESTAMP: [9:42](https://youtu.be/eTdLvgPXSLk&t=562)\nQUOTED ANSWER: Shelter-in-Place may be the safest option because the school has fire-resistant construction and maintains defensible space, making it safer than being outside or on congested roads. Evacuating could expose students to greater risk due to poor road access and potential traffic during an emergency. The decision is made collaboratively to ensure the children's safety.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 47%\n\nQUOTED QUESTION: Why is it important for parents and community members to understand the school's wildfire preparedness plans?\nQUOTED SOURCE: 2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md\nQUOTED TIMESTAMP: [0:06](https://youtu.be/eTdLvgPXSLk&t=6)\nQUOTED ANSWER: It's important for parents and community members to understand the school's wildfire preparedness plans so they are aware of the decision-making processes and actions that will be taken during a wildfire incident. This prior understanding helps ensure that everyone knows what to expect, reduces confusion during emergencies, and allows for better cooperation between the school, parents, and the community in implementing safety protocols effectively.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 46%\n\nQUOTED QUESTION: Can the school buildings still be used as Shelters-in-Place during extreme scenarios, even though they were not designed as such?\nQUOTED SOURCE: 2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md\nQUOTED TIMESTAMP: [26:06](https://youtu.be/eTdLvgPXSLk&t=1566)\nQUOTED ANSWER: While the school buildings are not officially designated as Shelters-in-Place, they may be used as such in extreme scenarios if evacuation is not possible. However, it's important to note that they were not constructed to the highest fire-resistant standards required for official Shelters-in-Place, so their protective capabilities are not equivalent.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 46%\n\nQUOTED QUESTION: What protocols does the school follow during poor air quality days?\nQUOTED SOURCE: 2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md\nQUOTED TIMESTAMP: [43:45](https://youtu.be/eTdLvgPXSLk&t=2625)\nQUOTED ANSWER: The school adheres to guidelines from the San Mateo County Office of Education, using data from AirNow and the Bay Area Air Quality Management District. When the Air Quality Index (AQI) reaches 101 or above (orange, red, or purple levels), the school adjusts activity levels accordingly. They keep activities indoors, limit physical exertion, and keep windows and doors closed. If the AQI becomes hazardous (300 and above), they may decide to close the school after assessing the situation using their decision tree.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 46%\n\nQUOTED QUESTION: What measures has the school taken to protect and mitigate wildfire risk?\nQUOTED SOURCE: 2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md\nQUOTED TIMESTAMP: [12:30](https://youtu.be/eTdLvgPXSLk&t=750)\nQUOTED ANSWER: The school has implemented several measures, including installing top-of-the-line ventilation systems equipped with screen mesh to reduce the possibility of embers entering buildings. They have vents that can be closed remotely to prevent outside air from entering. The roofing systems are correctly rated to be fire-resistant, and new buildings are constructed with non-combustible materials compliant with building codes for high fire danger areas.\nQUOTED ANSWER STARS: 0\nQUOTED QUESTION SIMILARITY SCORE: 46%\n\n",
+        "ai_answer": "WAITING FOR AI ANSWER...",
+        "chunks": {
+            "max_sim": "0.671",
+            "max_stars": 0,
+            "chunks": [
+                {
+                    "question": "What is the school's plan for off-site evacuation and reunification with parents?",
+                    "source": "2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md",
+                    "timestamp": "[12:30](https://youtu.be/eTdLvgPXSLk&t=750)",
+                    "answer": "The school has an option for off-site evacuation when circumstances allow. If they receive information early enough and the school is in session, they may transport students to an off-site location for reunification. They use a process called the Standard Reunification Method, where parents are notified via ParentSquare to pick up their child at a specified location and are instructed to bring identification.",
+                    "stars": 0,
+                    "sim": "0.671"
+                },
+                {
+                    "question": "How was the Shelter-in-Place plan developed for the school?",
+                    "source": "2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md",
+                    "timestamp": "[12:07](https://youtu.be/eTdLvgPXSLk&t=727)",
+                    "answer": "The Shelter-in-Place plan was developed through thorough consideration and multiple meetings over the past couple of years. It was carefully decided as the best and safest approach for dealing with fast-approaching wildfires.",
+                    "stars": 0,
+                    "sim": "0.594"
+                },
+                {
+                    "question": "What are the plans for offsite assembly locations in case of evacuation?",
+                    "source": "2023-09-20_PVSD WFPD - Wildfire Preparedness Parent Presentation 1_qa-draft.md",
+                    "timestamp": "[13:32](https://youtu.be/64DB-MIcIQY&t=812)",
+                    "answer": "The district is working with various agencies to establish offsite assembly locations such as Woodside Priory, Woodside High School, Ca\u00f1ada College, or Stanford University. The specific location would depend on the circumstances and the direction of the hazard.",
+                    "stars": 0,
+                    "sim": "0.531"
+                },
+                {
+                    "question": "What's the plan regarding bus availability for evacuation, given the limited routes and risks?",
+                    "source": "2023-09-20_PVSD WFPD - Wildfire Preparedness Parent Presentation 1_qa-draft.md",
+                    "timestamp": "[26:56](https://youtu.be/64DB-MIcIQY&t=1616)",
+                    "answer": "The district is working on a Memorandum of Understanding (MOU) with Sequoia Union High School District and is also in discussions with SamTrans to potentially use their buses for evacuation. However, bus availability during an emergency is uncertain due to demand and logistical challenges. The primary focus is on sheltering in place and early dismissal, with busing as a backup plan if circumstances allow.",
+                    "stars": 0,
+                    "sim": "0.530"
+                },
+                {
+                    "question": "Under what conditions would the school decide to Shelter-in-Place?",
+                    "source": "2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md",
+                    "timestamp": "[21:54](https://youtu.be/eTdLvgPXSLk&t=1314)",
+                    "answer": "The school would decide to Shelter-in-Place if conditions are so severe that evacuating would put staff and students at greater risk. This decision is made after asking many questions and collaborating with the fire district to assess the situation thoroughly.",
+                    "stars": 0,
+                    "sim": "0.519"
+                },
+                {
+                    "question": "What measures has the school taken to prepare for wildfires?",
+                    "source": "2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md",
+                    "timestamp": "[12:07](https://youtu.be/eTdLvgPXSLk&t=727)",
+                    "answer": "The school has hardened its building structures to be fire-resistant and maintains defensible space around the campus. These measures improve safety during wildfires, making the school a safer place to Shelter-in-Place if necessary.",
+                    "stars": 0,
+                    "sim": "0.516"
+                },
+                {
+                    "question": "How does the district decide whether to evacuate, cancel school, or shelter-in-place during a wildfire situation?",
+                    "source": "2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md",
+                    "timestamp": "[0:06](https://youtu.be/eTdLvgPXSLk&t=6)",
+                    "answer": "The district uses a decision-making process that considers various factors, such as the presence of a rapidly approaching wildfire or a red flag warning day. Based on the situation, they decide whether to evacuate the site, cancel school altogether, or implement shelter-in-place procedures. This decision process is part of their planning and is communicated to parents and community members so they understand the actions that will be taken during different wildfire scenarios.",
+                    "stars": 0,
+                    "sim": "0.515"
+                },
+                {
+                    "question": "What emergency response protocols does the school district follow during a wildfire?",
+                    "source": "2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md",
+                    "timestamp": "[0:06](https://youtu.be/eTdLvgPXSLk&t=6)",
+                    "answer": "The school district follows the \"Big Five\" emergency response action protocols, which are standard across all school districts in San Mateo County. Specifically, for wildfires, they focus on the evacuation emergency preparedness protocol. This involves evacuating school buildings and moving students and staff to predetermined safe locations in the event of a wildfire.",
+                    "stars": 0,
+                    "sim": "0.509"
+                },
+                {
+                    "question": "What happens during shelter-in-place at schools?",
+                    "source": "2023-09-20_PVSD WFPD - Wildfire Preparedness Parent Presentation 1_qa-draft.md",
+                    "timestamp": "[9:28](https://youtu.be/64DB-MIcIQY&t=568)",
+                    "answer": "During a shelter-in-place at schools, students and staff stay inside designated safe areas, such as multi-use rooms or gyms. These buildings are constructed with protective, non-combustible materials to withstand hazards like wildfires. The fire department may provide additional resources for structure protection to ensure everyone's safety.",
+                    "stars": 0,
+                    "sim": "0.506"
+                },
+                {
+                    "question": "In a complete system failure, is there autonomy for staff to take emergency actions like evacuating students in personal vehicles?",
+                    "source": "2023-09-20_PVSD WFPD - Wildfire Preparedness Parent Presentation 1_qa-draft.md",
+                    "timestamp": "[48:43](https://youtu.be/64DB-MIcIQY&t=2923)",
+                    "answer": "This scenario hasn't been thoroughly discussed with staff yet, but it's a consideration for emergency planning. The current plan emphasizes sheltering in place as the safest option when other evacuation methods are not feasible. The idea of staff evacuating students in personal vehicles is complex and would need further discussion and coordination with emergency services.",
+                    "stars": 0,
+                    "sim": "0.505"
+                },
+                {
+                    "question": "What actions does the fire department take when the school is sheltering in place?",
+                    "source": "2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md",
+                    "timestamp": "[23:26](https://youtu.be/eTdLvgPXSLk&t=1406)",
+                    "answer": "When the school is sheltering in place, the fire department prioritizes surrounding the building with personnel and equipment. Fire departments from various areas will assist in providing structure protection, putting all efforts into mitigating and keeping the fire away from the school to ensure the safety of students and staff.",
+                    "stars": 0,
+                    "sim": "0.487"
+                },
+                {
+                    "question": "Who is involved in making decisions about evacuation or shelter-in-place?",
+                    "source": "2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md",
+                    "timestamp": "[23:26](https://youtu.be/eTdLvgPXSLk&t=1406)",
+                    "answer": "Decisions about evacuation or shelter-in-place are made collaboratively by multiple parties, including school district administrators, principals, and the fire department. It's not just one person making the decision; everyone works together, and the fire department provides vital communication and support since they are actively involved in the situation.",
+                    "stars": 0,
+                    "sim": "0.485"
+                },
+                {
+                    "question": "Were the school buildings designed to serve as Shelters-in-Place?",
+                    "source": "2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md",
+                    "timestamp": "[26:06](https://youtu.be/eTdLvgPXSLk&t=1566)",
+                    "answer": "No, the new school buildings were not designed to serve as Shelters-in-Place according to the highest fire-resistant standards. Although they have undergone recent fire mitigation work and meet current building codes, they do not technically qualify as Shelters-in-Place. The buildings incorporate fire-resistant features such as treated wood framing, fire-resistant siding, roofing, and windows, but they were not constructed to the stringent requirements\u2014like Type I construction\u2014that would classify them as official Shelters-in-Place.",
+                    "stars": 0,
+                    "sim": "0.477"
+                },
+                {
+                    "question": "Are there any additional measures the schools can take now to increase their protective ability to meet Shelter-in-Place requirements?",
+                    "source": "2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md",
+                    "timestamp": "[26:06](https://youtu.be/eTdLvgPXSLk&t=1566)",
+                    "answer": "No, the schools have already implemented all possible measures to enhance fire resistance within the constraints of their existing construction. They have incorporated fire-resistant siding, roofing, windows, and treated wood framing. Further upgrades to meet Shelter-in-Place requirements would necessitate rebuilding the structures entirely to meet higher construction ratings, which is not practical or feasible.",
+                    "stars": 0,
+                    "sim": "0.472"
+                },
+                {
+                    "question": "How does the school collaborate with local authorities during wildfire emergencies?",
+                    "source": "2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md",
+                    "timestamp": "[12:30](https://youtu.be/eTdLvgPXSLk&t=750)",
+                    "answer": "The school works closely with law enforcement and the fire protection district to assess situations and make informed decisions. This collaboration involves sharing information and jointly determining actions like school closures or evacuations to ensure the safety of students and staff during wildfire emergencies.",
+                    "stars": 0,
+                    "sim": "0.470"
+                },
+                {
+                    "question": "Why might Shelter-in-Place be the safest option for students during a wildfire?",
+                    "source": "2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md",
+                    "timestamp": "[9:42](https://youtu.be/eTdLvgPXSLk&t=562)",
+                    "answer": "Shelter-in-Place may be the safest option because the school has fire-resistant construction and maintains defensible space, making it safer than being outside or on congested roads. Evacuating could expose students to greater risk due to poor road access and potential traffic during an emergency. The decision is made collaboratively to ensure the children's safety.",
+                    "stars": 0,
+                    "sim": "0.467"
+                },
+                {
+                    "question": "Why is it important for parents and community members to understand the school's wildfire preparedness plans?",
+                    "source": "2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md",
+                    "timestamp": "[0:06](https://youtu.be/eTdLvgPXSLk&t=6)",
+                    "answer": "It's important for parents and community members to understand the school's wildfire preparedness plans so they are aware of the decision-making processes and actions that will be taken during a wildfire incident. This prior understanding helps ensure that everyone knows what to expect, reduces confusion during emergencies, and allows for better cooperation between the school, parents, and the community in implementing safety protocols effectively.",
+                    "stars": 0,
+                    "sim": "0.465"
+                },
+                {
+                    "question": "Can the school buildings still be used as Shelters-in-Place during extreme scenarios, even though they were not designed as such?",
+                    "source": "2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md",
+                    "timestamp": "[26:06](https://youtu.be/eTdLvgPXSLk&t=1566)",
+                    "answer": "While the school buildings are not officially designated as Shelters-in-Place, they may be used as such in extreme scenarios if evacuation is not possible. However, it's important to note that they were not constructed to the highest fire-resistant standards required for official Shelters-in-Place, so their protective capabilities are not equivalent.",
+                    "stars": 0,
+                    "sim": "0.460"
+                },
+                {
+                    "question": "What protocols does the school follow during poor air quality days?",
+                    "source": "2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md",
+                    "timestamp": "[43:45](https://youtu.be/eTdLvgPXSLk&t=2625)",
+                    "answer": "The school adheres to guidelines from the San Mateo County Office of Education, using data from AirNow and the Bay Area Air Quality Management District. When the Air Quality Index (AQI) reaches 101 or above (orange, red, or purple levels), the school adjusts activity levels accordingly. They keep activities indoors, limit physical exertion, and keep windows and doors closed. If the AQI becomes hazardous (300 and above), they may decide to close the school after assessing the situation using their decision tree.",
+                    "stars": 0,
+                    "sim": "0.459"
+                },
+                {
+                    "question": "What measures has the school taken to protect and mitigate wildfire risk?",
+                    "source": "2023-11-15_PVSD WFPD - Wildfire Preparedness Parent Presentation 2_qa-draft.md",
+                    "timestamp": "[12:30](https://youtu.be/eTdLvgPXSLk&t=750)",
+                    "answer": "The school has implemented several measures, including installing top-of-the-line ventilation systems equipped with screen mesh to reduce the possibility of embers entering buildings. They have vents that can be closed remotely to prevent outside air from entering. The roofing systems are correctly rated to be fire-resistant, and new buildings are constructed with non-combustible materials compliant with building codes for high fire danger areas.",
+                    "stars": 0,
+                    "sim": "0.457"
+                }
+            ]
+        }
+    }
+}

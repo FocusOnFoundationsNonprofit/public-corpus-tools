@@ -81,7 +81,11 @@ class TestGetSuffix(unittest.TestCase):  # no mock
     def test_get_suffix__with_no_period(self):
         self.assertEqual(get_suffix("filename_v1", "_"), "_v1")
 
-    def test_get_suffix__with_multiple_periods(self):
+    # Updated this test to expect a valid suffix instead of a ValueError
+    def test_get_suffix__with_period_in_middle_filename(self):
+        self.assertEqual(get_suffix("filename_v1.0_qa.txt", "_"), "_qa")
+
+    def test_get_suffix__with_period_in_suffix(self):
         with self.assertRaises(ValueError):
             get_suffix("filename_v1.backup.txt", "_")
 
@@ -103,9 +107,9 @@ class TestGetSuffix(unittest.TestCase):  # no mock
     def test_get_suffix__with_delimiter_at_end(self):
         self.assertEqual(get_suffix("filename_.txt", "_"), "_")
 
+    # Updated this test to expect a valid suffix instead of a ValueError
     def test_get_suffix__with_period_and_space_in_suffix(self):
-        with self.assertRaises(ValueError):
-            get_suffix("data/test file string with a extra .period_vrb.md", "_")
+        self.assertEqual(get_suffix("data/test file string with a extra .period_vrb.md", "_"), "_vrb")
 
     def test_get_suffix__with_space_in_filename(self):
         self.assertIsNone(get_suffix("data/test file string_with space.md", "_"))
@@ -1503,7 +1507,7 @@ class TestTuneTimestamp(unittest.TestCase):
         self.assertEqual(tune_timestamp("01:02:03"), "1:02:03")
 
     def test_tune_timestamp__handles_leading_zeros(self):
-        # Test that leading zeros are handled correctly, assuming they are removed in the tuning process
+        # Test that leading zeros are handled correctly
         self.assertEqual(tune_timestamp("01:00:00"), "1:00:00")
 
     def test_tune_timestamp__handles_none_input(self):
@@ -1511,12 +1515,38 @@ class TestTuneTimestamp(unittest.TestCase):
         self.assertIsNone(tune_timestamp(None))
 
     def test_tune_timestamp__input_output_equality_for_valid_timestamps(self):
-        # Test that valid timestamps are returned unchanged, assuming the tuning process does not alter already correct timestamps
+        # Test that valid timestamps are returned in standard format
         self.assertEqual(tune_timestamp("12:34:56"), "12:34:56")
 
     def test_tune_timestamp__adjusts_minute_and_second_format(self):
-        # Test that minutes and seconds are always returned with two digits, assuming this is part of the tuning
+        # Test that minutes and seconds are always returned with two digits
         self.assertEqual(tune_timestamp("0:2:9"), "2:09")
+
+    def test_tune_timestamp__with_positive_delta(self):
+        # Test adding positive seconds to timestamp
+        self.assertEqual(tune_timestamp("1:00:00", delta_seconds=65), "1:01:05")
+        self.assertEqual(tune_timestamp("59:59", delta_seconds=1), "1:00:00")
+
+    def test_tune_timestamp__with_negative_delta(self):
+        # Test subtracting seconds from timestamp
+        self.assertEqual(tune_timestamp("1:01:05", delta_seconds=-65), "1:00:00")
+        self.assertEqual(tune_timestamp("1:00:00", delta_seconds=-1), "59:59")
+
+    def test_tune_timestamp__with_invalid_delta_type(self):
+        # Test that non-integer delta_seconds raises ValueError
+        with self.assertRaises(ValueError):
+            tune_timestamp("1:00:00", delta_seconds="5")
+        with self.assertRaises(ValueError):
+            tune_timestamp("1:00:00", delta_seconds=1.5)
+
+    def test_tune_timestamp__with_negative_result(self):
+        # Test that attempting to subtract more seconds than available raises ValueError
+        with self.assertRaises(ValueError):
+            tune_timestamp("0:00:30", delta_seconds=-31)
+
+    def test_tune_timestamp__with_zero_delta(self):
+        # Test that zero delta_seconds doesn't change the timestamp
+        self.assertEqual(tune_timestamp("1:23:45", delta_seconds=0), "1:23:45")
 
 class TestGetTimestamp(unittest.TestCase):
 
@@ -1653,6 +1683,79 @@ class TestGetElapsedSeconds(unittest.TestCase):
         with self.assertRaises(TypeError):
             get_elapsed_seconds(start_time)
 
+class TestTrackProgress(unittest.TestCase):
+    def setUp(self):
+        self.start_time = time.time()
+
+    def test_track_progress__basic_progress(self):
+        # Test basic progress reporting at first checkpoint (2%)
+        with patch('builtins.print') as mock_print:
+            last_percentage = track_progress(10, 100, self.start_time, 0)
+            self.assertEqual(last_percentage, 2)  # First checkpoint is 2%
+            mock_print.assert_called_once()
+            self.assertIn("10% complete", mock_print.call_args[0][0])
+
+    def test_track_progress__small_item_count(self):
+        # Test with small total count where early checkpoints should be skipped
+        with patch('builtins.print') as mock_print:
+            # With 3 items, each item represents ~33.3%
+            last_percentage = track_progress(1, 3, self.start_time, 0)
+            self.assertEqual(last_percentage, 0)  # No progress reported yet
+            mock_print.assert_not_called()
+
+            # At 2 items (66.7%), should hit the 40% checkpoint
+            last_percentage = track_progress(2, 3, self.start_time, last_percentage)
+            self.assertEqual(last_percentage, 40)  # First checkpoint that represents >= 1 item
+            self.assertEqual(mock_print.call_count, 1)
+            self.assertIn("66% complete", mock_print.call_args[0][0])
+
+    def test_track_progress__custom_item_name(self):
+        # Test with custom item name
+        with patch('builtins.print') as mock_print:
+            last_percentage = track_progress(10, 100, self.start_time, 0, item_name="files")
+            self.assertEqual(last_percentage, 2)  # First checkpoint is 2%
+            mock_print.assert_called_once()
+            self.assertIn("files", mock_print.call_args[0][0])
+
+    def test_track_progress__multiple_checkpoints(self):
+        # Test hitting multiple checkpoints
+        with patch('builtins.print') as mock_print:
+            last_percentage = 0
+            # Should hit 2% checkpoint
+            last_percentage = track_progress(2, 100, self.start_time, last_percentage)
+            self.assertEqual(last_percentage, 2)
+            
+            # Should hit 5% checkpoint
+            last_percentage = track_progress(5, 100, self.start_time, last_percentage)
+            self.assertEqual(last_percentage, 5)
+            
+            # Should hit 10% checkpoint
+            last_percentage = track_progress(10, 100, self.start_time, last_percentage)
+            self.assertEqual(last_percentage, 10)
+            
+            self.assertEqual(mock_print.call_count, 3)
+
+    def test_track_progress__no_progress(self):
+        # Test when progress hasn't reached next checkpoint
+        with patch('builtins.print') as mock_print:
+            last_percentage = track_progress(1, 100, self.start_time, 0)
+            self.assertEqual(last_percentage, 0)  # No checkpoint reached
+            mock_print.assert_not_called()
+
+    def test_track_progress__completion(self):
+        # Test reaching 100% completion
+        with patch('builtins.print') as mock_print:
+            last_percentage = track_progress(100, 100, self.start_time, 90)
+            self.assertEqual(last_percentage, 100)
+            mock_print.assert_called_once()
+            self.assertIn("100% complete", mock_print.call_args[0][0])
+
+    def test_track_progress__zero_total(self):
+        # Test handling of zero total items
+        with patch('builtins.print') as mock_print:
+            with self.assertRaises(ValueError):
+                track_progress(0, 0, self.start_time, 0)
+            mock_print.assert_not_called()
 
 ### TIMESTAMP LINKS
 class TestRemoveTimestampLinksFromContent(unittest.TestCase):
@@ -2461,6 +2564,13 @@ This is a subheading under heading 2.
         self.assertIn("## metadata", metadata)
         self.assertIn("last updated: 2023-07-10", metadata)
 
+    def test_set_heading__no_duplicate_heading(self):
+        # Test that setting text that already includes the heading doesn't duplicate it
+        new_text = "### Heading 1\nNew content for heading 1.\n"
+        set_heading(self.test_filename, new_text, "### Heading 1")
+        _, content = read_metadata_and_content(self.test_filename)
+        self.assertEqual(content.count("### Heading 1"), 1)  # Should only appear once
+
 class TestDeleteHeading(unittest.TestCase):
     def setUp(self):
         # Setup method to create a test file before each test case
@@ -2892,28 +3002,79 @@ class TestRemoveMetadataField(unittest.TestCase):
         self.assertEqual(updated_header, expected_header)
 
 class TestSetLastUpdated(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.test_file = os.path.join(self.temp_dir.name, 'test_file.md')
+
+    def tearDown(self):
+        self.temp_dir.cleanup()
+
     def test_set_last_updated__add_new_field(self):
-        header = "## metadata\n\n## content\n\n"
+        # Create file with metadata but no last updated field
+        initial_content = "## metadata\n\n\n## content\n\nThis here.\n"
+        with open(self.test_file, 'w') as f:
+            f.write(initial_content)
+
         new_value = "by John"
         date_today = datetime.now().strftime("%m-%d-%Y")
-        expected_header = f"## metadata\nlast updated: {date_today} by John\n\n## content\n\n"
-        updated_header = set_last_updated(header, new_value)
-        self.assertEqual(updated_header, expected_header)
+        expected_content = f"## metadata\nlast updated: {date_today} by John\n\n\n## content\n\nThis here.\n"
+        
+        set_last_updated(self.test_file, new_value)
+        
+        with open(self.test_file, 'r') as f:
+            content = f.read()
+            self.assertEqual(content, expected_content)
 
     def test_set_last_updated__update_existing_field(self):
-        header = "## metadata\nlast updated: old_value\n\n## content\n\n"
+        # Create file with existing last updated field
+        initial_content = "## metadata\nlast updated: old_value\n\n\n## content\n\nThis here.\n"
+        with open(self.test_file, 'w') as f:
+            f.write(initial_content)
+
         new_value = "by Susan"
         date_today = datetime.now().strftime("%m-%d-%Y")
-        expected_header = f"## metadata\nlast updated: {date_today} by Susan\n\n## content\n\n"
-        updated_header = set_last_updated(header, new_value)
-        self.assertEqual(updated_header, expected_header)
+        expected_content = f"## metadata\nlast updated: {date_today} by Susan\n\n\n## content\n\nThis here.\n"
+        
+        set_last_updated(self.test_file, new_value)
+        
+        with open(self.test_file, 'r') as f:
+            content = f.read()
+            self.assertEqual(content, expected_content)
 
-    def test_set_last_updated__use_today_false(self):
-        header = "## metadata\nlast updated: old_value\n\n## content\n\n"
+    def test_set_last_updated__prepend_today_false(self):
+        # Create file with existing last updated field
+        initial_content = "## metadata\nlast updated: old_value\n\n## content\n\nThis here.\n"
+        with open(self.test_file, 'w') as f:
+            f.write(initial_content)
+
         new_value = "11-19-2023 by Susan"
-        expected_header = "## metadata\nlast updated: 11-19-2023 by Susan\n\n## content\n\n"
-        updated_header = set_last_updated(header, new_value, use_today=False)
-        self.assertEqual(updated_header, expected_header)
+        expected_content = "## metadata\nlast updated: 11-19-2023 by Susan\n\n\n## content\n\nThis here.\n"
+        
+        set_last_updated(self.test_file, new_value, prepend_today=False)
+        
+        with open(self.test_file, 'r') as f:
+            content = f.read()
+            self.assertEqual(content, expected_content)
+
+    def test_set_last_updated__nonexistent_file(self):
+        # Test handling of non-existent file
+        nonexistent_file = os.path.join(self.temp_dir.name, 'nonexistent.md')
+        with self.assertRaises(ValueError):
+            set_last_updated(nonexistent_file, "by John")
+
+    def test_set_last_updated__preserve_content(self):
+        # Test that existing content is preserved
+        original_content = "## metadata\n\n## content\nSome important content\nMore content\n"
+        with open(self.test_file, 'w') as f:
+            f.write(original_content)
+
+        new_value = "by John"
+        set_last_updated(self.test_file, new_value)
+        
+        with open(self.test_file, 'r') as f:
+            content = f.read()
+            self.assertIn("Some important content", content)
+            self.assertIn("More content", content)
 
 class TestSetMetadataFieldsFromCSV(unittest.TestCase):
     def setUp(self):
@@ -2991,16 +3152,16 @@ class TestPrettyPrintJsonStructure(unittest.TestCase):
         if os.path.exists(self.temp_json_file.name + '.pretty'):
             os.unlink(self.temp_json_file.name + '.pretty')
 
-    def test_pretty_printjson_structure__with_save(self):
+    def test_pretty_print_json_file__with_save(self):
         # Test that the output is correctly saved to a '.pretty' file
-        pretty_print_json_structure(self.temp_json_file.name, level_limit=2, save_to_file=True)
+        pretty_print_json_file(self.temp_json_file.name, level_limit=2, save_to_file=True)
         pretty_file_path = self.temp_json_file.name + '.pretty'
         self.assertTrue(os.path.exists(pretty_file_path))
 
-    def test_pretty_print_json_structure__level_limit(self):
+    def test_pretty_print_json_file__level_limit(self):
         # Test the level limit functionality by inspecting the saved file content
         # (This test assumes that examining the saved file's content can indirectly verify the level limit functionality)
-        pretty_print_json_structure(self.temp_json_file.name, level_limit=1, save_to_file=True)
+        pretty_print_json_file(self.temp_json_file.name, level_limit=1, save_to_file=True)
         pretty_file_path = self.temp_json_file.name + '.pretty'
         with open(pretty_file_path, 'r') as pretty_file:
             contents = pretty_file.readlines()
@@ -3008,58 +3169,58 @@ class TestPrettyPrintJsonStructure(unittest.TestCase):
             self.assertTrue(any("key3" in line for line in contents))
             # This checks if 'key3' is present but does not verify deeper structures beyond the level limit
 
-    def test_pretty_print_json_structure__without_save(self):
+    def test_pretty_print_json_file__without_save(self):
         # Test that the output is not saved to a file when save_to_file is False
-        pretty_print_json_structure(self.temp_json_file.name, level_limit=2, save_to_file=False)
+        pretty_print_json_file(self.temp_json_file.name, level_limit=2, save_to_file=False)
         pretty_file_path = self.temp_json_file.name + '.pretty'
         self.assertFalse(os.path.exists(pretty_file_path))
 
-    def test_pretty_print_json_structure__no_level_limit(self):
+    def test_pretty_print_json_file__no_level_limit(self):
         # Test that all levels are printed when level_limit is None
-        pretty_print_json_structure(self.temp_json_file.name, level_limit=None, save_to_file=True)
+        pretty_print_json_file(self.temp_json_file.name, level_limit=None, save_to_file=True)
         pretty_file_path = self.temp_json_file.name + '.pretty'
         with open(pretty_file_path, 'r') as pretty_file:
             contents = pretty_file.read()
             # Verify that all levels are printed (exact verification depends on function's output format)
             self.assertIn("subkey1", contents)
 
-    def test_pretty_print_json_structure__with_nonexistent_file(self):
+    def test_pretty_print_json_file__with_nonexistent_file(self):
         # Test that a warning is raised when the file does not exist
         non_existent_file_path = "non_existent_file.json"
         with self.assertWarns(Warning):
-            pretty_print_json_structure(non_existent_file_path, level_limit=2, save_to_file=True)
+            pretty_print_json_file(non_existent_file_path, level_limit=2, save_to_file=True)
 
-    def test_pretty_print_json_structure__save_to_file_false(self):
+    def test_pretty_print_json_file__save_to_file_false(self):
         # Test pretty printing JSON structure without saving to file
         json_file_path = self.temp_json_file.name
-        pretty_print_json_structure(json_file_path, level_limit=2, save_to_file=False)
+        pretty_print_json_file(json_file_path, level_limit=2, save_to_file=False)
 
         output_file_path = json_file_path + '.pretty'
         self.assertFalse(os.path.exists(output_file_path), "Output file should not exist when save_to_file is False.")
 
-    def test_pretty_print_json_structure__non_existent_file(self):
+    def test_pretty_print_json_file__non_existent_file(self):
         # Test handling of non-existent JSON file
         non_existent_file_path = 'non_existent_file.json'
         with self.assertWarns(Warning) as warning:
-            pretty_print_json_structure(non_existent_file_path)
+            pretty_print_json_file(non_existent_file_path)
         self.assertIn("does not exist", str(warning.warning.args[0]), "Warning should mention the non-existent file.")
 
-    def test_pretty_print_json_structure__no_level_limit(self):
+    def test_pretty_print_json_file__no_level_limit(self):
         # Test printing JSON structure without a level limit
         json_file_path = self.temp_json_file.name
-        pretty_print_json_structure(json_file_path, level_limit=None, save_to_file=False)
+        pretty_print_json_file(json_file_path, level_limit=None, save_to_file=False)
 
         # Verifying the function runs without error and the precise output check is done through inspection
 
-    def test_pretty_print_json_structure__specific_level_limit(self):
+    def test_pretty_print_json_file__specific_level_limit(self):
         # Test printing JSON structure with a specific level limit
         json_file_path = self.temp_json_file.name
-        pretty_print_json_structure(json_file_path, level_limit=1, save_to_file=False)
+        pretty_print_json_file(json_file_path, level_limit=1, save_to_file=False)
 
         # This test ensures that the function correctly limits the printing depth
         # Precise output verification is manual due to the nature of console output
 
-    def test_pretty_print_json_structure__empty_json(self):
+    def test_pretty_print_json_file__empty_json(self):
         # Test handling of an empty JSON file
         empty_json_file_path = tempfile.mkstemp(suffix='.json')[1]
         with open(empty_json_file_path, 'w') as file:

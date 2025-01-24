@@ -1,19 +1,33 @@
+# ===== START OF FILE primary/vectordb.py =====
+# Library for vector database operations
+
+import sys
 import os
 import json
 import zipfile
 import shutil
-import datetime
+from datetime import datetime
 
 from openai import OpenAI
 from pinecone import Pinecone, ServerlessSpec
+
+# Exclude for qrag chalicelib
 from langchain_pinecone import Pinecone as LangchainPinecone
 from langchain_community.document_loaders import ObsidianLoader
 from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-from config import PINECONE_API_KEY, OPENAI_API_KEY_CONFIG_LLM
 
-client = OpenAI(api_key=OPENAI_API_KEY_CONFIG_LLM)
+# ---API KEYS AND SECRETS---
+from dotenv import load_dotenv
+load_dotenv(override=True)  # Load environment variables from .env file
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY_LOCAL"]
+PINECONE_API_KEY = os.environ["PINECONE_API_KEY"]
+
+
+# ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 VZIP_LOG_FOLDER = 'logs/vectordb_pinecone_log_zips/'
 EMBEDDING_MODEL = "text-embedding-3-small"  # OpenAI 1536 dimensions and $0.02/1M tokens - batch is 1/2 that, large is $.13)
@@ -31,49 +45,81 @@ def generate_embedding(text, model=EMBEDDING_MODEL):
     :param model: string of the OpenAI embeddings model to use.
     :return: list of floats representing the embedding vector.
     """
-
-    response = client.embeddings.create(input=text,
+    openai_client = OpenAI(api_key=OPENAI_API_KEY)
+    response = openai_client.embeddings.create(input=text,
     model=model)
     embedding = response.data[0].embedding
     return embedding
 
 # TODO review the timestamp lines
-def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=True):
-    """ 
+def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=True, embedding_field='QUESTION', date_from_filename=False):
+    """
     Generates vectors from markdown files in the specified folder paths.
 
     :param folder_paths: list of strings of the paths to the folders containing markdown files.
-    :param include_subfolders: boolean indicating whether to search for markdown files in subfolders. Default is True.
-    :return: vectors as a list of dictionaries, each containing an id, values, and metadata for a block of text.
+    :param suffixpat_include: string pattern to filter files by suffix.
+    :param include_subfolders: boolean indicating whether to search for markdown files in subfolders.
+    :param embedding_field: string indicating which field to use for generating embeddings. Default is 'QUESTION'.
+    :param date_from_filename: boolean indicating whether to extract ISO date from filename. Default is False.
+    :return: vectors as a list of dictionaries, each containing an id, values, and metadata.
+    :raises ValueError: if date_from_filename is True and any filename has an invalid ISO date format,
+                       or if any block is missing the specified embedding_field.
     """
     from primary.fileops import get_files_in_folder, get_timestamp
-    from primary.structured import get_blocks_from_file, get_all_fields_dict
+    from primary.structured import get_blocks_from_file, get_all_fields_dict, validate_iso_dates_in_filename, validate_blocks_in_folders
 
-    vectors = []  # Consider renaming this. it's the list of all the dicts with the fields from the blocks
+    # Pre-validate ISO dates if date_from_filename is True
+    if date_from_filename:
+        if not validate_iso_dates_in_filename(folder_paths, suffixpat_include):
+            raise ValueError("Invalid ISO date format found in one or more filenames")
+    
+    # Pre-validate that all blocks have the required embedding field
+    required_fields = [embedding_field]
+    invalid_file = validate_blocks_in_folders(folder_paths, required_fields, {}, suffixpat_include)
+    if invalid_file:
+        raise ValueError(f"Missing required embedding field '{embedding_field}' in file: {invalid_file}")
+
+    vectors = []
     total_files = 0
     num_vectors = 0
+    print("\nStarting vector generation...")
+    
     for folder_path in folder_paths:
         file_paths = get_files_in_folder(folder_path, suffixpat_include=suffixpat_include, include_subfolders=include_subfolders)
         total_files += len(file_paths)
-        for path in file_paths:
+        for i, path in enumerate(file_paths, 1):
+            file_name_with_extension = os.path.basename(path)
+            print(f"Generating vectors for file {i}/{len(file_paths)}: {file_name_with_extension}")
+            
             blocks = get_blocks_from_file(path)
             block_num = 0
+            file_name_with_extension = os.path.basename(path)
+            
+            # Extract date from filename if enabled (we know it's valid at this point)
+            if date_from_filename:
+                date_str = file_name_with_extension.split('_')[0]
+                file_date = datetime.strptime(date_str, '%Y-%m-%d')
+                # Convert to Unix timestamp for Pinecone metadata
+                date_timestamp_unix = int(file_date.timestamp())
+            
             for block in blocks:
                 fields = get_all_fields_dict(block)
-                file_name_with_extension = os.path.basename(path)  # Get file name with extension
-                fields['SOURCE'] = file_name_with_extension  # Use file name with extension as the SOURCE
+                fields['SOURCE'] = file_name_with_extension
+                
+                # Add date metadata as timestamp if enabled
+                if date_from_filename:
+                    fields['DATE'] = date_timestamp_unix  # Store as Unix timestamp instead of ISO string
+                
                 vector_id = (os.path.splitext(file_name_with_extension)[0] + "_" + str(block_num)).replace(" ", "_")
                 
-                # Main call to generate embeddings
-                embedding = generate_embedding(fields['QUESTION'])  
-                timestamp, _ = get_timestamp(fields['QUESTION'])  # Extract timestamp from the question
-                if timestamp:
-                    fields['TIMESTAMP'] = timestamp  # Add timestamp to the metadata fields
-                vector = {'id': vector_id, 'values': embedding, 'metadata': fields}  # Create the vector schema
+                text_to_embed = fields[embedding_field]
+                embedding = generate_embedding(text_to_embed)
+                
+                vector = {'id': vector_id, 'values': embedding, 'metadata': fields}
                 vectors.append(vector)
                 num_vectors += 1
                 block_num += 1
-            #print('Vectorized file:' + file_name_with_extension)
+                
     print(f"Vectors generated for {total_files} files - number of vectors: {num_vectors}")
     return vectors
 
@@ -393,7 +439,7 @@ def create_vectordb_vrag_langchain(folder_paths, vector_index_base, suffixpat_in
     """ 
     from primary.fileops import apply_to_folder, create_new_file_from_heading, sub_suffix_in_file, move_files_with_suffix, remove_timestamp_links, find_and_replace_pairs
     
-    os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY_CONFIG_LLM
+    # os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY_CONFIG_LLM  # 10-4-24 commented out - think we can delete this
 
     # Setup vector database creation
     vector_index_name, vector_index_name_with_timestamp, datetime, all_file_paths = setup_create_vectordb(folder_paths, vector_index_base, suffixpat_include)
@@ -472,15 +518,22 @@ def create_vectordb_vrag_langchain(folder_paths, vector_index_base, suffixpat_in
     update_pinecone_index_list_md()
     return log_file_path
 
-def create_qrag_vectordb(folder_paths, vector_index_base, suffixpat_include=None):
+def create_qrag_vectordb(folder_paths, vector_index_base, suffixpat_include=None, embedding_field="QUESTION", date_from_filename=False):
     # Set OpenAI and Pinecone API keys
-    os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY_CONFIG_LLM
+    #os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY_CONFIG_LLM  # 10-4-24 commented out - think we can delete this
     
     # Setup vector database creation
     vector_index_name, vector_index_name_with_timestamp, datetime, all_file_paths = setup_create_vectordb(folder_paths, vector_index_base, suffixpat_include)
+    print("If you are replacing the vector database, you can go to the Pinecone portal and delete the existing index now.")
 
-    # Generate vectors
-    vectors = generate_vectors_qa(folder_paths, suffixpat_include)
+    # Generate vectors - Fix the parameter order
+    vectors = generate_vectors_qa(
+        folder_paths, 
+        suffixpat_include,
+        include_subfolders=True,  # Explicitly name the parameter
+        embedding_field=embedding_field,
+        date_from_filename=date_from_filename
+    )
 
     # Check and create Pinecone index, and get user confirmation
     if not check_and_create_pinecone_index(vector_index_name):
@@ -496,6 +549,8 @@ def create_qrag_vectordb(folder_paths, vector_index_base, suffixpat_include=None
         "pinecone vector_index_name": vector_index_name,
         "folder_paths": folder_paths,
         "suffixpat_include": suffixpat_include,
+        "embedding_field": embedding_field,
+        "date_from_filename": date_from_filename,
         "total_files": len(all_file_paths),
         "total_vectors": len(vectors),
     }
@@ -514,3 +569,4 @@ def create_qrag_vectordb(folder_paths, vector_index_base, suffixpat_include=None
     return log_file_path
 
 
+# ===== END OF FILE primary/vectordb.py =====

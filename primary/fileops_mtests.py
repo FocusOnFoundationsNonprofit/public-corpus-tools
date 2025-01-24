@@ -1,3 +1,6 @@
+# ===== START OF FILE primary/fileops_mtests.py =====
+# Library for testing fileops functions
+
 from fileops import *
 from transcribe import *
 
@@ -199,7 +202,7 @@ def mtest_get_text_between_delimiters():
     print(get_text_between_delimiters(cur_content, "### summaries", "###"))
 def mtest_check_if_duplicate_filename():
     pass
-if __name__ == "__main__":        
+#if __name__ == "__main__":        
     cur_folder = "data/trucks/dev-test"
     test_filename_same_suffix = "2017_martinez_ford-super-duty-250-srw_7771635761.md"
     test_filename_diff_suffix = "2017_martinez_ford-super-duty-250-srw_7771635555.md"
@@ -210,8 +213,11 @@ if __name__ == "__main__":
     print(f"Diff suffix result: {result}")  # Expected: True
     result = check_if_duplicate_filename(test_filename_diff_suffix, cur_folder, exclude_suffix=False)
     print(f"Diff suffix result with exclude_suffix=True: {result}")  # Expected: False
-    
-
+def mtest_find_and_replace_in_filenames_in_folder():
+    pass
+if __name__ == "__main__":        
+    cur_folder = "data/floodlamp/reg/fda-townhalls/dev-qa-extract"
+    find_and_replace_in_filenames_in_folder(cur_folder, "zz-", "z1B-")
 
 ### TIMESTAMP LINKS
 def mtest_remove_timestamp_links():
@@ -353,5 +359,4 @@ def mtest_pretty_print_json_structure():
     print(pretty_print_json_structure(cur_json_file_path, level_limit=None))
 
 
-
-
+# ===== END OF FILE primary/fileops_mtests.py =====

@@ -1,0 +1,278 @@
+Contains Nonbinding Recommendations
+
+# Laboratory Developed Tests: Small Entity Compliance Guide
+
+**Guidance for Laboratory Manufacturers and Food and Drug Administration Staff**
+
+*Document issued on June 25, 2024.*
+
+For questions about this document, contact [LDTFinalRule@fda.hhs.gov](mailto:LDTFinalRule@fda.hhs.gov)
+
+---
+
+U.S. Department of Health and Human Services  
+Food and Drug Administration  
+Center for Devices and Radiological Health  
+Center for Biologics Evaluation and Research  
+
+---
+
+## Preface
+
+### Public Comment
+
+You may submit electronic comments and suggestions at any time for Agency consideration to [https://www.regulations.gov](https://www.regulations.gov). Submit written comments to the Dockets Management Staff, Food and Drug Administration, 5630 Fishers Lane, Room 1061, (HFA-305), Rockville, MD 20852-1740. Identify all comments with the docket number FDA-2023-N-2177. Comments may not be acted upon by the Agency until the document is next revised or updated.
+
+### Additional Copies
+
+**CDRH**  
+Additional copies are available from the Internet. You may also send an email request to [CDRH-Guidance@fda.hhs.gov](mailto:CDRH-Guidance@fda.hhs.gov) to receive a copy of the guidance. Please include the document number GUI00007036 and complete title of the guidance in the request.
+
+**CBER**  
+Additional copies are available from the Center for Biologics Evaluation and Research (CBER), Office of Communication, Outreach, and Development (OCOD), 10903 New Hampshire Ave., Bldg. 71, Room 3128, Silver Spring, MD 20993-0002, or by calling 1-800-835-4709 or 240-402-8010, by email, [ocod@fda.hhs.gov](mailto:ocod@fda.hhs.gov), or from the Internet at [https://www.fda.gov/vaccines-blood-biologics/guidance-compliance-regulatory-information-biologics/biologics-guidances](https://www.fda.gov/vaccines-blood-biologics/guidance-compliance-regulatory-information-biologics/biologics-guidances).
+
+---
+
+## Table of Contents
+
+I. Introduction................................................................................................................... 1  
+II. Background.................................................................................................................... 2  
+III. Overview....................................................................................................................... 3  
+IV. Scope............................................................................................................................ 4  
+   A. General Scope of Amendment and Phaseout Policy................................................ 4  
+   B. Enforcement Discretion Policies for Certain IVDs .................................................. 5  
+V. Amendment and Phaseout Policy ................................................................................ 8  
+   A. 21 CFR 809.3(a) Definition of in vitro diagnostic products...................................... 8  
+   B. Phaseout Policy........................................................................................................ 8  
+   C. Summary of FDA Compliance Expectations.......................................................... 10  
+VI. Additional Resources.................................................................................................. 10  
+   A. Requirements related to Complaints, Medical Device Reports, and Correction and Removal Reports.......................................................................................................... 10  
+   B. Registration and Listing Requirements................................................................... 11  
+   C. Device Labeling Requirements............................................................................... 11  
+   D. Investigational Use Requirements ......................................................................... 11  
+   E. Quality System Requirements................................................................................ 12  
+   F. Premarket Review Requirements............................................................................ 13  
+   G. General Information............................................................................................... 13  
+
+---
+
+# Laboratory Developed Tests: Small Entity Compliance Guide  
+Guidance for Laboratory Manufacturers and Food and Drug Administration Staff
+
+> This guidance represents the current thinking of the Food and Drug Administration (FDA or Agency) on this topic. It does not establish any rights for any person and is not binding on FDA or the public. You can use an alternative approach if it satisfies the requirements of the applicable statutes and regulations. To discuss an alternative approach, contact the FDA staff or Office responsible for this guidance as listed on the title page.
+
+## I. Introduction
+
+On May 6, 2024, FDA published a final rule in the Federal Register entitled “Medical Devices; Laboratory Developed Tests” ([89 FR 37286](https://www.federalregister.gov/documents/2024/05/06/2024-08986/medical-devices-laboratory-developed-tests)) (“LDT Final Rule”). This final rule amends FDA regulations to make explicit that in vitro diagnostic products (IVDs) are devices under the Federal Food, Drug, and Cosmetic Act (FD&C Act) including when the manufacturer of the IVD is a laboratory. This amendment reflects that the device definition in the FD&C Act does not differentiate between entities manufacturing the device. In conjunction with the amendment, FDA is phasing out its general enforcement discretion approach for laboratory developed tests (LDTs) so that IVDs manufactured by a laboratory will generally fall under the same enforcement approach as other IVDs (i.e., FDA’s expectations for compliance will generally be the same). This phaseout policy is more fully described in the preamble to the LDT Final Rule and includes enforcement discretion policies for specific categories of IVDs manufactured by a laboratory, including currently marketed IVDs offered as LDTs and LDTs for unmet needs.
+
+This phaseout policy is intended to better protect the public health by helping to assure the safety and effectiveness of IVDs offered as LDTs, while also accounting for other important public health considerations such as patient access and reliance. FDA has prepared this Small Entity Compliance Guide to assist small entities in complying with the requirements established in FDA regulations as they apply to IVDs, including LDTs.
+
+FDA's guidance documents, including this guidance, do not establish legally enforceable responsibilities. Instead, guidances describe the Agency’s current thinking on a topic and should be viewed only as recommendations, unless specific regulatory or statutory requirements are cited. The use of the word *should* in Agency guidance means that something is suggested or recommended, but not required.
+
+## II. Background
+
+In 1976, the Medical Device Amendments of 1976 (the MDA) amended the FD&C Act to create a comprehensive system for the regulation of devices intended for human use. In implementing the MDA, FDA has exercised enforcement discretion such that it generally has not enforced applicable requirements with respect to most LDTs, including requirements related to establishment registration and product listing, medical device reporting to FDA, current good manufacturing practices (CGMPs), and premarket review of an IVD by FDA prior to use of the LDT in patient care, among others. The rationale for this approach was that, at the time of passage of the MDA, LDTs were mostly manufactured in small volumes by laboratories that served their local communities. They were typically intended for use in diagnosing rare diseases or for other uses to meet the needs of a local patient population, or were generally similar to well-characterized, standard IVDs. They also tended to employ manual techniques (and did not use automation) and were performed by laboratory personnel with specialized expertise; to be used and interpreted by physicians or pathologists in a single institution responsible for the patient (and who were actively involved in patient care); and to be manufactured using components legally marketed for clinical use, such as general purpose reagents or immunohistochemical stains marketed in compliance with FDA requirements. Due to these and other factors, FDA exercised enforcement discretion such that it generally has not enforced applicable requirements for most LDTs.
+
+However, the LDT landscape has evolved significantly since 1976. Today, many LDTs increasingly rely on high-tech or complex instrumentation and software to generate results and clinical interpretations. They are often used in laboratories outside of the patient’s healthcare setting and are often run in high volume for large and diverse populations. Many LDTs are manufactured by laboratory corporations that market the IVDs nationwide, as they accept specimens from patients across the country and run their LDTs in very large volumes in a single laboratory. Today’s LDTs are also more commonly manufactured with instruments or other components not legally marketed for clinical use and are more often used to inform or direct critical treatment decisions, to widely screen for common diseases, to predict personal risk of developing certain diseases, and to diagnose serious medical conditions such as cancer and heart disease. The risks associated with most LDTs today are therefore much greater than they were at the time FDA began implementing the MDA, and most LDTs today are similar to other IVDs that have not been under FDA’s general enforcement discretion approach. In addition, FDA is concerned that firms are offering IVDs as “LDTs” even when they are not LDTs as defined on FDA’s website, because they are not actually designed, manufactured, and used within a single laboratory.
+
+As LDTs increasingly rely on high-tech instrumentation and software, the potential for cybersecurity vulnerabilities is growing. Many LDTs are connected to Laboratory Information Management Systems and other IT infrastructure, making them a potential conduit for those looking to access information in such systems. This may include patient genetic information, among other things, which could have national security implications. Further, it has been demonstrated that hackers can modify medical test results. Through premarket review, FDA works with manufacturers to ensure cybersecurity is appropriately considered, mitigating the potential for future problems. Through medical device reporting (MDR) and corrections and removals reporting requirements, FDA helps to ensure that any problems are appropriately addressed. In fact, FDA has seen cybersecurity problems with certain instruments and issued two safety communications where laboratories may not have otherwise been aware that the research use only (RUO) versions of the instruments used as part of their LDTs had the same vulnerabilities.
+
+As a result of these evolutions in the testing landscape, FDA has long recognized the need for a change in the Agency’s general enforcement discretion approach for LDTs. Over the past few years, FDA has accumulated even more information supporting the need for a change, as noted in the preamble to the LDT Final Rule. In light of these developments, FDA has issued a final rule to amend FDA’s regulations to make explicit that IVDs are devices under the FD&C Act including when the manufacturer is a laboratory. The preamble to the LDT Final Rule describes how FDA is: (1) phasing out its general enforcement discretion approach for LDTs so that IVDs manufactured by a laboratory will generally fall under the same enforcement approach as other IVDs and (2) adopting targeted enforcement discretion policies for specific categories of IVDs manufactured by a laboratory.
+
+## III. Overview
+
+FDA has issued a rule to amend its regulations to make explicit that IVDs are devices under the FD&C Act including when the manufacturer of the IVD is a laboratory. This amendment reflects that the device definition in the FD&C Act does not differentiate between entities manufacturing the device.
+
+As amended, 21 CFR 809.3(a) reads:
+
+> **In vitro diagnostic products** are those reagents, instruments, and systems intended for use in the diagnosis of disease or other conditions, including a determination of the state of health, in order to cure, mitigate, treat, or prevent disease or its sequelae. Such products are intended for use in the collection, preparation, and examination of specimens taken from the human body. These products are devices as defined in section 201(h)(1) of the Federal Food, Drug, and Cosmetic Act (the act) and may also be biological products subject to section 351 of the Public Health Service (PHS) Act, including when the manufacturer of these products is a laboratory.
+
+The preamble to the LDT Final Rule also includes a policy under which FDA is phasing out its general enforcement discretion approach for LDTs in stages so that, following a 4-year phaseout period, as described in Section V.B. of this Small Entity Compliance Guide, IVDs manufactured by a laboratory will generally fall under the same enforcement approach as other IVDs (i.e., FDA’s expectations for compliance will generally be the same). This phaseout policy includes enforcement discretion policies for specific categories of IVDs manufactured by a laboratory, including “currently marketed IVDs offered as LDTs” and “LDTs for unmet needs,” as described below.
+
+## IV. Scope
+
+### A. General Scope of Amendment and Phaseout Policy
+
+The LDT Final Rule amends FDA’s regulations to make explicit that IVDs are devices under the FD&C Act including when the manufacturer of the IVD is a laboratory. 
+
+The preamble to the LDT Final Rule includes a phaseout policy, which applies to IVDs that are *manufactured* and *offered* as LDTs by laboratories that are certified under the Clinical Laboratory Improvement Amendments of 1988 (CLIA) and that meet the regulatory requirements under CLIA to perform high complexity testing, and used within such laboratories, even if those IVDs do not fall within FDA’s traditional understanding of an LDT because they are not designed, manufactured, and used within a single laboratory (“IVDs offered as LDTs”). FDA adopted this scope because it recognizes that not all laboratories have understood the limited nature of FDA’s general enforcement discretion approach and have been offering IVDs based on the approach even when those IVDs do not fit what FDA generally considers to be an LDT.  
+
+As discussed in the preamble to the LDT Final Rule, “IVDs offered as LDTs” does not include IVDs manufactured or used *outside* of a laboratory, including collection devices.
+
+The phaseout policy does not apply to certain tests that were excluded from our general enforcement discretion approach. FDA continues to generally expect that tests within the following categories will comply with applicable device requirements:
+
+- Tests that are intended as blood donor screening or human cells, tissues, and cellular and tissue-based products (HCT/P) donor screening tests required for infectious disease testing under 21 CFR 610.40 and 1271.80(c), respectively, or required for determination of blood group and Rh factors under 21 CFR 640.5;
+- Tests intended for emergencies, potential emergencies, or material threats declared under section 564(b) of the FD&C Act; and
+- Direct to consumer (DTC) tests, intended for consumer use without meaningful involvement by a licensed healthcare professional.
+
+Tests manufactured and offered for use exclusively for public health surveillance are also not affected by the phaseout policy. Public health surveillance tests are tests: (1) intended solely for use on systematically collected samples for analysis and interpretation of health data in connection with disease prevention and control; and (2) for which results are not reported to patients or their healthcare providers. The results of these tests are generally used for trending on a population basis or public health outbreaks, where the test results are not intended for clinical decision making.
+
+Finally, we note that the amended regulation and phaseout policy do not change requirements for laboratories, including requirements under CLIA, which we note are separate from requirements under the FD&C Act.
+
+### B. Enforcement Discretion Policies for Certain IVDs
+
+As discussed in the preamble to the LDT Final Rule, for certain IVDs, FDA intends to exercise enforcement discretion and generally not enforce all or some applicable requirements. These enforcement discretion policies do not apply to any IVDs identified in section V.A.2 of the preamble to the LDT Final Rule as falling outside the scope of the phaseout policy or as discussed in section V.B of the preamble to the LDT Final Rule. As with any enforcement discretion policy, FDA may update any of these policies as circumstances warrant or if the circumstances that inform these policies change, consistent with FDA’s good guidance practices (section 701(h) of the FD&C Act, 21 CFR 10.115). Regardless of the phaseout timeline and enforcement discretion policies for certain IVDs discussed below, FDA retains discretion to pursue enforcement action for violations of the FD&C Act at any time and intends to do so when appropriate. This small entity compliance guide does not introduce new or different enforcement discretion policies from those discussed in the preamble to the LDT Final Rule.
+
+For several categories of tests, FDA intends to continue the general enforcement discretion approach and generally not enforce any applicable requirements because tests in these categories are, in our experience, unlikely to pose significant risks or are conducted in circumstances that themselves will mitigate the risks. The categories of tests are:
+
+- **1976-Type LDTs.** These tests have the following characteristics common among LDTs offered in 1976: (1) use of manual techniques (without automation) performed by laboratory personnel with specialized expertise; (2) use of components legally marketed for clinical use; and (3) design, manufacture, and use within a single CLIA-certified laboratory that meets the requirements under CLIA for high complexity testing. These tests might include, for example, immunohistochemistry tests that involve no automated preparation or interpretation, but would not include, for example, lateral flow tests, as they do not generally rely on laboratory personnel expertise.
+
+- **Certain Human Leukocyte Antigen (HLA) Tests for Transplantation.** These tests are designed, manufactured, and used within a single laboratory certified under CLIA that meets the requirements to perform high-complexity histocompatibility testing when used in connection with organ, stem cell, and tissue transplantation to perform HLA allele typing, for HLA antibody screening and monitoring, or for conducting real and “virtual” HLA crossmatch tests (“HLA tests for transplantation”). This enforcement discretion policy does not include HLA tests used for blood transfusion, which are highly standardized across institutions.
+
+- **Forensic Tests.** These tests are intended solely for forensic (law enforcement) purposes.
+
+- **DoD and VHA LDTs.** These are LDTs manufactured and performed within the Veterans Health Administration (VHA) or the Department of Defense (DoD). This policy applies only to LDTs used for patients that are being tested and treated within the DoD or VHA.
+
+FDA generally intends to exercise enforcement discretion with respect to premarket review requirements for:
+
+- **LDTs Approved by NYS CLEP.** LDTs that are approved by New York State Department of Health’s Clinical Laboratory Evaluation Program (NYS CLEP). This policy applies only to the approved version of the test. (FDA is aware that some laboratories may offer different versions of an LDT depending on whether a patient specimen comes from NYS or from elsewhere.)
+
+- **Certain Modified Versions of Another Manufacturer’s 510(k) Cleared or De Novo Authorized Test.** This policy applies when a laboratory certified under CLIA and meeting the regulatory requirements under CLIA to perform high complexity testing modifies another manufacturer’s 510(k) cleared or De Novo authorized test, following design controls and other quality system requirements for which FDA expects compliance (as described in stage 3 of the phaseout policy), in a manner that could not significantly affect the safety or effectiveness of the test and does not constitute a major change or modification in intended use, and where the modified test is performed only in the laboratory making the modification. Under the policy, FDA would expect premarket submissions from laboratories modifying a third party’s 510(k) cleared or De Novo authorized test for the same types of changes for which FDA would expect a premarket submission from the original manufacturer making changes to its own IVD. For a description of changes that could significantly affect the safety or effectiveness of the test or constitute a major change or modification in intended use under this policy, see FDA’s regulations at 21 CFR 807.81(a)(3) and further discussion in the final guidance “Deciding When to Submit a 510(k) for a Change to an Existing Device.” If the modification
+*Contains Nonbinding Recommendations*
+
+(individually or in the aggregate) could significantly affect the safety or effectiveness of the test or does constitute a major change or modification in intended use (and the modified test does not fall within another enforcement discretion policy), FDA expects laboratories to submit the applicable premarket submission. If the laboratory modification is so significant that the IVD is no longer substantially equivalent to the original IVD and requires a PMA, FDA expects the PMA to be submitted either by stage 4 of the phaseout policy or before the modified test is marketed, whichever comes later.
+
+FDA intends to exercise enforcement discretion and generally not enforce premarket review and quality system (QS) requirements (except for requirements under 21 CFR part 820, subpart M (Records)) for:
+
+- **LDTs for Unmet Needs.** These are LDTs manufactured and performed by a laboratory integrated within a healthcare system to meet an unmet need of patients receiving care within the same healthcare system. This enforcement discretion policy is discussed in more detail in section V.B.3. of the preamble to the LDT Final Rule. FDA also intends to provide additional guidance on this enforcement discretion policy, which would be issued in accordance with good guidance practices (see 21 CFR 10.115).
+
+- **Currently Marketed IVDs offered as LDTs.** These are currently marketed IVDs offered as LDTs that were first marketed prior to May 6, 2024 (the date of publication of the LDT Final Rule), as long as they are not modified after that date, or are modified but only in certain limited ways, as described in section V.B.3 of the preamble to the LDT Final Rule. Under this policy, FDA generally expects compliance with premarket review and QS requirements for currently marketed IVDs offered as LDTs when a laboratory’s modifications (individually or in aggregate) change the indications for use of the IVD, alter the operating principle of the IVD (e.g., changes in critical reaction components), include significantly different technology in the IVD (e.g., addition of artificial intelligence/machine learning to the test algorithm, a change from targeted sequencing to whole genome sequencing, a change from immunoassay to mass spectrometry, or a change from manual to automated procedures), or adversely change the performance or safety specifications of the IVDs.8
+
+- **Non-Molecular Antisera LDTs for Rare Red Blood Cell (RBC) Antigens for Transfusion Compatibility.** These are non-molecular antisera LDTs for rare RBC antigens, when such tests are manufactured and performed by blood establishments, including transfusion services and immunohematology laboratories, and when there is no alternative IVD available to meet the patient’s need for a compatible blood transfusion. This policy does not apply to molecular tests used for genotyping RBC antigens.
+
+The enforcement discretion policies described above are more fully described and discussed in sections V.B and V.C of the preamble to the LDT Final Rule. We also intend to publish additional guidance documents on these policies as appropriate. Table 2 in Section V.C of this Small Entity Compliance Guide provides a high-level summary of FDA’s compliance expectations for certain categories of IVDs, including those that fall within the targeted enforcement discretion policies listed above.
+
+## V. Amendment and Phaseout Policy
+
+### A. 21 CFR 809.3(a) Definition of in vitro diagnostic products
+
+21 CFR 809.3(a), as amended, makes explicit that IVDs are devices under the FD&C Act including when the manufacturer is a laboratory. The amendment to 21 CFR 809.3(a) reflects that the device definition in the FD&C Act does not differentiate between entities manufacturing the device.
+
+FDA’s intent is that following a 4-year phaseout period, described in the preamble to the LDT Final Rule, IVDs offered as LDTs generally will be expected to meet applicable requirements, with several enforcement discretion policies for certain categories of IVDs manufactured by a laboratory.
+
+In this section, Section V, of this Small Entity Compliance Guide, we discuss these targeted enforcement discretion policies, which are described in the preamble to the LDT Final Rule. In the next section, Section VI, of this Small Entity Compliance Guide, we provide additional resources on the applicable requirements to assist manufacturers in understanding these requirements.
+
+### B. Phaseout Policy
+
+FDA has had a general enforcement discretion approach for most LDTs. As discussed in the preamble to the LDT Final Rule, FDA is phasing out this general enforcement discretion approach so that IVDs manufactured by a laboratory will generally fall under the same enforcement approach as other IVDs. The phaseout is intended to help assure the safety and effectiveness of IVDs offered as LDTs, while also accounting for other important public health considerations such as patient access and reliance. Following a four-year phaseout period, FDA will no longer have a general enforcement discretion approach for LDTs. The phaseout policy includes the following five stages for IVDs offered as LDTs:
+
+- **Stage 1:** Beginning May 6, 2025, FDA will expect compliance with MDR requirements, corrections and removals reporting requirements, and QS requirements under 21 CFR 820.198 (complaint files).
+
+- **Stage 2:** Beginning May 6, 2026, FDA will expect compliance with requirements not covered during other stages of the phaseout policy, including registration and listing requirements under section 510 of the FD&C Act, 21 CFR part 607, and 21 CFR part 807 (excluding subpart E); labeling requirements under section 502 of the FD&C Act and 21 CFR parts 801 and 809, subpart B; and investigational use requirements under section 520(g) of the FD&C Act and 21 CFR part 812.
+
+- **Stage 3:** Beginning May 6, 2027, FDA will expect compliance with QS requirements under part 820 (21 CFR part 820) (other than requirements under 21 CFR 820.198 (complaint files), which are already addressed in stage 1).9
+
+- **Stage 4:** Beginning November 6, 2027, FDA will expect compliance with premarket review requirements for high-risk IVDs offered as LDTs (IVDs that may be classified into class III or that are subject to licensure under section 351 of the PHS Act), unless a premarket submission has been received by the beginning of this stage in which case FDA intends to continue to exercise enforcement discretion for the pendency of its review.
+
+- **Stage 5:** Beginning May 6, 2028, FDA will expect compliance with premarket review requirements for moderate-risk and low-risk IVDs offered as LDTs (that require premarket submissions), unless a premarket submission has been received by the beginning of this stage in which case FDA intends to continue to exercise enforcement discretion for the pendency of its review.
+
+| Stage   | Compliance Expectations                                                  | Timeline               |
+|---------|--------------------------------------------------------------------------|------------------------|
+| Stage 1 | Medical device reporting, reporting of corrections and removals, and complaint files | Beginning May 6, 2025  |
+| Stage 2 | Registration, listing, labeling, investigational use, and other applicable requirements that are not a part of Stages 1, 3, 4, or 5 | Beginning May 6, 2026  |
+| Stage 3 | Quality system requirements not addressed in earlier stages              | Beginning May 6, 2027  |
+| Stage 4 | Premarket submission requirements for high-risk IVDs offered as LDTs     | Beginning November 6, 2027 |
+| Stage 5 | Premarket submission requirements for low- and moderate-risk IVDs offered as LDTs, unless exempt | Beginning May 6, 2028  |
+
+For IVDs offered as LDTs on the market prior to Stage 4 or 5 (as applicable), FDA also generally does not intend to enforce against IVDs offered as LDTs for lacking premarket authorization after a complete PMA, Humanitarian Device Exemption application, 510(k), BLA or De Novo request has been submitted to FDA (by the corresponding stage of the phaseout policy) until FDA completes review of the submission, so as not to interrupt access to IVDs that are already on the market and available to patients.
+
+As discussed in Section IV of this Small Entity Compliance Guide and summarized below, FDA intends to exercise enforcement discretion for specific categories of IVDs manufactured by a
+
+### C. Summary of FDA Compliance Expectations
+
+As discussed in the preamble to the LDT Final Rule, FDA intends to exercise enforcement discretion and generally not enforce some or all applicable requirements for certain categories of IVDs manufactured by a laboratory, as summarized in the table below. Some IVDs may fall into more than one enforcement discretion policy. We note that an IVD is not excluded from an enforcement discretion policy in the preamble to the final rule simply because it falls within another enforcement discretion policy in such preamble, and so either policy may apply. As noted in the preamble to the final rule, the targeted enforcement discretion policies included in the preamble do not apply to any IVD identified in section V.A.2 of the preamble to the LDT Final Rule as falling outside the scope of the phaseout policy (e.g., donor screening tests for infectious diseases and certain blood typing tests, Direct-to-Consumer tests) or as discussed in section V.B of the preamble.
+
+The table below is intended to provide a high-level overview of certain key categories of IVDs covered in the preamble to the final rule. This table does not address all IVDs (e.g., tests for 564 declarations). Please refer to the preamble to the rule for additional details and policies.
+
+| Category of IVD                                                                                          | Stage 1 Medical Device Reporting (21 CFR pt. 803) Reporting of Corrections and Removals (21 CFR pt. 806) Complaint Files (21 CFR 820.198) | Stage 2 Requirements Not Covered In Other Stages, Including: Establishment Registration & Device Listing (21 CFR pts. 807, 807 subpts. A-D) Labeling (21 CFR pts. 801, 809) Investigational Use Requirements (21 CFR pt. 812) | Stage 3 Quality System Requirements Other than Complaint Files (21 CFR pt. 820 other than 820.198) | Stages 4 & 5 Premarket Review (21 CFR pt. 807, subpt. E; 21 CFR pt. 860, subpt. D; 21 CFR 814; 21 CFR pt. 601) |
+|----------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
+| **Donor screening tests for infectious diseases and certain blood typing tests** Section V.A.2.a of preamble | compliance currently expected                                                                                                          | compliance currently expected                                                                                                                                                                  | compliance currently expected                                                                                  | compliance currently expected                                                                                                        |
+| **Direct-to-Consumer (DTC) tests** Section V.A.2.c of preamble                                             | compliance currently expected                                                                                                          | compliance currently expected                                                                                                                                                                  | compliance currently expected                                                                                  | compliance currently expected                                                                                                        |
+| **Public Health Surveillance tests** Section V.A.2 of preamble                                             | compliance generally not expected                                                                                                      | compliance generally not expected                                                                                                                                                              | compliance generally not expected                                                                               | compliance generally not expected                                                                                                    |
+| **1976 type LDTs** Section V.B.1 of preamble                                                               | compliance generally not expected                                                                                                      | compliance generally not expected                                                                                                                                                              | compliance generally not expected                                                                               | compliance generally not expected                                                                                                    |
+| **HLA tests for transplantation** Section V.B.1 of preamble                                               | compliance generally not expected                                                                                                      | compliance generally not expected                                                                                                                                                              | compliance generally not expected                                                                               | compliance generally not expected                                                                                                    |
+| **Forensic tests** Section V.B.1 of preamble                                                               | compliance generally not expected                                                                                                      | compliance generally not expected                                                                                                                                                              | compliance generally not expected                                                                               | compliance generally not expected                                                                                                    |
+| **LDTs manufactured and performed within DoD and VHA** Section V.B.1 of preamble                          | compliance generally not expected                                                                                                      | compliance generally not expected                                                                                                                                                              | compliance generally not expected                                                                               | compliance generally not expected                                                                                                    |
+| **LDTs for unmet needs manufactured and performed by labs integrated in the healthcare system treating the patient** Section V.B.3 of preamble | compliance generally expected beginning May 6, 2025                                                                                    | compliance generally expected beginning May 6, 2026                                                                                                                                             | compliance with 21 CFR 820.180-820.186 generally expected beginning May 6, 2027; compliance generally not expected with other QS requirements (except for complaint files) | compliance generally not expected                                                                                                    |
+
+[^10]: The draft guidance titled “Enforcement Policy for Certain In Vitro Diagnostic Devices for Immediate Public Health Response in the Absence of a Declaration under Section 564: Draft Guidance for Laboratory Manufacturers and Food and Drug Administration Staff” will reflect FDA’s current thinking when finalized.
+
+[^11]: An IVD that is also a biological product and subject to licensure under section 351 of the PHS Act may be studied under an investigational new drug application (IND) and subject to the investigational use requirements in section 351(a)(3) of the PHS Act and 21 CFR part 312, instead of the IDE requirements in part 812.
+
+[^12]: LDTs are IVDs that are intended for clinical use and that are designed, manufactured, and used within a single laboratory that is certified under the CLIA and meets the regulatory requirements under CLIA to perform high complexity testing.
+
+# VI. Additional Resources
+
+FDA understands that, for some entities, complying with applicable FDA requirements for IVDs will be new. Below is a list of resources available on FDA’s website to assist IVD manufacturers with understanding and complying with applicable requirements. This list is not exhaustive; IVD manufacturers should evaluate the characteristics of each device to determine which requirements apply to a specific device.
+
+## A. Requirements related to Complaints, Medical Device Reports, and Correction and Removal Reports
+
+FDA regulations require that device manufacturers establish and maintain complaint files, where a manufacturer documents and investigates any complaints it receives about its medical devices (21 CFR 820.198). A “complaint” is defined at 21 CFR 820.3(b) and means any written, electronic, or oral communication that alleges deficiencies related to the identity, quality, durability, reliability, safety, effectiveness, or performance of a device after it is released for distribution.
+
+FDA regulations also require that device manufacturers submit an MDR when the manufacturer becomes aware of certain events, whether through a complaint or other sources (21 CFR part 803). A reportable event is any event that the manufacturer becomes aware of that reasonably suggests that their device may have caused or contributed to a death or serious injury, or has malfunctioned and would be likely to cause or contribute to a death or serious injury if the malfunction were to recur (see sections 519(a) through (c) of the FD&C Act and 21 CFR part 803).[^14]
+
+Medical device recalls are usually conducted voluntarily by manufacturers and involve removing or correcting products that are in violation of laws administered by the FDA. Under section 519(g) of the FD&C Act and 21 CFR part 806, manufacturers and importers are generally required to report to FDA any correction or removal of a medical device if the correction or removal was initiated to reduce a risk to health posed by the device or to remedy a violation of the Act caused by the device which may present a risk to health.
+
+FDA has several guidance documents and resources available to help manufacturers understand and comply with these requirements. They include:
+
+- [Complaint Files (presentation)](http://www.fda.gov/complaintfiles)
+- [Medical Device Reporting for Manufacturers, Guidance for Industry and Food and Drug Administration Staff](http://www.fda.gov/devicereporting)
+- [Recalls, Corrections and Removals (Devices)](http://www.fda.gov/recalls)
+
+---
+
+| Currently marketed IVDs offered as LDTs first marketed prior to rule publication date and not modified beyond scope described in preamble<br>_Section V.B.3 of preamble_ | compliance generally expected beginning May 6, 2025 | compliance generally expected beginning May 6, 2026 | compliance with 21 CFR 820.180-820.186 generally expected beginning May 6, 2027; compliance generally not expected with other QS requirements (except for complaint files) | compliance generally not expected |
+|---|---|---|---|---|
+| Non-molecular antisera LDTs for rare red blood cell antigens<br>_Section V.B.3 of preamble_ | compliance generally expected beginning May 6, 2025 | compliance generally expected beginning May 6, 2026 | compliance with 21 CFR 820.180-820.186 generally expected beginning May 6, 2027; compliance generally not expected with other QS requirements (except for complaint files) | compliance generally not expected |
+| LDTs approved by NYS CLEP[^13]<br>_Section V.B.2 of preamble_ | compliance generally expected beginning May 6, 2025 | compliance generally expected beginning May 6, 2026 | compliance* generally expected beginning May 6, 2027 | compliance generally not expected |
+| Modified version of another manufacturer’s 510(k) cleared or De Novo authorized test within the scope described in the preamble<br>_Section V.C.4 of preamble_ | compliance generally expected beginning May 6, 2025 | compliance generally expected beginning May 6, 2026 | compliance* generally expected beginning May 6, 2027 | compliance generally not expected |
+| IVDs offered as LDTs within scope of phaseout policy, but that do not fall within a targeted enforcement discretion policy summarized above<br>_Section V.C of preamble_ | compliance generally expected beginning May 6, 2025 | compliance generally expected beginning May 6, 2026 | compliance** generally expected beginning May 6, 2027 | compliance generally expected beginning November 6, 2027 for high-risk tests; compliance generally expected beginning May 6, 2028 for moderate-risk and low-risk tests |
+
+---
+
+[^13]: As discussed in the preamble to the final rule, FDA uses the phrase “LDTs approved by NYS CLEP” to refer to LDTs that are approved, conditionally approved by, or within an approved exemption from full technical documentation, under NYS CLEP.
+
+[^14]: Reporting requirements for other entities are also set forth in 21 CFR part 803.
+
+\* Because these tests are LDTs, FDA generally will not expect compliance with 21 CFR part 820 requirements other than design controls, purchasing controls, acceptance activities, CAPA, and records requirements.
+
+\** For tests that are LDTs, FDA generally will not expect compliance with 21 CFR part 820 requirements other than design controls, purchasing controls, acceptance activities, CAPA, and records requirements.
+
+## B. Registration and Listing Requirements
+
+Owners or operators of establishments that are involved in the production and distribution of medical devices intended for use in the U.S. generally are required to register annually with the FDA. This process is known as establishment registration. Generally, establishments that are required to register with the FDA are also required, under section 510 of the FD&C Act, to list the devices that are made there and the activities that are performed on those devices. FDA regulations on establishment registration and device listing are found at 21 CFR parts 607 (for devices subject to licensure under section 351 of the PHS Act) and 807. For licensed devices, information on registration and listing requirements under part 607 is available at [Blood Establishment Registration and Product Listing](#) and for other devices, registration and listing information is available at [Device Registration and Listing](#).
+
+## C. Device Labeling Requirements
+
+Medical devices must comply with general labeling requirements, including formatting and substantive requirements, found in section 502 of the FD&C Act and 21 CFR part 801. Labeling requirements under part 801 include unique device identification (UDI) requirements, as applicable (see part 801, subpart B). IVDs have additional labeling requirements found at 21 CFR part 809, subpart B. 21 CFR 801.119 exempts IVDs from most general labeling requirements if an IVD is compliant with UDI requirements and the specific IVD labeling requirements found at 21 CFR 809.10. As discussed in the preamble to the LDT Final Rule, for LDTs, the required labeling information could be encompassed in more than one document, such as the test protocol, test report template, and test menu. FDA provides additional information on these requirements on its web pages, [Device Labeling](#) and [In Vitro Diagnostic Device Labeling Requirements](#).
+
+## D. Investigational Use Requirements
+
+An approved investigational device exemption (IDE) allows an investigational device to be shipped for use in a clinical investigation (a clinical study or research) for purposes of collecting safety and effectiveness data, without complying with other requirements of the FD&C Act. Investigational use also includes clinical evaluation of certain modifications or new intended uses of legally marketed devices. All clinical evaluations of significant risk devices used in an investigation, unless exempt, must have an approved IDE before the study is initiated under requirements found in section 520(g) of the FD&C Act and 21 CFR part 812. Investigations of diagnostic devices are exempt from most IDE requirements, provided that certain labeling requirements are met and the testing: is noninvasive, does not require an invasive sampling procedure that presents significant risk, does not by design or intention introduce energy into a subject, and is not used as a diagnostic procedure without confirmation of the diagnosis by another, medically established diagnostic product or procedure (21 CFR 812.2(c)(3)).
+
+Additionally, investigations of diagnostic devices that are not significant risk are deemed to have an approved IDE (without submission of an IDE application) if the conditions in 21 CFR 812.2(b) are met.
+
+FDA provides more information on IDEs and how to comply with the Agency’s IDE regulations, as well the Agency’s regulations for informed consent (21 CFR part 50) and for institutional review boards (21 CFR part 56), on its web site at [Investigational Device Exemptions (IDE)](#) and in its guidance document [In Vitro Diagnostic (IVD) Device Studies - Frequently Asked Questions](#).
+
+## E. Quality System Requirements
+
+Manufacturers generally must establish and follow a quality system to help ensure that their devices consistently meet applicable requirements and specifications to assure that they are safe and effective and otherwise in compliance with the FD&C Act, as required by section 520(f) of the FD&C Act. The quality system requirements for FDA-regulated products are known as CGMPs and, for medical devices, CGMPs are found at 21 CFR part 820 (“the QS regulation”). The QS regulation provides the essential elements of a quality system without prescribing specific ways to establish these elements. Because the QS regulation covers a broad spectrum of devices, production processes, etc., it allows some leeway in the details of quality system elements.
+
+In early 2024, FDA issued the Quality Management System Regulation Final Rule, which incorporates by reference into the QS regulation the International Organization for Standardization (ISO) 13485:2016 Medical devices – Quality management systems – Requirements for regulatory purposes, to promote consistency in the regulation of devices. This rule will take effect on February 2, 2026. The requirements found in 21 CFR part 820 remain in effect until then.
+
+The phaseout of the general enforcement discretion approach for LDTs with respect to most QS requirements (except complaint files) will take place after the effective date of the QMS Regulation Final Rule. With respect to requirements regarding complaint files prior to the effective date of the amended QSR, as discussed in the preamble to the LDT Final Rule, FDA intends to exercise enforcement discretion and generally not enforce requirements under 21 CFR 820.198 for laboratories that are in compliance with Subclause 8.2.2 of ISO 13485.
+
+FDA provides more information about the QS regulation and how to comply on its web site [QS Regulation/Medical Device Current Good Manufacturing Practices (CGMP)](#). FDA anticipates providing to all its stakeholders, including laboratory manufacturers, timely guidance on compliance with the regulatory requirements in the amended QSR.
+
+## F. Premarket Review Requirements
+
+For most medical devices, the appropriate premarket submission type is based on the device classification. Moderate-risk (Class II) and some low-risk (Class I) devices are typically reviewed under a premarket notification under section 510(k) of the FD&C Act (referred to as “510(k)”), which involves an assessment of whether the new device is substantially equivalent to a legally marketed device, called a predicate device. FDA’s premarket notification requirements are found at 21 CFR part 807 subpart E. When no predicate device is available, manufacturers of moderate-risk and low-risk devices can submit a de novo classification request under section 513(f)(2) of the FD&C Act, following the requirements found at 21 CFR part 860 subpart D. Manufacturers of higher risk (Class III) devices submit a PMA under section 515 of the FD&C Act. FDA’s PMA requirements are found at 21 CFR part 814. Certain devices regulated by CBER may require a BLA under section 351 of the PHS Act. The regulations for BLAs are found at 21 CFR part 601. More information about these submissions can be found at [Information about the Biologics License Applications (BLA) Process](#). FDA provides information on how to select and prepare the correct submission on its web site at [Premarket Submissions: Selecting and Preparing the Correct Submission](#).
+
+## G. General Information
+
+In addition to the above resources, FDA’s web pages for [Laboratory Developed Tests](#) and [IVD Regulatory Assistance](#) provide additional resources and information about how FDA regulates devices. CDRH also offers two important resources for industry:
+
+- **CDRH Learn**, a multi-media educational resource, featuring learning modules that address medical device laws, regulations, guidances, and policies, across the entire product life cycle; and
+- **Division of Industry and Consumer Education (DICE)**, which answers questions by phone and email from the medical device industry and hosts [Device Advice: Comprehensive Regulatory Assistance](#), a web page for CDRH’s comprehensive regulatory education.
+
+FDA’s Q-Submission program additionally offers manufacturers an opportunity to receive feedback on IDE applications, INDs, and premarket submissions for devices prior to FDA premarket review. More information can be found in the [Requests for Feedback and Meetings for Medical Device Submissions: The Q-Submission Program guidance document](#). FDA’s web page for [Premarket Submissions: Selecting and Preparing the Correct Submission](#) also links to pages that provide additional information on each type of premarket submission, except information for BLAs, which can be found at [Biologics License Applications (BLA) Process (CBER)](#).

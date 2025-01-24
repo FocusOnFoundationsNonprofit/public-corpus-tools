@@ -8,4 +8,4 @@ pytz
 tiktoken
 termcolor
 tenacity
-
+PyJWT

@@ -1,0 +1,25 @@
+Dear COVID19DX IVD Team,
+
+I'm pleased to follow up on FloodLAMP Biotechnologies' pre-EUA PEUA201985 with 2 complete COVID-19 IVD EUA submissions. Thank you for the extensive comments and guidance on the pre-EUA.
+
+These new submissions are for direct tests rather than the glass milk purification from our pre-EUA. Both tests utilize the same shelf stable chemical plus heat inactivation protocol. The FloodLAMP QuickColor<sup>TM</sup> COVID-19 Test uses a colorimetric LAMP amplification that is visually read by a simple color change. The FloodLAMP EasyPCR<sup>TM</sup> COVID-19 Test uses a one-step PCR amplification in duplex with an internal control.
+
+Both EUA submissions are configured as open source protocols, building on the model established by SalivaDirect<sup>TM</sup>. The chemicals and reagents needed for the tests are readily available in large quantities. The workflow for the tests has been simplified and only a single pipet tip per sample is required, further reducing potential supply chain bottlenecks.
+
+The LAMP primers chosen target 3 different genes in SARS-CoV-2 to ensure robustness and sensitivity. These primer sequences have been widely validated in research, utilized in testing programs, and submitted in other LAMP EUAs. Over the last 3 months, FloodLAMP has partnered with LGC Biosearch to establish the supply of these primers. FloodLAMP configured the primers to be offered as a catalog product by LGC Bioserach, and placed an order for 1.2M reactions in January. A portion of the production primers were delivered to FloodLAMP's lab on March 19. The other portion will be launched shortly as catalog products. With the support of the CDC and FDA, with authorization of our tests, FloodLAMP will offer a blanket right of reference to the LAMP primer validation data for any IVD test developer or CLIA lab, in an effort to further expand access to COVID-19 testing and screening.
+
+The FloodLAMP QuickColor<sup>TM</sup> COVID-19 Test demonstrated 90% sensitivity and 100% specificity in our clinical evaluation. It is ideal for use in serial screening of schools and large populations, as no specialized instrumentation is required. Both tests have very low consumables cost, at $1-2 per reaction, and a modestly trained operator can process 800 reactions per shift without any automation.
+
+FloodLAMP is in the process of obtaining an IRB to perform clinical studies for unsupervised home collection, pooling, and asymptomatic screening. The clinical studies will include usability testing for our mobile app. The app has a patient interface for sign up, consent, sample collection and results. It also has a staff interface for sample intake, barcode scanning, batch control, and results reporting, as well as an api to interface with any LIMS. The app enables accessioning and results reporting without a LIMS, providing a low overhead end-to-end digital solution for a lab running community screening.
+
+FloodLAMP's EUA submissions for these 2 molecular tests provide a combination of performance, ease of use, supply chain robustness, low cost, and scalability. Along with the other testing and screening program elements we've developed, they will significantly increase test capacity and access across the nation.
+
+We look forward to further engaging with the FDA on this important effort.
+
+Sincerely,
+
+Randy True
+
+Founder - FloodLAMP Biotechnologies, Public Benefit Corporation
+
+randy@floodlamp.bio

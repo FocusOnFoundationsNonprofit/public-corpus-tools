@@ -1,3 +1,7 @@
+// START OF FILE codebase_graph_vis.js
+var fileInfo = `codebase_graph_vis.js   11-04 0714`;
+console.log('=== JavaScript file loaded: ', fileInfo, ' ===');
+
 function logNodePosition(nodeId) {
   let node = network.body.data.nodes.get(nodeId);
   if (node) {
@@ -587,34 +591,66 @@ alignNodesLeftUICREATE();
 
 // ### DIM UNCONNECTED NODES
 function dimUnconnectedNodes(checked) {
-  var allNodes = nodes.get();
-  var nodesToUpdate = [];
-  var connectedNodeCount = 0;
+    var allNodes = network.body.data.nodes.get();
+    var nodesToUpdate = [];
+    var connectedNodeCount = 0;
+    var moduleToFunctions = {};  // Track functions per module
+    var moduleConnectivity = {}; // Track connected functions per module
 
-  allNodes.forEach(function(node) {
-    if (node.group === 'function') {
-      if (checked) {
-        var connectedEdges = network.getConnectedEdges(node.id).filter(edgeId => {
-          var edge = network.body.data.edges.get(edgeId);
-          return edge.hidden !== true;
-        });
-
-        if (connectedEdges.length > 0) {
-          node.opacity = 1;
-          connectedNodeCount++;
-        } else {
-          node.opacity = 0.2;
+    // Initialize module tracking
+    allNodes.forEach(function(node) {
+        if (node.group === 'module') {
+            moduleToFunctions[node.id] = 0;
+            moduleConnectivity[node.id] = 0;
         }
-      } else {
-        node.opacity = 1;
-      }
-      nodesToUpdate.push(node);
-    }
-  });
+        if (node.group === 'function') {
+            let moduleId = node.module;
+            moduleToFunctions[moduleId] = (moduleToFunctions[moduleId] || 0) + 1;
+        }
+    });
 
-  console.log(`Dimming unconnected nodes for all but ${connectedNodeCount} nodes.`);
-  nodes.update(nodesToUpdate);
-  network.redraw();
+    // First pass: determine function node connectivity
+    allNodes.forEach(function(node) {
+        if (node.group === 'function') {
+            if (checked) {
+                var connectedEdges = network.getConnectedEdges(node.id).filter(edgeId => {
+                    var edge = network.body.data.edges.get(edgeId);
+                    return edge.hidden !== true;
+                });
+
+                if (connectedEdges.length > 0) {
+                    node.opacity = 1;
+                    moduleConnectivity[node.module]++;
+                    connectedNodeCount++;
+                } else {
+                    node.opacity = 0.2;
+                }
+            } else {
+                node.opacity = 1;
+                moduleConnectivity[node.module]++;
+            }
+            nodesToUpdate.push(node);
+        }
+    });
+
+    // Second pass: update module nodes based on their functions' connectivity
+    allNodes.forEach(function(node) {
+        if (node.group === 'module') {
+            if (checked) {
+                // Dim module if all its functions are dimmed or if it has no functions
+                let totalFunctions = moduleToFunctions[node.id] || 0;
+                let connectedFunctions = moduleConnectivity[node.id] || 0;
+                node.opacity = (totalFunctions > 0 && connectedFunctions > 0) ? 1 : 0.2;
+            } else {
+                node.opacity = 1;
+            }
+            nodesToUpdate.push(node);
+        }
+    });
+
+    console.log(`Dimming unconnected nodes for all but ${connectedNodeCount} nodes.`);
+    network.body.data.nodes.update(nodesToUpdate);
+    network.redraw();
 }
 function dimUnconnectedNodesUICREATE() {
   var dimUnconnectedCheckbox = document.createElement('input');

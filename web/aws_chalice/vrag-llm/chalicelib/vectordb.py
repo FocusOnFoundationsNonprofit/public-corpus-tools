@@ -1,15 +1,20 @@
+import sys
 import os
 import json
 import zipfile
+import shutil
+
 from openai import OpenAI
 from pinecone import Pinecone, ServerlessSpec
-from pinecone import Pinecone as PineconePinecone
-from chalicelib.fileops import get_heading, move_files_with_suffix, create_new_file_from_heading, sub_suffix_in_file, apply_to_folder
-from chalicelib.config import PINECONE_API_KEY, OPENAI_API_KEY_CONFIG_LLM
 
 
+# ---API KEYS AND SECRETS---
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+PINECONE_API_KEY = os.environ["PINECONE_API_KEY"]
 
-client = OpenAI(api_key=OPENAI_API_KEY_CONFIG_LLM)
+# ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 VZIP_LOG_FOLDER = 'logs/vectordb_pinecone_log_zips/'
 EMBEDDING_MODEL = "text-embedding-3-small"  # OpenAI 1536 dimensions and $0.02/1M tokens - batch is 1/2 that, large is $.13)
@@ -17,8 +22,8 @@ EMBEDDING_MODEL = "text-embedding-3-small"  # OpenAI 1536 dimensions and $0.02/1
 # These vector db wrapper functions are used manually and are not called by the rag_bots functions. (RT 6-10-2024)
 # Pinecone indexes can be seen in the pinecone.io portal > go to Serverless in UL - login sends email to fofgeneral20
 
-## CURRENT CODE
-### VECTOR DB CREATION
+
+### VECTOR DB SUPPORT
 def generate_embedding(text, model=EMBEDDING_MODEL):
     """ 
     Generates an embedding vector for the provided text using the specified OpenAI embeddings model.
@@ -27,8 +32,8 @@ def generate_embedding(text, model=EMBEDDING_MODEL):
     :param model: string of the OpenAI embeddings model to use.
     :return: list of floats representing the embedding vector.
     """
-
-    response = client.embeddings.create(input=text,
+    openai_client = OpenAI(api_key=OPENAI_API_KEY)
+    response = openai_client.embeddings.create(input=text,
     model=model)
     embedding = response.data[0].embedding
     return embedding
@@ -42,8 +47,8 @@ def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=True
     :param include_subfolders: boolean indicating whether to search for markdown files in subfolders. Default is True.
     :return: vectors as a list of dictionaries, each containing an id, values, and metadata for a block of text.
     """
-    from primary.fileops import get_files_in_folder, get_timestamp
-    from primary.structured import get_blocks_from_file, get_all_fields_dict
+    from chalicelib.fileops import get_files_in_folder, get_timestamp
+    from chalicelib.structured import get_blocks_from_file, get_all_fields_dict
 
     vectors = []  # Consider renaming this. it's the list of all the dicts with the fields from the blocks
     total_files = 0
@@ -191,7 +196,7 @@ def update_pinecone_index_list_md(file_name='pinecone_index_list.md', log_folder
     :param file_name: Name of the markdown file to update. Default is 'pinecone_index_list.md'.
     :param log_folder_path: Path to the folder where the file will be saved. Default is VZIP_LOG_FOLDER.
     """
-    from primary.fileops import get_current_datetime_humanfriendly
+    from chalicelib.fileops import get_current_datetime_humanfriendly
 
     pc = Pinecone(api_key=PINECONE_API_KEY)
     index_names = pc.list_indexes().names()
@@ -211,7 +216,7 @@ def update_pinecone_index_list_md(file_name='pinecone_index_list.md', log_folder
 
 def save_splits_to_json(all_chunks, output_base_filename, metadata, log_folder_path=VZIP_LOG_FOLDER):
     """
-    Saves the text splits and metadata to a JSON file.
+    Saves the text splits and metadata to a JSON file, organized by source.
 
     :param all_chunks: List of Document objects containing the text splits.
     :param output_base_filename: Base filename for the output JSON file.
@@ -221,18 +226,25 @@ def save_splits_to_json(all_chunks, output_base_filename, metadata, log_folder_p
     # Create the full output filename
     output_filename = f"{log_folder_path}{output_base_filename}.json"
 
-    # Extract text content from Document objects
-    content = []
+    # Organize content by source
+    content_by_source = {}
     for doc in all_chunks:
-        if hasattr(doc, 'page_content'):
-            content.append(doc.page_content)
-        else:
-            raise AttributeError(f"Document object {doc} does not have attribute 'page_content'")
+        source = doc.metadata.get('source', 'Unknown source')
+        if source not in content_by_source:
+            content_by_source[source] = {"num_chunks": 0, "chunks": []}
+        content_by_source[source]["num_chunks"] += 1
+        content_by_source[source]["chunks"].append(doc.page_content)
+
+    # Update metadata
+    if "total_chunks (vectors)" in metadata:
+        metadata["total_chunks"] = metadata.pop("total_chunks (vectors)")
 
     # Prepare the data structure
     data = {
         "metadata": metadata,
-        "content": content
+        "content": {
+            "chunks_by_source": content_by_source
+        }
     }
 
     # Save the data to a JSON file
@@ -240,10 +252,10 @@ def save_splits_to_json(all_chunks, output_base_filename, metadata, log_folder_p
         json.dump(data, f, ensure_ascii=False, indent=2)
 
     # Get the full path of the saved file
-    full_path = os.path.abspath(output_filename)
+    json_full_path = os.path.abspath(output_filename)
 
-    print(f"Saved {len(all_chunks)} splits and metadata to {full_path}")
-    return full_path
+    print(f"\nSaved {len(all_chunks)} splits from {len(content_by_source)} sources to {json_full_path}")
+    return json_full_path
 
 def setup_create_vectordb(folder_paths, vector_index_base, suffixpat_include=None):
     """
@@ -254,7 +266,7 @@ def setup_create_vectordb(folder_paths, vector_index_base, suffixpat_include=Non
     :param suffixpat_include: Pattern to filter files (optional)
     :return: Tuple of (vector_index_name, vector_index_name_with_timestamp, datetime, all_file_paths)
     """
-    from primary.fileops import get_files_in_folder, get_current_datetime_filefriendly
+    from chalicelib.fileops import get_files_in_folder, get_current_datetime_filefriendly
     import inspect
 
     # Get the name of the calling function
@@ -365,6 +377,8 @@ def log_zip_vectordb(vectors_file_path, vector_index_name_with_timestamp, metada
 
     return log_file_path, zip_file_path
 
+
+### VECTOR DB CREATION
 def create_vectordb_vrag_langchain(folder_paths, vector_index_base, suffixpat_include=None, skip_pinecone=False):  # pinecone index names can only contain - and not _ 
     """ 
     Establishes a Pinecone database using documents from the directory of markdown files. 
@@ -378,9 +392,9 @@ def create_vectordb_vrag_langchain(folder_paths, vector_index_base, suffixpat_in
     :param skip_pinecone: boolean, whether to skip the pinecone index creation and upserting (for splitting and testing).
     :return: None
     """ 
-    from primary.fileops import apply_to_folder, create_new_file_from_heading, sub_suffix_in_file, move_files_with_suffix, remove_timestamp_links, find_and_replace_pairs
+    from chalicelib.fileops import apply_to_folder, create_new_file_from_heading, sub_suffix_in_file, move_files_with_suffix, remove_timestamp_links, find_and_replace_pairs
     
-    os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY_CONFIG_LLM
+    # os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY_CONFIG_LLM  # 10-4-24 commented out - think we can delete this
 
     # Setup vector database creation
     vector_index_name, vector_index_name_with_timestamp, datetime, all_file_paths = setup_create_vectordb(folder_paths, vector_index_base, suffixpat_include)
@@ -393,17 +407,20 @@ def create_vectordb_vrag_langchain(folder_paths, vector_index_base, suffixpat_in
     all_docs = []
 
     for folder_path in folder_paths:
-        temp_folder_path = "logs/vectordb_pinecone_log_zips/_temp_vrag_sources"
-        os.makedirs(temp_folder_path, exist_ok=True)
+        # Create a temporary folder for VRAG sources, removing it if it already exists
+        temp_folder_path = VZIP_LOG_FOLDER + "_temp_vrag_sources"
+        if os.path.exists(temp_folder_path):
+            shutil.rmtree(temp_folder_path)
+        os.makedirs(temp_folder_path)
 
         apply_to_folder(create_new_file_from_heading, folder_path, heading='## content', suffix_new='_temp', suffixpat_include=suffixpat_include, remove_heading=True)
         move_files_with_suffix(folder_path, temp_folder_path, '_temp')
         apply_to_folder(sub_suffix_in_file, temp_folder_path, '')
         apply_to_folder(remove_timestamp_links, temp_folder_path)
+        
         # Define find and replace pairs to remove newline after unlinked timestamp
         regex_spk_compress = [(r'(\s*[A-Za-z\s]+\s+(?:\d+:)?\d+:\d+)\n', r'\1  ')]
         apply_to_folder(find_and_replace_pairs, temp_folder_path, regex_spk_compress, use_regex=True)
-        
         print(f"SUCCESS: Extracted transcript sections to temporary files in {temp_folder_path}")
         
         # Load documents from Obsidian vault
@@ -437,7 +454,7 @@ def create_vectordb_vrag_langchain(folder_paths, vector_index_base, suffixpat_in
     "folder_paths": folder_paths,
     "suffixpat_include": suffixpat_include,
     "total_files": len(all_file_paths),
-    "total_chunks (vectors)": len(all_chunks),
+    "total_chunks": len(all_chunks),
     "text_splitter": "Langchain RecursiveCharacterTextSplitter",
     "target_chunk_size": target_chunk_size,
     "chunk_overlap": chunk_overlap
@@ -458,10 +475,11 @@ def create_vectordb_vrag_langchain(folder_paths, vector_index_base, suffixpat_in
 
 def create_qrag_vectordb(folder_paths, vector_index_base, suffixpat_include=None):
     # Set OpenAI and Pinecone API keys
-    os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY_CONFIG_LLM
+    #os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY_CONFIG_LLM  # 10-4-24 commented out - think we can delete this
     
     # Setup vector database creation
     vector_index_name, vector_index_name_with_timestamp, datetime, all_file_paths = setup_create_vectordb(folder_paths, vector_index_base, suffixpat_include)
+    print("If you are replacing the vector database, you can go to the Pinecone portal and delete the existing index now.")
 
     # Generate vectors
     vectors = generate_vectors_qa(folder_paths, suffixpat_include)
@@ -496,3 +514,5 @@ def create_qrag_vectordb(folder_paths, vector_index_base, suffixpat_include=None
 
     update_pinecone_index_list_md()
     return log_file_path
+
+

@@ -1,3 +1,6 @@
+# ===== START OF FILE primary/structured.py =====
+# Library for structured processing of QA files
+
 import os
 import re
 import csv
@@ -5,16 +8,21 @@ import subprocess
 import pyperclip
 import pyautogui
 import time
+import warnings
+from collections import defaultdict
+from datetime import datetime
 
 from primary.fileops import *
 
-import warnings  # Set the warnings to use a custom format
+
+# ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
+
+# Set the warnings to use a custom format
 warnings.formatwarning = custom_formatwarning
 # USAGE: warnings.warn(f"Insert warning message here")
 
-
 ### BLOCK PROCESSING
-def get_blocks_from_file(qa_file_path, verbose=False):
+def get_blocks_from_file(qa_file_path, heading="### qa"):
     """
     Extracts and validates blocks of text from a file.
 
@@ -22,10 +30,13 @@ def get_blocks_from_file(qa_file_path, verbose=False):
     :param verbose: boolean, if True, prints verbose messages. Default is False.
     :return: list of valid blocks from the file.
         """
-    from primary.fileops import get_heading, verbose_print
+    from primary.fileops import get_heading
     
     block_delimiter = "\n\n"  
-    qa_text = get_heading(qa_file_path, "### qa")
+    qa_text = get_heading(qa_file_path, heading)
+    if qa_text is None:
+        raise ValueError(f"Heading '{heading}' not found in file {qa_file_path}")
+        
     qa_text = re.sub(r'^#.*\n?', '', qa_text, flags=re.MULTILINE)
     qa_text = re.sub(r'\n{3,}', '\n\n', qa_text)
     blocks_list = []
@@ -35,41 +46,136 @@ def get_blocks_from_file(qa_file_path, verbose=False):
         if block.strip():
             blocks_list.append(block.strip())
             
-    # valid_blocks = validate_qa_blocks(blocks_list)
-    # if valid_blocks > 0:
-    #     verbose_print(verbose, f"QA blocks ALL VALID for {valid_blocks} blocks for file {qa_file_path}")
-    # else:
-    #     invalid_blocks = 0 - valid_blocks  
-    #     verbose_print(verbose, f"QA blocks validation FAILED on {invalid_blocks} blocks for file {qa_file_path}")
     return blocks_list
+
+def delete_fields_from_text(text, delete_fields):
+    """
+    Removes specified fields from a text block, including multi-line field values.
+    Field boundary rules:
+    1. Two consecutive newlines
+    2. A newline followed by an all-caps field name and colon (e.g. 'STARS:')
+    
+    :param text: string of the text to process
+    :param delete_fields: list of field names to delete
+    :return: string of text with specified fields removed
+    """
+    lines = text.split('\n')
+    filtered_lines = []
+    
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        should_keep = True
+        
+        # Check if line starts with any field to delete
+        for field in delete_fields:
+            if line.startswith(field + ":"):
+                should_keep = False
+                # Skip all subsequent lines until we find another field or empty line
+                i += 1
+                while i < len(lines):  # Only proceed if we haven't hit the end
+                    next_line = lines[i].strip()
+                    # Check if next line is a new field (all caps before colon)
+                    is_new_field = False
+                    if ': ' in next_line:
+                        field_name = next_line.split(':', 1)[0]
+                        is_new_field = field_name.isupper()
+                    
+                    if (not next_line  # Empty line
+                        or is_new_field  # All caps field name
+                        or (i + 1 < len(lines) and not lines[i + 1].strip())):  # Two newlines
+                        i -= 1  # Back up one line since the while loop will increment
+                        break
+                    i += 1
+                if i >= len(lines):  # If we hit the end during multi-line processing
+                    i = len(lines) - 1  # Reset to last line
+                break
+                
+        if should_keep:  # Keep all non-deleted lines
+            filtered_lines.append(lines[i])
+        i += 1
+        
+    return '\n'.join(filtered_lines)
+CUR_MULTI_LINE_BLOCK = '''
+QUESTION NUMBER: 1
+QUESTION: What are the topics covered in 2024 wildfire preparedness presentation?
+TIMESTAMP: [0:00](https://youtu.be/CMflj9am38Q&t=0)
+ANSWER: The 2024 wildfire preparedness presentation agenda covers the Big 5
+Immediate Action Response Protocols, PVSD Wildfire Emergency Response Plan, evacuations, school closures, decision checklists, 
+handling fast-approaching fires with shelter-in-place, protocols for controlled student release at both schools, 
+decision checklist for school closure, wildfire risk mitigation efforts, communication and situational awareness, 
+and information about poor air quality and high heat guidance from the County Office of Education.
+QUESTION NAME: IMPLIED
+ANSWER NAME: Roberta Zarea (PVSD Superintendent)
+STATUS: 
+TOPICS: 
+STARS: 
+
+'''
+def mrun_delete_fields_from_text():
+    pass
+#if __name__ == "__main__":
+    print(delete_fields_from_text(CUR_MULTI_LINE_BLOCK, ["QUESTION NUMBER", "TOPICS", "ANSWER"]))
 
 def get_field_value(block, field):
     """
-    Extracts the content of a specified field from a block of text.
-
+    Extracts the content of a specified field from a block of text, including multi-line values.
+    Field boundary rules:
+    1. Two consecutive newlines
+    2. A newline followed by a field name and colon where the field name:
+       - is in all caps
+       - may contain spaces, underscores, or dashes
+       - will be treated as a boundary even if the field is empty
+       (Updated empty field handling - RT 2024-03-19)
+    
     :param block: string of the block of text to be processed.
     :param field: string of the field to be extracted from the block.
     :return: the content of the field in its appropriate data type, or None if the field is not found.
     """
-    # Split the block into lines
     lines = block.split('\n')
-    # Iterate through each line to find the field
-    for line in lines:
-        if line.startswith(field + ":"):
-            # Extract the field content after the colon and space
-            field_content = line[len(field) + 2:]
-            # Special handling for STARS and TOPICS fields
-            if field == "STARS" or field == "TRANSCRIPT START POSITION" or field == "TRANSCRIPT END POSITION":
-                # Convert these fields to an integer
-                return int(field_content)
+    for i, line in enumerate(lines):
+        if line.strip().startswith(field + ":"):
+            # Extract initial content after the colon and space
+            field_content = [line[len(field) + 2:].strip()]
+            
+            # Check for multi-line content
+            next_idx = i + 1
+            while next_idx < len(lines):
+                next_line = lines[next_idx].strip()
+                
+                # Check if next line is a new field (allowing spaces, underscores, dashes in field names)
+                is_new_field = False
+                if ':' in next_line:  # Changed from ': ' to ':' to catch empty fields
+                    field_name = next_line.split(':', 1)[0].strip()
+                    # Check if field name contains only uppercase letters, spaces, underscores, and dashes
+                    cleaned_field = field_name.replace(' ', '').replace('_', '').replace('-', '')
+                    is_new_field = cleaned_field.isupper() and cleaned_field.isalnum()
+                
+                # Stop if we hit field boundaries
+                if (not next_line  # Empty line
+                    or is_new_field  # Field name matching our criteria
+                    or (next_idx + 1 < len(lines) and not lines[next_idx + 1].strip())):  # Two newlines
+                    break
+                
+                field_content.append(next_line)
+                next_idx += 1
+            
+            # Join multi-line content with newlines to preserve formatting
+            combined_content = '\n'.join(field_content).strip()
+            
+            # Handle special field types
+            if field in ["STARS", "TRANSCRIPT START POSITION", "TRANSCRIPT END POSITION"]:
+                return int(combined_content) if combined_content else None
             elif field == "TOPICS":
-                # Convert the TOPICS field to a list of strings
-                return [topic.strip() for topic in field_content.split(',')]
+                return [topic.strip() for topic in combined_content.split(',')] if combined_content else []
             else:
-                # Return the field content as is for other fields
-                return field_content
-    # If the field is not found, return None
+                return combined_content
+            
     return None
+def mrun_get_field_value():
+    pass
+#if __name__ == "__main__":
+    print(get_field_value(CUR_MULTI_LINE_BLOCK, "QUESTION"))
 
 def get_all_fields_dict(block):
     """
@@ -79,28 +185,59 @@ def get_all_fields_dict(block):
     :return: dictionary of fields and their contents in their appropriate data types.
     """
     lines = block.split('\n')
-    # Initialize an empty dictionary to store the fields and their contents
     fields_dict = {}
-    # Iterate through each line to find the fields
-    for line in lines:
-        # Split the line at the first colon to separate the field and its content
-        parts = line.split(":", 1)
-        if len(parts) == 2:
-            field, field_content = parts
-            field = field.strip()
-            field_content = field_content.strip()
-            # Special handling for STARS and TOPICS fields
-            if field == "STARS":
-                # Convert the STARS field to an integer
-                fields_dict[field] = field_content
-            elif field == "TOPICS":
-                # Convert the TOPICS field to a list of strings
-                fields_dict[field] = [topic.strip() for topic in field_content.split(',')]
-            else:
-                # Add the field and its content to the dictionary
-                fields_dict[field] = field_content
-    # Return the dictionary of fields and their contents
+    
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        # Check if line contains a field (has a colon)
+        if ':' in line:
+            parts = line.split(':', 1)
+            field = parts[0].strip()
+            # Only process if it's an uppercase field name
+            if field.isupper():
+                field_content = [parts[1].strip()]
+                
+                # Check for multi-line content
+                next_idx = i + 1
+                while next_idx < len(lines):
+                    next_line = lines[next_idx].strip()
+                    
+                    # Check if next line is a new field (all caps before colon)
+                    is_new_field = False
+                    if ':' in next_line:
+                        field_name = next_line.split(':', 1)[0]
+                        is_new_field = field_name.isupper()
+                    
+                    # Stop if we hit field boundaries
+                    if (not next_line  # Empty line
+                        or is_new_field  # All caps field name
+                        or (next_idx + 1 < len(lines) and not lines[next_idx + 1].strip())):  # Two newlines
+                        break
+                    
+                    field_content.append(next_line)
+                    next_idx += 1
+                
+                # Join multi-line content with newlines
+                combined_content = '\n'.join(field_content).strip()
+                
+                # Handle special field types - COMMENTED OUT SO THESE ARE STRINGS
+                # if field in ["STARS", "TRANSCRIPT START POSITION", "TRANSCRIPT END POSITION"]:
+                #     fields_dict[field] = int(combined_content) if combined_content else None
+                if field == "TOPICS":
+                    fields_dict[field] = [topic.strip() for topic in combined_content.split(',')] if combined_content else []
+                else:
+                    fields_dict[field] = combined_content
+                
+                i = next_idx - 1  # Adjust index to account for multi-line processing
+        i += 1
+    
     return fields_dict
+def mrun_get_all_fields_dict():
+    pass
+#if __name__ == "__main__":
+    fields_dict = get_all_fields_dict(CUR_MULTI_LINE_BLOCK)
+    print('{' + '\n'.join(f"    {repr(key)}: {repr(value)}," for key, value in fields_dict.items())[:-1] + '\n}')
 
 def count_blocks(file_path, heading="## content"):  # quick way is to use find on a field
     """
@@ -126,7 +263,470 @@ def count_blocks(file_path, heading="## content"):  # quick way is to use find o
     total_blocks = sum(1 for block in blocks if block.strip())
     
     return total_blocks
+def mtest_count_blocks():
+    pass
+#if __name__ == "__main__":        
+    cur_file_path = "data/floodlamp/reg/fda-townhalls/dev/2020-12-09_Virtual Town Hall 36_qa-incremental_7-21_6_25 blocks 1 review.md"
+    print(count_blocks(cur_file_path))
 
+def propagate_fields_by_subheading(file_path, full_fields, required_fields, delete_fields=[], heading="### qa", keep_only_heading=True):
+    """
+    Propagates fields defined under markdown subheadings to all blocks within those subheadings.
+
+
+    :param file_path: Path to the input QA markdown file.
+    :param full_fields: List of all possible fields for reference and ordering.
+    :param required_fields: List of fields that must be present in every QA block.
+    :param delete_fields: List of fields to delete from every QA block.
+    :param heading: The markdown heading to process. Default is "### qa".
+    :return: The relative file path of the new file with propagated fields.
+    """
+    from primary.fileops import get_heading, set_heading, sub_suffix_in_str
+    from primary.structured import get_all_fields_dict, delete_fields_from_text
+    
+    # Get the text under the specified heading
+    heading_text = get_heading(file_path, heading)
+    # print("DEBUG first 5 lines of get_heading returned text:")
+    # for line in text.splitlines()[:5]:
+    #     print(f"'{line}'")
+    if not heading_text:
+        raise ValueError(f"Heading '{heading}' not found in file '{file_path}'")
+    
+    # Define QA-specific fields that should not be treated as propagated fields
+    qa_fields = ["QUESTION", "ANSWER"]
+
+    # Split text into lines for processing
+    heading_lines = heading_text.splitlines()
+
+    # Prepare regex patterns for headings
+    heading_pattern = re.compile(r'^(#{3,6})\s+(.*)')  # Matches headings level 3 to 6
+
+    # Initialize active_fields as a regular dict
+    active_fields = {}
+
+    # List to store the modified lines
+    modified_heading_lines = []
+
+    i = 0
+    while i < len(heading_lines):
+        line = heading_lines[i].rstrip('\n')
+        heading_match = heading_pattern.match(line)
+
+        if heading_match:
+            # It's a heading - add it and exactly one blank line
+            if modified_heading_lines and not modified_heading_lines[-1] == '':
+                modified_heading_lines.append('')
+            if len(modified_heading_lines) < 2 or modified_heading_lines[-2] != '':
+                modified_heading_lines.append('')
+            
+            modified_heading_lines.append(line)
+            modified_heading_lines.append('')
+
+            # Get heading level and title
+            level = len(heading_match.group(1))  # Keep as integer
+
+            # Clear any higher-level heading fields
+            active_fields = {k: v for k, v in active_fields.items() if k < level}
+
+            # Initialize the level if not exists
+            if level not in active_fields:
+                active_fields[level] = {}
+
+            # Move to the next line after the heading
+            i += 1
+
+            # Skip any blank lines that follow the heading
+            while i < len(heading_lines) and not heading_lines[i].strip():
+                i += 1
+
+            # Check for propagated fields under the heading
+            while i < len(heading_lines):
+                current_line = heading_lines[i].strip()
+                # Stop if a blank line, another heading, or a QA block is encountered
+                if (not current_line or
+                    heading_pattern.match(current_line) or
+                    re.match(r'^(QUESTION|ANSWER):\s*', current_line)):
+                    break
+
+                # Attempt to match a field
+                field_match = re.match(r'^([^:]+):\s*(.*)$', current_line)
+                if field_match:
+                    field_name, field_value = field_match.groups()
+                    field_name = field_name.strip().upper()
+                    field_value = field_value.strip()
+
+                    # **Error Check:** Propagated fields should never include QA fields
+                    if field_name in qa_fields:
+                        raise ValueError(f"Field '{field_name}' cannot be propagated under a heading in file '{file_path}'.")
+
+                    if field_name in full_fields:
+                        active_fields.setdefault(level, {})[field_name] = field_value
+                    else:
+                        # Field is not in full_fields; ignore
+                        pass
+                    i += 1
+                else:
+                    # Line does not match a field pattern; stop collecting propagated fields
+                    break
+            continue
+
+        # Check if the line starts a QA block
+        qa_block_start = re.match(r'^QUESTION:\s*', line)
+        if qa_block_start:
+            # Start processing the QA block
+            qa_block_lines = [line]
+            i += 1
+            while i < len(heading_lines) and heading_lines[i].strip() != '':
+                qa_block_lines.append(heading_lines[i].rstrip('\n'))
+                i += 1
+
+            # Join lines into a block
+            qa_block = '\n'.join(qa_block_lines)
+            
+            # Parse remaining fields from the block and filter out deleted fields
+            qa_fields_in_block = {k: v for k, v in get_all_fields_dict(qa_block).items()
+                                if k not in delete_fields}
+
+            # Determine which fields to propagate based on current active headings
+            propagated_fields = {}
+            for lvl in sorted(active_fields.keys()):
+                level_fields = active_fields[lvl].copy()
+                propagated_fields.update(level_fields)
+
+            # Merge propagated fields with QA block fields (QA block fields take precedence)
+            merged_fields = propagated_fields.copy()
+            merged_fields.update(qa_fields_in_block)
+
+            # Ensure required fields are present
+            for req_field in required_fields:
+                if req_field not in merged_fields or not merged_fields[req_field]:
+                    merged_fields[req_field] = ''
+
+            # Reconstruct the QA block
+            reconstructed_block_lines = []
+
+            # Create uppercase set for full_fields comparison
+            full_fields_upper = set(f.strip().upper() for f in full_fields)
+
+            # Add fields in the specified order from full_fields
+            for field in full_fields:
+                if field in merged_fields:
+                    if field == 'QUESTION':
+                        reconstructed_block_lines.append(f"QUESTION: {qa_fields_in_block.get('QUESTION', '')}")
+                    elif field == 'ANSWER':
+                        reconstructed_block_lines.append(f"ANSWER: {qa_fields_in_block.get('ANSWER', '')}")
+                    else:
+                        reconstructed_block_lines.append(f"{field}: {merged_fields[field]}")
+
+            # Add any remaining fields not in full_fields
+            for field in sorted(merged_fields.keys()):
+                field_upper = field.strip().upper()
+                if field_upper not in full_fields_upper:
+                    reconstructed_block_lines.append(f"{field}: {merged_fields[field]}")
+
+            # Append the reconstructed block to modified_lines
+            modified_heading_lines.extend(reconstructed_block_lines)
+            modified_heading_lines.append('')
+            continue
+
+        # For all other lines, append as is
+        if line.strip() or not (modified_heading_lines and modified_heading_lines[-1] == ''):
+            modified_heading_lines.append(line)
+        i += 1
+
+    # Reconstruct the modified content
+    modified_heading_text = '\n'.join(modified_heading_lines)
+    # Remove any leading blank lines while preserving other formatting
+    modified_heading_text = re.sub(r'^\n+', '', modified_heading_text) + '\n'
+    
+    # Delete specified fields from the entire content
+    modified_heading_text = delete_fields_from_text(modified_heading_text, delete_fields)
+    # print("DEBUG first 5 lines of modified_heading_text:")
+    # for line in modified_heading_text.splitlines()[:5]:
+    #     print(f"'{line}'")
+    # print("DEBUG checking for '### notes' heading:", '### notes' in modified_heading_text)
+
+    # Create a copy of the original file
+    suffix_new = '_qaprop'
+
+    # Set the modified content under the same heading in the new file
+    if keep_only_heading:
+        print("Keeping only heading - reading metadata and writing modified content")
+        metadata, _ = read_metadata_and_content(file_path)
+        new_content = "## content\n\n" + modified_heading_text
+        new_file_path = write_metadata_and_content(file_path, metadata, new_content, suffix_new=suffix_new, overwrite='no-sub')
+    else:   
+        print("Keeping all content - copying file and setting heading")
+        new_file_path = sub_suffix_in_str(file_path, suffix_new)
+        shutil.copy2(file_path, new_file_path)
+        set_heading(new_file_path, modified_heading_text, heading)
+    set_last_updated(new_file_path, "Created by propagate fields on qa")
+
+    print(f"Propagated fields saved to {new_file_path}")
+
+    return new_file_path  # Return the relative file path of the new file
+
+
+### BLOCK VALIDATION
+def validate_stars(stars_str):
+    if not stars_str.strip():  # Check if the string is blank or just whitespace
+        return True
+    try:
+        stars = int(stars_str)
+        return True  # Accept any integer, including negative numbers
+    except ValueError:
+        return False  # Return False if the string can't be converted to an integer
+def validate_topics(topics_str):
+    if ",  " in topics_str or re.search(r',(?![ ])', topics_str):
+        return False
+    topics = re.split(r',\s*', topics_str.strip())
+    return all(topic.strip() == topic for topic in topics)
+def validate_blocks(blocks_list, required_fields, custom_validators=None, show_only_first_invalid=True):
+    """
+    Validates the structure and content of QA blocks against required fields.
+
+    :param blocks_list: List of QA blocks where each block is a string of text representing a qa entry.
+    :param required_fields: List of required field names.
+    :param custom_validators: Dictionary of field names and their corresponding validation functions.
+    :param show_only_first_invalid: If True, only shows the first invalid block. If False, shows all invalid blocks.
+    :return: The number of valid blocks if all are valid, or the negative count of invalid blocks.
+    """
+    custom_validators = custom_validators or {}
+    invalid_blocks_count = 0
+    total_blocks = len(blocks_list)
+    has_shown_block = False  # Only used when show_only_first_invalid is True
+
+    for block in blocks_list:
+        block_errors = []
+        
+        # Use get_all_fields_dict to parse the block
+        try:
+            block_dict = get_all_fields_dict(block)
+            block_fields = set(block_dict.keys())  # Get just the field names
+        except Exception as e:
+            block_errors.append(f"Error parsing block: {str(e)}")
+            block_fields = set()
+
+        # Check for required fields
+        for field in required_fields:
+            if field not in block_fields:
+                block_errors.append(f"Missing required field: {field}")
+
+        # Get raw field values for validation by splitting on first colon
+        raw_field_values = {}
+        for line in block.split('\n'):
+            if ':' in line:
+                field, value = line.split(':', 1)
+                field = field.strip()
+                if field.isupper():  # Only process uppercase field names
+                    raw_field_values[field] = value.strip()
+
+        # Validate field contents using custom validators
+        for field, validator in custom_validators.items():
+            if field in raw_field_values:
+                try:
+                    if not validator(raw_field_values[field]):
+                        block_errors.append(f"Custom validation failed for field: {field}")
+                except Exception as e:
+                    block_errors.append(f"Error in custom validator for field {field}: {str(e)}")
+
+        # Update validation statistics and show block if invalid
+        if block_errors:
+            invalid_blocks_count += 1
+            if not show_only_first_invalid or (show_only_first_invalid and not has_shown_block):
+                print("\nValidationErrors found in block:")
+                for error in block_errors:
+                    print(f"- {error}")
+                print("\nInvalid block:")
+                print(block)
+                print()
+                has_shown_block = True
+
+    return total_blocks if invalid_blocks_count == 0 else -invalid_blocks_count
+def validate_blocks_in_file(file_path, required_fields, custom_validators, verbose=False):
+    """
+    Function to validate QA blocks in a file and return True if all blocks are valid
+
+    :param file_path: string of the path to the file to be validated
+    :param required_fields: List of required field names.
+    :param custom_validators: Dictionary of field names and their corresponding validation functions.
+    :param verbose: boolean to control verbose output
+    :return: boolean indicating whether all blocks in the file are valid
+    """
+    from primary.structured import get_blocks_from_file
+    blocks = get_blocks_from_file(file_path)
+    valid_blocks = validate_blocks(blocks, required_fields, custom_validators)
+    if valid_blocks < 0:
+        print(f"FAIL - INVALID blocks for file: {file_path}\n\n\n")
+        return False
+    if verbose:
+        print(f"VALID blocks for file: {file_path}")
+    return True
+def validate_blocks_in_folders(folder_paths, required_fields, custom_validators, suffixpat_include="_qafixed"):
+    """
+    Validates QA blocks in all files within specified folders, printing the number of valid files in each folder
+    and statistics about required and optional fields.
+
+    :param folder_paths: list of strings of folder paths to search for files.
+    :param required_fields: List of required field names.
+    :param custom_validators: Dictionary of field names and their corresponding validation functions.
+    :param suffixpat_include: string of the suffix to include in file search. Default is "_qafixed".
+    :return: string of the path of the first file with invalid QA blocks if any; None if all files are valid.
+    """
+    total_valid_files = 0
+    total_files = 0
+    optional_fields_stats = defaultdict(lambda: {'files': set(), 'blocks': 0})
+
+    for folder_path in folder_paths:
+        file_paths = get_files_in_folder(folder_path, suffixpat_include=suffixpat_include)
+        valid_files_count = 0
+        
+        for file_path in file_paths:
+            total_files += 1
+            blocks = get_blocks_from_file(file_path)
+            if validate_blocks_in_file(file_path, required_fields, custom_validators):
+                valid_files_count += 1
+                total_valid_files += 1
+                
+                # Count optional fields using get_all_fields_dict
+                for block in blocks:
+                    try:
+                        block_fields_dict = get_all_fields_dict(block)
+                        for field in block_fields_dict.keys():
+                            if field not in required_fields:
+                                optional_fields_stats[field]['files'].add(file_path)
+                                optional_fields_stats[field]['blocks'] += 1
+                    except Exception as e:
+                        warnings.warn(f"Error parsing block in file {file_path}: {str(e)}")
+            else:
+                print(f"Number of validated files: {valid_files_count} in {folder_path}: ")
+                print(f"INVALID file: {file_path}")
+                return file_path
+
+        print(f"Number of valid files in {folder_path}: {valid_files_count}")
+
+    print(colored(f"\nTotal valid files across all folders: {total_valid_files}/{total_files}", "green"))
+    print(f"\nRequired fields: {', '.join(required_fields)}")
+    print("\nOptional fields statistics:")
+    for field, stats in optional_fields_stats.items():
+        print(f"  {field}: appears in {len(stats['files'])} files and {stats['blocks']} blocks")
+
+    return None
+def validate_qa_blocks_townhall_OLD(blocks_list):
+    """
+    Validates the structure and content of QA blocks against required and optional fields.
+
+    :param blocks_list: list of qa blocks where each block is a string of text representing a qa entry.
+    :return: the number of valid blocks if all are valid, or the negative count of invalid blocks.
+    """
+    required_fields = ["QUESTION", "ANSWER", "QUESTION SPEAKER", "ANSWER SPEAKER", "TOPICS", "STARS"]
+    optional_fields = ["NOTES", "ORIGINAL QUESTION", "ALTERNATE QUESTION", "ADDITIONAL QUESTION"]
+
+    all_fields = set(required_fields + optional_fields)
+    invalid_blocks_count = 0
+
+    for block in blocks_list:
+        block_lines = block.strip().split("\n")
+        block_fields = {}
+        block_is_valid = True  # Track validity of individual block
+        for line in block_lines:
+            if line:
+                try:
+                    key, value = line.split(":", 1)
+                    block_fields[key.strip()] = value.strip()  # Ensure that the key is stripped of whitespace
+                except ValueError as e:
+                    warnings.warn(f"Error splitting line '{line}' in block:\n{block}\nError: {e}")
+                    block_is_valid = False
+                    break
+            else:
+                warnings.warn(f"Block contains a blank line:\n{block}")
+                block_is_valid = False
+                break
+
+        # Check for invalid fields
+        for field in block_fields:
+            if field not in all_fields:
+                warnings.warn(f"Invalid field '{field}' in block:\n{block}\n\n")
+                block_is_valid = False
+
+        # Check required fields
+        for field in required_fields:
+            if field not in block_fields:
+                warnings.warn(f"Missing required field '{field}' in block:\n{block}")
+                block_is_valid = False
+            else:
+                if field == "STARS":
+                    stars_str = block_fields[field]
+                    stars = int(stars_str) if stars_str.isdigit() else 0
+                    if stars < 0:
+                        warnings.warn(f"Invalid format for STARS field.")
+                        block_is_valid = False
+                elif field == "TOPICS":
+                    topics_line = block_fields[field]
+                    # Check for incorrect delimiters and print a warning if necessary
+                    if ",  " in topics_line:
+                        warnings.warn(f"Double space after comma in topics line '{topics_line}'")
+                        block_is_valid = False
+                    elif re.search(r',(?![ ])', topics_line):
+                        warnings.warn(f"Missing space after comma in topics line '{topics_line}'")
+                        block_is_valid = False
+                    # Split the topics by comma, accounting for optional spaces and removing trailing whitespace
+                    topics = re.split(r',\s*', topics_line.strip())
+                    # Remove any leading or trailing whitespace from each topic and filter out empty strings
+                    cleaned_topics = [topic.strip() for topic in topics if topic.strip()]
+                    # Check for and warn about trailing whitespace in the original topic strings
+                    for topic, cleaned_topic in zip(topics, cleaned_topics):
+                        if topic != cleaned_topic:
+                            warnings.warn(f"Incorrect whitespace in topic '{topic}'")
+                            block_is_valid = False
+
+        # Check optional fields
+        for field in optional_fields:
+            if field in block_fields and not block_fields[field]:
+                warnings.warn(f"Optional field '{field}' is present but blank in block:\n{block}")
+                block_is_valid = False
+
+        if not block_is_valid:
+            invalid_blocks_count += 1
+            
+    if invalid_blocks_count == 0:
+        return len(blocks_list)
+    else:
+        return (0 - invalid_blocks_count)
+def validate_iso_dates_in_filename(folder_paths, suffixpat_include):
+    """
+    Validates that filenames in specified folders start with valid ISO dates (YYYY-MM-DD).
+
+    :param folder_paths: list of strings of folder paths to search for files.
+    :param suffixpat_include: string of the suffix to include in file search. Default is "_qafixed".
+    :return: boolean indicating whether all files have valid ISO dates (True) or not (False).
+    """
+    total_valid_files = 0
+    total_files = 0
+
+    for folder_path in folder_paths:
+        file_paths = get_files_in_folder(folder_path, suffixpat_include=suffixpat_include)
+        valid_files_count = 0
+        
+        for file_path in file_paths:
+            total_files += 1
+            file_name = os.path.basename(file_path)
+            date_str = file_name.split('_')[0]
+            
+            try:
+                # Try to parse the date string - this will validate format and ranges
+                datetime.strptime(date_str, '%Y-%m-%d')
+                valid_files_count += 1
+                total_valid_files += 1
+            except ValueError:
+                print(f"Number of validated files: {valid_files_count} in {folder_path}: ")
+                print(colored(f"INVALID date in filename: {file_path}", "red"))
+                return False
+
+        print(f"Number of valid files in {folder_path}: {valid_files_count}")
+
+    print(colored(f"All files have valid ISO dates in filenames: {total_valid_files}/{total_files}", "green"))
+    return True
 
 ### TOPICS
 # TODO try on townhall qa files - may need to update for alternate METADATA and CONTENT format
@@ -164,7 +764,7 @@ def extract_topic_counts_triples(qa_file_path, verbose=False):
     
     return topic_counts_csv_lines
 
-def create_topics_matrix(folder_paths, target_file_path="matrix_topics.csv", suffixpat_include="_qafixed"):
+def create_topics_matrix(folder_paths, target_file_path="topics_matrix.csv", suffixpat_include="_qafixed"):
     """
     Collects topics from files in specified folders and creates a CSV matrix file at the target file path.
 
@@ -194,6 +794,11 @@ def create_topics_matrix(folder_paths, target_file_path="matrix_topics.csv", suf
 
     # Call the create_csv_from_triples function to create the CSV file
     return create_csv_matrix_from_triples(triples_text, target_file_path)  # function is in fileops
+def mtest_create_topics_matrix():
+    pass
+#if __name__ == "__main__":
+    cur_folder_paths = ["data/f_c7_done_early", "data/f_c8_qafixed_talks", "data/f_c6_done_after_dq", "data/f_c5_done_after_dq" ]   
+    create_topics_matrix(cur_folder_paths)
 
 def change_topic_in_file(file_path, find_topic, replace_topic):
     """
@@ -313,10 +918,6 @@ def review_singlet_topic_SONNET(folder_paths, matrix_csv_file_path, starting_let
     print("Review of singlet topics completed.")
 
 def review_singlet_topic(folder_paths, matrix_csv_file_path, starting_letter="a"):
-    import os
-    import csv
-    import subprocess
-
     # Step 1: Read the CSV file and build the data structures
     topic_counts = {}  # Mapping from topic to total count
     topic_file_stems = {}  # Mapping from topic to list of file stems
@@ -364,9 +965,9 @@ def review_singlet_topic(folder_paths, matrix_csv_file_path, starting_letter="a"
                 if stem not in file_stem_to_path:
                     file_stem_to_path[stem] = full_path
 
-    # Step 3: Process topics with total count == 1 and starting with starting_letter
-    matching_topics = [topic for topic in topic_counts if topic_counts[topic] == 1 and topic.startswith(starting_letter)]
-    print(f"Total topics with count == 1 and starting with '{starting_letter}': {len(matching_topics)}")
+    # Step 3: Process topics with total count == 1 and starting with starting_letter (case-insensitive)
+    matching_topics = [topic for topic in topic_counts if topic_counts[topic] == 1 and topic.lower().startswith(starting_letter.lower())]
+    print(f"Total topics with count == 1 and starting with '{starting_letter}' (case-insensitive): {len(matching_topics)}")
 
     if not matching_topics:
         print("No topics to process.")
@@ -394,7 +995,7 @@ def review_singlet_topic(folder_paths, matrix_csv_file_path, starting_letter="a"
             pyperclip.copy(topic)
 
             # Wait a moment to ensure VS Code has focus
-            time.sleep(1)  # Adjust the sleep time if necessary
+            time.sleep(3)  # Adjust the sleep time if necessary
 
             # Simulate Ctrl+F to open the find dialog
             pyautogui.hotkey('command', 'f')
@@ -425,4 +1026,4 @@ def review_singlet_topic(folder_paths, matrix_csv_file_path, starting_letter="a"
             change_topic_in_file(file_path, topic, new_topic)
 
 
-
+# ===== END OF FILE primary/structured.py =====

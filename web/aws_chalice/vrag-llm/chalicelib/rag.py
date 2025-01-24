@@ -1,31 +1,34 @@
 import os
 from datetime import datetime
 from pinecone import Pinecone
+
 from chalicelib.vectordb import generate_embedding
 from chalicelib.llm import simple_openai_chat_completion_request
 from chalicelib.rag_prompts_routes import *
-from chalicelib.config import PINECONE_API_KEY, OPENAI_API_KEY_CONFIG_LLM, ANTHROPIC_API_KEY_CONFIG_LLM
 
-
-# TODO consider where and how we are getting the openai api keys
-os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY_CONFIG_LLM
-os.environ['ANTHROPIC_API_KEY'] = ANTHROPIC_API_KEY_CONFIG_LLM
+# ---API KEYS AND SECRETS---
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+# ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY_LOCAL"]  # Not in chalice/config.json  # Not in chalice/config.json
+PINECONE_API_KEY = os.environ["PINECONE_API_KEY"]
+ 
+# ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
 
 DEFAULT_LLM_MODEL = 'gpt-4o'
-pc = Pinecone(api_key=PINECONE_API_KEY)  # 'pc' is the standard convention so we'll keep it despite it being unclear
-
 
 ### RETRIEVAL
-def pinecone_retriever(query, vector_index_name, num_chunks=5):
+def pinecone_retriever(query, vector_index_name, num_chunks):
     """ 
     Retrieves relevant question chunks from a Pinecone index based on the input question.
 
-    :param question: string of the input question to search for.
+    :param query: string of the input question to search for.
     :param vector_index_name: string of the name of the Pinecone index to query.
+    :param num_chunks: integer specifying the number of chunks to retrieve.
     :return: tuple containing fetched question chunks and a dictionary of retrieved IDs with their scores.
     """
+    pinecone_client = Pinecone(api_key=PINECONE_API_KEY)
+
     vectorized_query = generate_embedding(query)
-    index = pc.Index(vector_index_name)
+    index = pinecone_client.Index(vector_index_name)
     retrieved_qchunks = index.query(
         namespace="",
         vector=vectorized_query,
@@ -71,20 +74,21 @@ def print_vrag_display_text(json_object, show_prompt=False):
     
     print(display_text)
     
-def vrag_llm_call(user_question, vector_index_name, vrag_preamble=VRAG_PREAMBLE_V1, llm_model=DEFAULT_LLM_MODEL, user_id='default', vrag_version="1.0"):
+def vrag_llm_call(user_question, vector_index_name, num_chunks, vrag_preamble=VRAG_PREAMBLE_V1, llm_model=DEFAULT_LLM_MODEL, user_id='default', vrag_version="1.0"):
     """
     Initiates a chat session using vector retrieval augmented generation (VRAG) with a specified question,
     prompt template, and index name. Returns a JSON object with the results.
 
     :param user_question: string of the question to initiate the chat with.
     :param vector_index_name: string of the name of the pinecone index to use for retrieval.
+    :param num_chunks: integer specifying the number of chunks to retrieve.
     :param vrag_preamble: string of the preamble used to format the chat prompt.
     :param llm_model: string of the language model to use.
     :param user_id: string of the user identifier.
     :param bot_version: string of the bot version.
     :return: dictionary containing the chat response and metadata.
     """
-    fetched_chunks, retrieved_ids_scores = pinecone_retriever(user_question, vector_index_name)
+    fetched_chunks, retrieved_ids_scores = pinecone_retriever(user_question, vector_index_name, num_chunks)
     chunk_texts = ''
     for chunk_id, chunk_data in fetched_chunks['vectors'].items():
         text = chunk_data['metadata'].get('text', '')
@@ -115,142 +119,129 @@ def vrag_llm_call(user_question, vector_index_name, vrag_preamble=VRAG_PREAMBLE_
         }
     }
  
+
 ### QRAG
-def select_chunks_qrag_1or2(fetched_qa_chunks, retrieved_ids_scores):
-    """ 
-    Sorts and returns the most relevant chunks based on similarity score and 'STARS' rating.
-    Filters down to 1 or 2 chunks from the 5 fetched.
+def sort_chunks_by_stars(fetched_qa_chunks, retrieved_ids_scores, num_chunks):
+    """
+    Sorts chunks primarily by star rating and then by similarity score, returning the top `num_chunks`.
+    Converts 'STARS' to integer and sets to 0 if blank.
 
-    :param fetched_qchunks: dictionary of fetched question chunks from Pinecone.
+    :param fetched_qa_chunks: dictionary of fetched question chunks from Pinecone.
     :param retrieved_ids_scores: dictionary of retrieved IDs with their similarity scores.
-    :return: tuple containing the highest similarity chunk and the highest 'STARS' rated chunk (if different).
+    :param num_chunks: integer specifying the number of chunks to return.
+    :return: list of sorted chunks.
     """
-    # Find the id of the chunk with the highest similarity score
-    highest_sim_id = max(retrieved_ids_scores, key=retrieved_ids_scores.get)
-    
-    # Find the id of the chunk with the highest 'STARS' rating
-    highest_stars_id = max(fetched_qa_chunks['vectors'], key=lambda x: fetched_qa_chunks['vectors'][x]['metadata'].get('STARS', 0))
-    
-    # Extract chunks
-    highest_sim_chunk = fetched_qa_chunks['vectors'][highest_sim_id]
-    highest_stars_chunk = fetched_qa_chunks['vectors'][highest_stars_id] if highest_sim_id != highest_stars_id else None
+    # Extract chunks and their metadata
+    chunks = []
+    for chunk_id, chunk_data in fetched_qa_chunks['vectors'].items():
+        metadata = chunk_data['metadata']
+        metadata['id'] = chunk_id
+        metadata['sim_score'] = retrieved_ids_scores.get(chunk_id, 0)
+        # Convert STARS to integer, set to 0 if blank
+        metadata['STARS'] = int(metadata.get('STARS', 0)) if metadata.get('STARS') else 0
+        chunks.append(metadata)
 
-    # Return the chunks directly
-    return (highest_sim_chunk, highest_stars_chunk)
+    # Sort chunks by star rating (descending) and then by similarity score (descending)
+    sorted_chunks = sorted(chunks, key=lambda x: (-x['STARS'], -x['sim_score']))
 
-def parse_chunk_all(chunk, simscores=None):
-    """ 
-    Formats information from a chunk and its optional similarity scores into a structured dictionary,
-    including all fields present in the chunk's metadata. Handles various data types including lists.
+    # Return the top `num_chunks` chunks
+    return sorted_chunks[:num_chunks]
 
-    :param chunk: dictionary containing metadata and content of a document chunk.
-    :param simscores: optional dictionary of similarity scores keyed by chunk id.
-    :return: dictionary containing formatted chunk information.
+def sort_chunks_by_sim(fetched_qa_chunks, retrieved_ids_scores, num_chunks):
     """
-    def safe_convert(value):
-        """Converts value to appropriate type, handling various data types including lists."""
-        if isinstance(value, (int, float, str, bool)):
-            return value
-        elif isinstance(value, list):
-            return [safe_convert(item) for item in value]
-        else:
-            try:
-                return int(value)
-            except ValueError:
-                try:
-                    return float(value)
-                except ValueError:
-                    return str(value)
+    Sorts chunks primarily by similarity score and returns the top `num_chunks`.
+    Converts 'STARS' to integer and sets to 0 if blank, but doesn't use it for sorting.
 
-    result = {}
+    :param fetched_qa_chunks: dictionary of fetched question chunks from Pinecone.
+    :param retrieved_ids_scores: dictionary of retrieved IDs with their similarity scores.
+    :param num_chunks: integer specifying the number of chunks to return.
+    :return: list of sorted chunks.
+    """
+    # Extract chunks and their metadata
+    chunks = []
+    for chunk_id, chunk_data in fetched_qa_chunks['vectors'].items():
+        metadata = chunk_data['metadata']
+        metadata['id'] = chunk_id
+        metadata['sim_score'] = retrieved_ids_scores.get(chunk_id, 0)
+        # Convert STARS to integer, set to 0 if blank
+        metadata['STARS'] = int(metadata.get('STARS', 0)) if metadata.get('STARS') else 0
+        chunks.append(metadata)
 
-    # Process all metadata fields
-    for key, value in chunk['metadata'].items():
-        result[key.lower()] = safe_convert(value)
+    # Sort chunks by similarity score in descending order
+    sorted_chunks = sorted(chunks, key=lambda x: x['sim_score'], reverse=True)
 
-    # Add similarity score if available
-    if simscores is not None and chunk['id'] in simscores:
-        result['sim'] = safe_convert(simscores[chunk['id']])
+    # Return the top `num_chunks` chunks
+    return sorted_chunks[:num_chunks]
 
-    return result
-
-def parse_chunk_qa_dd(chunk, simscores, prefix=''):
+def parse_chunks(chunks, simscores):
     """ 
-    Wrapper function that formats information from a chunk and its similarity scores into a structured dictionary,
-    maintaining the same functionality as the original parse_chunk_qa_dd function while using parse_chunk_all internally.
-    Handles complex data types like lists and empty strings.
+    Parses a list of chunks and returns a list of dictionaries containing formatted chunk information.
 
-    :param chunk: dictionary containing metadata and content of a document chunk.
+    :param chunks: list of chunk metadata dictionaries.
     :param simscores: dictionary of similarity scores keyed by chunk id.
-    :param prefix: string of prefix to add to dictionary keys. default is empty string.
-    :return: dictionary containing formatted chunk information with prefixed keys.
+    :return: list of parsed chunk dictionaries.
     """
-    # Call the general parsing function
-    general_result = parse_chunk_all(chunk, simscores)
+    parsed_chunks = []
+    for chunk in chunks:
+        chunk_id = chunk['id']
+        sim_score = simscores.get(chunk_id, 0)
+        parsed_chunk = {
+            'source': str(chunk.get('SOURCE', 'Unknown source')),
+            'timestamp': str(chunk.get('TIMESTAMP', 'Unknown timestamp')),
+            'question': str(chunk.get('QUESTION', 'Unknown question')),
+            'answer': str(chunk.get('ANSWER', 'Unknown answer')),
+            'sim': float(sim_score),
+            'stars': int(chunk.get('STARS', 0)),
+            'display': f"QUOTED ANSWER STARS: {int(chunk.get('STARS', 0))}\nQUOTED QUESTION SIMILARITY SCORE: {round(sim_score * 100)}%"
+        }
+        parsed_chunks.append(parsed_chunk)
+    return parsed_chunks
 
-    def safe_int(value, default=0):
-        try:
-            return int(value) if value != '' else default
-        except (ValueError, TypeError):
-            return default
-
-    def safe_float(value, default=0.0):
-        try:
-            return float(value) if value != '' else default
-        except (ValueError, TypeError):
-            return default
-
-    # Modify the result to match the original function's output
-    result = {
-        f'{prefix}source': str(general_result.get('source', 'Unknown source')),
-        f'{prefix}timestamp': str(general_result.get('timestamp', 'Unknown timestamp')),
-        f'{prefix}question': str(general_result.get('question', 'Unknown question')),
-        f'{prefix}answer': str(general_result.get('answer', 'Unknown answer')),
-        f'{prefix}sim': safe_float(general_result.get('sim', 0.0)),
-        f'{prefix}stars': safe_int(general_result.get('stars', 0))
-    }
-
-    # Create the display string
-    stars = result[f'{prefix}stars']
-    sim_score = result[f'{prefix}sim']
-    result[f'{prefix}display'] = f"QUOTED ANSWER STARS: {stars}\nQUOTED QUESTION SIMILARITY SCORE: {round(sim_score * 100)}%"
-
-    return result
-
-def qrag_routing_call(user_question, vector_index_name, routes_dict, routes_bounds=[0.3, 0.9], 
-llm_model=DEFAULT_LLM_MODEL, user_id='default', qrag_version="1.0"):
-    """ 
+def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict, routes_bounds=[0.3, 0.9], 
+                      llm_model=DEFAULT_LLM_MODEL, user_id='default', qrag_version="1.0"):
+    """
     Routes a user question through a question retrieval augmented generation (QRAG) process.
 
-    :param user_question: string of the user's input question.
-    :param routes_dict: dictionary containing routing prompts and templates.
-    :param vector_index_name: string of the name of the pinecone index to use for retrieval.
-    :param routes_bounds: list of two floats representing the lower and upper similarity bounds for routing.
-    :param user_id: string of the user identifier. defaults to 'default'.
-    :param llm_model: string of the language model to use. defaults to DEFAULT_LLM_MODEL.
-    :param bot_version: string of the bot version. defaults to "1.0".
-    :return: dictionary containing metadata and content of the QRAG process and response.
-
-    Usage:
-    response = qrag_routing_call("What is the capital of France?", routes_dict, "my_index")
+    :param user_question: str, the question asked by the user.
+    :param vector_index_name: str, name of the vector index to search.
+    :param num_chunks: int, number of chunks to retrieve and process.
+    :param routes_dict: dict, containing routing information and templates.
+    :param routes_bounds: list, lower and upper similarity bounds for routing.
+    :param llm_model: str, name of the language model to use.
+    :param user_id: str, identifier for the user.
+    :param qrag_version: str, version of the QRAG system.
+    :return response: dict, containing metadata and content of the QRAG response.
     """
-    routes_flow_name = "3 routes, sim-star double, separate prompts"
-    
-    chunks, simscores = pinecone_retriever(user_question, vector_index_name)
-    
-    top_sim_chunk, top_stars_chunk = select_chunks_qrag_1or2(chunks, simscores)
-    top_sim_info = parse_chunk_qa_dd(top_sim_chunk, simscores, 'top_sim_')
-    max_sim = top_sim_info['top_sim_sim']
-    max_stars = top_sim_info['top_sim_stars']  # Will be reassigned below if there is a 2nd chunk that has the top stars 
+    routes_flow_name = "3 routes, separate route prompts"
 
-    quoted_qa = routes_dict['quoted_qa_single'].format(**top_sim_info)
+    # Retrieve chunks from Pinecone
+    fetched_chunks, retrieved_ids_scores = pinecone_retriever(user_question, vector_index_name, num_chunks)
 
-    if top_stars_chunk is not None:
-        top_stars_info = parse_chunk_qa_dd(top_stars_chunk, simscores, 'top_stars_')
-        max_stars = top_stars_info['top_stars_stars']
-        combined_info = {**top_stars_info, **top_sim_info}
-        quoted_qa = routes_dict['quoted_qa_double'].format(**combined_info)
-            
+    # Select and sort chunks by similarity
+    selected_chunks = sort_chunks_by_sim(fetched_chunks, retrieved_ids_scores, num_chunks)
+
+    # Parse the selected chunks
+    parsed_chunks = parse_chunks(selected_chunks, retrieved_ids_scores)
+
+    # Retrieve the item template from routes_dict
+    quoted_qa_item_template = routes_dict.get('quoted_qa_item_template', "")
+
+    # Construct the quoted_qa by iterating over parsed chunks
+    # This duplicated text is provided for ease of use by downstream web javascript code
+    quoted_qa_list = []
+    for chunk in parsed_chunks:
+        chunk_formatted = quoted_qa_item_template.format(**chunk)
+        quoted_qa_list.append(chunk_formatted)
+    quoted_qa_formatted = ''.join(quoted_qa_list)
+
+    # Wrap the entire quoted_qa if necessary
+    quoted_qa_template = routes_dict.get('quoted_qa_template', '{quoted_qa_formatted}')
+    quoted_qa = quoted_qa_template.format(quoted_qa_formatted=quoted_qa_formatted)
+
+    # Determine max similarity and stars
+    max_sim = max(chunk['sim'] for chunk in parsed_chunks) if parsed_chunks else 0
+    max_stars = max(chunk['stars'] for chunk in parsed_chunks) if parsed_chunks else 0
+
     lower_sim_bound, upper_sim_bound = routes_bounds
 
     if max_sim >= upper_sim_bound:
@@ -260,12 +251,24 @@ llm_model=DEFAULT_LLM_MODEL, user_id='default', qrag_version="1.0"):
         quoted_qa = ""
     else:
         route_preamble = routes_dict['route_preamble_partial_match']
-    
+
+    # Prepare chunk metadata for the response
+    chunks_metadata = []
+    for chunk in parsed_chunks:
+        chunks_metadata.append({
+            "question": chunk['question'],
+            "source": chunk['source'],
+            "timestamp": chunk['timestamp'],
+            "answer": chunk['answer'],
+            "stars": chunk['stars'],
+            "sim": "{:.3f}".format(chunk['sim'])
+        })
+
     return {
         "metadata": {
             "timestamp": datetime.now().isoformat(),
             "user_id": user_id,
-            "vector_index_name": vector_index_name,  # pinecone vector db id
+            "vector_index_name": vector_index_name,
             "qrag_version": qrag_version,
             "llm_model": llm_model,
             "routes_info": {
@@ -280,30 +283,12 @@ llm_model=DEFAULT_LLM_MODEL, user_id='default', qrag_version="1.0"):
         "content": {
             "user_question": user_question,
             "route_preamble": route_preamble,
-            "quoted_qa": quoted_qa,  # includes 'QUOTED X: ' and newlines at end
+            "quoted_qa": quoted_qa,
             "ai_answer": "WAITING FOR AI ANSWER...",
             "chunks": {
                 "max_sim": "{:.3f}".format(max_sim),
                 "max_stars": max_stars,
-                "chunks": [
-                    {
-                        "question": top_sim_info['top_sim_question'],
-                        "source": top_sim_info['top_sim_source'], 
-                        "timestamp": top_sim_info['top_sim_timestamp'],
-                        "answer": top_sim_info['top_sim_answer'],
-                        "stars": top_sim_info['top_sim_stars'],
-                        "sim": "{:.3f}".format(top_sim_info['top_sim_sim'])
-                    }
-                ] + ([
-                    {
-                        "question": top_stars_info['top_stars_question'],
-                        "source": top_stars_info['top_stars_source'],
-                        "timestamp": top_stars_info['top_stars_timestamp'],
-                        "answer": top_stars_info['top_stars_answer'],
-                        "stars": top_stars_info['top_stars_stars'],
-                        "sim": "{:.3f}".format(top_stars_info['top_stars_sim'])
-                    }
-                ] if top_stars_chunk is not None else [])
+                "chunks": chunks_metadata
             }
         }
     }
@@ -325,17 +310,18 @@ def qrag_llm_call(json_object):
     user_question = json_object['content']['user_question']
     route_preamble = json_object['content']['route_preamble']
     quoted_qa = json_object['content']['quoted_qa']
-    
+
     # Prepare the prompt for the LLM call
     llm_prompt = route_preamble + "\n" + quoted_qa + "\nUSER QUESTION: " + user_question + "\n\nAI ANSWER: "
-    
+
     # Make the LLM call using simple_openai_chat_completion_request function
     llm_model = json_object['metadata']['llm_model']
     llm_answer = simple_openai_chat_completion_request(llm_prompt, model=llm_model)
-    
+
     # Add the AI answer to the json_object
     json_object['content']['ai_answer'] = llm_answer
-    
+    json_object['content']['llm_prompt'] = llm_prompt  # Optionally include the prompt
+
     return json_object
 
 def print_qrag_display_text(json_object):
@@ -352,7 +338,7 @@ def print_qrag_display_text(json_object):
     display_text = 'USER QUESTION: ' + user_question + '\n\n' + 'ROUTE PREAMBLE: ' + route_preamble + '\n\n' + quoted_qa + 'AI ANSWER: ' + ai_answer
     print(display_text)
 
-def qrag_2step(user_question, routes_dict, vector_index_name):
+def qrag_2step(user_question, routes_dict, vector_index_name, num_chunks=3):
     """ 
     Performs a two-step question-answering process using QRAG (Question Retrieval Augmented Generation).
 
@@ -360,7 +346,7 @@ def qrag_2step(user_question, routes_dict, vector_index_name):
     :return: None
     """
     # Create JSON object with routing information
-    routing_json_obj = qrag_routing_call(user_question, routes_dict, vector_index_name)
+    routing_json_obj = qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict)
 
     # Print the display text for the QRAG process
     print_qrag_display_text(routing_json_obj)
@@ -368,3 +354,4 @@ def qrag_2step(user_question, routes_dict, vector_index_name):
     # Generate and print the AI answer
     ai_answer = qrag_llm_call(routing_json_obj)['content']['ai_answer']
     print(ai_answer)
+

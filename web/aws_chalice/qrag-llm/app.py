@@ -1,23 +1,68 @@
+# ===== START OF FILE qrag-llm/app.py =====
+# in AWS Chalice for Lambda Function
+
 from chalice import Chalice, Response
 import json
 import os
 
 from chalicelib.rag import qrag_llm_call, print_qrag_display_text
-from chalicelib.aws import upload_file_to_s3
+from chalicelib.aws import upload_file_to_s3, verify_jwt
 from chalicelib.llm import simple_openai_chat_completion_request
 from chalicelib.rag_prompts_routes import *
 from chalicelib.vectordb import generate_embedding
 from chalicelib.fileops import get_current_datetime_filefriendly
 
-
 app = Chalice(app_name='qrag-llm')
-app.api.cors = True  # Enable CORS for all routes
+app.api.cors = True
+
+# Define allowed origins as a set
+ALLOWED_ORIGINS = {
+    'https://www.focusonfoundations.org',
+    'https://floodlamp-8c9d00d6ef3e90c375de806594d04.webflow.io'
+}
 
 @app.route('/qrag-llm', methods=['POST'], cors=True)
 def handle_qrag_llm():
+    print("qrag-llm lambda func - last updated 12-20-24 RT to include JWT verification")
+    
+    # Get the origin from the request
+    request_origin = app.current_request.headers.get('origin', '')
+    
+    # Set the CORS headers based on the request origin
+    cors_headers = {
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+    }
+
+    # Only add the origin if it's in our allowed list
+    if request_origin in ALLOWED_ORIGINS:
+        cors_headers['Access-Control-Allow-Origin'] = request_origin
+        
     raw_request_data = app.current_request.raw_body.decode('utf-8')
     print("Raw request data:", raw_request_data)
     try:
+        # Verify JWT token
+        auth_header = app.current_request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return Response(
+                body={'error': 'Missing or invalid Authorization header'},
+                status_code=401,
+                headers=cors_headers
+            )
+
+        token = auth_header.split(' ')[1]
+        claims = verify_jwt(token)
+        if not claims:
+            return Response(
+                body={'error': 'Invalid or expired JWT token'},
+                status_code=401,
+                headers=cors_headers
+            )
+
+        # Continue with existing functionality
+        raw_request_data = app.current_request.raw_body.decode('utf-8')
+        print("Raw request data:", raw_request_data)
+        
         received_request_data = app.current_request.json_body
         print("Received request data:", received_request_data)
         
@@ -37,19 +82,41 @@ def handle_qrag_llm():
         with open(json_file_path, 'w') as json_file:
             json.dump(response_json_object, json_file, indent=4)
 
-        print("\nUploading JSON to S3...")
-        upload_file_to_s3(json_file_path, bucket='fofsecure', s3_path='s3-qrag-deutsch-v3')
+        # Determine S3 path based on index name from response metadata
+        metadata = response_json_object.get("metadata", {})
+        vector_index_name = metadata.get("vector_index_name", "NOT_FOUND")
+        if vector_index_name.startswith("deutsch"):
+            s3_path = "s3-qrag-deutsch-v3"
+        elif vector_index_name.startswith("pv-evac"):
+            s3_path = "s3-qrag-pv-evac"
+        elif vector_index_name.startswith("fda-townhalls"):
+            s3_path = "s3-qrag-fda-townhalls"
+        else:
+            s3_path = "s3-qrag-default"
+
+        print(f"Extracted index name: {vector_index_name}")
+        print(f"Uploading JSON to S3 path: {s3_path}")
+        upload_file_to_s3(json_file_path, bucket='fofsecure', s3_path=s3_path)
 
         print("Returning JSON response...")
-        return Response(body={'status': 'Success', 'response': response_json_object}, status_code=200)
+        return Response(
+            body=json.dumps({'status': 'Success', 'response': response_json_object}),
+            status_code=200,
+            headers=cors_headers
+        )
     
     except Exception as e:
-        print("Error while processing request:", e)  # Log any exceptions
-        return Response(body={'error': str(e)}, status_code=500)
+        print("Error while processing request:", e)
+        return Response(
+            body=json.dumps({'error': str(e)}),
+            status_code=500,
+            headers=cors_headers
+        )
 
 # TO REDEPLOY WITH MIRROR SCRIPT
 '''
-cd /Users/randytrue/Documents/Code/corpus-tools/web/aws_chalice/qrag-llm; ../chalicelib_mirror_deploy.sh
+cd /Users/randytrue/Documents/Code/corpus-tools/web/aws_chalice/qrag-llm
+../chalicelib_mirror_deploy.sh
 '''
 
 # API ENDPOINT: https://sz901mb96d.execute-api.us-west-2.amazonaws.com/api/qrag-llm
@@ -60,6 +127,7 @@ cd /Users/randytrue/Documents/Code/corpus-tools/web/aws_chalice/qrag-llm; ../cha
 # Headers:
 '''
 Content-Type:application/json
+Origin:https://www.focusonfoundations.org
 '''
 
 # Request body:
@@ -67,7 +135,7 @@ Content-Type:application/json
     "metadata": {
         "timestamp": "2024-06-13T11:46:33.651753",
         "user_id": "default",
-        "index_name": "deutsch-transcript-qrag",
+        "vector_index_name": "deutsch-transcript-qrag-78f-20240926",
         "bot_version": "1.0",
         "llm_model": "gpt-4o",
         "routes_info": {
@@ -119,4 +187,8 @@ Content-Type:application/json
         }
     }
 }
+
+# ===== END OF FILE qrag-llm/app.py =====
+
+
 

@@ -1,0 +1,3247 @@
+{
+    "metadata": {
+        "link": "https://vimeo.com/668088713/534352aaf0",
+        "speaker_names": [
+            [
+                0,
+                "Test Trainer"
+            ]
+        ],
+        "transaction_key": "deprecated",
+        "request_id": "cfc6a3b6-25cc-403c-928d-475ea86bd7af",
+        "sha256": "8da7ea4bfd2a3fcad0a500ff3f57a35a4afac9e248d8e652b14a3469cc7d485c",
+        "created": "2023-12-06T01:41:26.818Z",
+        "duration": 253.008,
+        "channels": 1,
+        "models": [
+            "c6481769-89cd-447f-be27-1e6e9dac3616"
+        ],
+        "model_info": {
+            "c6481769-89cd-447f-be27-1e6e9dac3616": {
+                "name": "medium-whisper",
+                "version": "2022-09-21.5",
+                "arch": "whisper"
+            }
+        }
+    },
+    "results": {
+        "channels": [
+            {
+                "alternatives": [
+                    {
+                        "transcript": "So we just cleaned our table and we're gonna go through cleaning the pipettes real fast Bring them over here. I'm just gonna wipe the outside of the Boxes as well So it's kind of nice to do this in an area usually kind of away from your work area. Just get over here. These I do just give a spray. It'll go crazy. Just get, you don't want this to get everywhere. Flip them over. Get them kind of top to bottom. So I wipe them in between. Make sure to get the top thumb part, and I give this guy a little like that, wipe spot. Just kind of keep wiping. Just got to get them nice and dry. I don't know if the manufacturers recommend this or not, or if they're worried about bleach. This is what I've been doing though. Okay, same thing with ethanol. Give a quick spray. Flip them over. Okay, and wipe. Okay, and wipe. There we go. Surface. There we go. Surface. Let's try to get it nice and dry. If your towel gets too wet, just get another 1. You should have plenty of towels. Okay. I've done plenty of towels. Okay. And 1 more quick bleach wipe. These guys, It's kind of where you touch them. Especially the thumb part. And then, look, 1 towel left, perfect. Okay, these guys. These guys. Okay. Here we go. These guys are all ready to go and I just put them on top of where they go. Make sure they... Oops. There we go. Actually, I'm just going to get these way out of the way. Alright, so now I get my stuff over here to the right. Tip bucket in the middle. Get these guys set up. Okay, now we're good to go. We're all set up, clean, pipette's clean, table clean, accoutrement's clean, we're good.",
+                        "confidence": 0.95707464,
+                        "words": [
+                            {
+                                "word": "so",
+                                "start": 0.35999998,
+                                "end": 0.86,
+                                "confidence": 0.9799597,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "So"
+                            },
+                            {
+                                "word": "we",
+                                "start": 1.18,
+                                "end": 1.3,
+                                "confidence": 0.692679,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "we"
+                            },
+                            {
+                                "word": "just",
+                                "start": 1.3,
+                                "end": 1.4599999,
+                                "confidence": 0.97713506,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "just"
+                            },
+                            {
+                                "word": "cleaned",
+                                "start": 1.4599999,
+                                "end": 1.6999999,
+                                "confidence": 0.99859947,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "cleaned"
+                            },
+                            {
+                                "word": "our",
+                                "start": 1.6999999,
+                                "end": 1.86,
+                                "confidence": 0.82150036,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "our"
+                            },
+                            {
+                                "word": "table",
+                                "start": 1.86,
+                                "end": 2.1599998,
+                                "confidence": 0.9876102,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "table"
+                            },
+                            {
+                                "word": "and",
+                                "start": 2.1599998,
+                                "end": 2.36,
+                                "confidence": 0.98907757,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "and"
+                            },
+                            {
+                                "word": "we're",
+                                "start": 2.36,
+                                "end": 2.58,
+                                "confidence": 0.6168877,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "we're"
+                            },
+                            {
+                                "word": "gonna",
+                                "start": 2.58,
+                                "end": 2.86,
+                                "confidence": 0.9799151,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "gonna"
+                            },
+                            {
+                                "word": "go",
+                                "start": 2.86,
+                                "end": 3.0,
+                                "confidence": 0.9858204,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "go"
+                            },
+                            {
+                                "word": "through",
+                                "start": 3.0,
+                                "end": 3.26,
+                                "confidence": 0.99293125,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "through"
+                            },
+                            {
+                                "word": "cleaning",
+                                "start": 3.26,
+                                "end": 3.58,
+                                "confidence": 0.979838,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "cleaning"
+                            },
+                            {
+                                "word": "the",
+                                "start": 3.58,
+                                "end": 3.74,
+                                "confidence": 0.9829699,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "the"
+                            },
+                            {
+                                "word": "pipettes",
+                                "start": 3.74,
+                                "end": 4.18,
+                                "confidence": 0.9750714,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "pipettes"
+                            },
+                            {
+                                "word": "real",
+                                "start": 4.18,
+                                "end": 4.36,
+                                "confidence": 0.333024,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "real"
+                            },
+                            {
+                                "word": "fast",
+                                "start": 4.36,
+                                "end": 4.86,
+                                "confidence": 0.449455,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "fast"
+                            },
+                            {
+                                "word": "bring",
+                                "start": 5.98,
+                                "end": 6.14,
+                                "confidence": 0.99850106,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "Bring"
+                            },
+                            {
+                                "word": "them",
+                                "start": 6.14,
+                                "end": 6.3199997,
+                                "confidence": 0.99958557,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "them"
+                            },
+                            {
+                                "word": "over",
+                                "start": 6.3199997,
+                                "end": 6.54,
+                                "confidence": 0.54256636,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "over"
+                            },
+                            {
+                                "word": "here",
+                                "start": 6.54,
+                                "end": 7.04,
+                                "confidence": 0.9492739,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "here."
+                            },
+                            {
+                                "word": "i'm",
+                                "start": 7.7999997,
+                                "end": 8.0,
+                                "confidence": 0.9921779,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "I'm"
+                            },
+                            {
+                                "word": "just",
+                                "start": 8.0,
+                                "end": 8.179999,
+                                "confidence": 0.9929992,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "just"
+                            },
+                            {
+                                "word": "gonna",
+                                "start": 8.179999,
+                                "end": 8.42,
+                                "confidence": 0.9996093,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "gonna"
+                            },
+                            {
+                                "word": "wipe",
+                                "start": 8.42,
+                                "end": 8.639999,
+                                "confidence": 0.9996785,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "wipe"
+                            },
+                            {
+                                "word": "the",
+                                "start": 8.639999,
+                                "end": 8.76,
+                                "confidence": 0.9981614,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "the"
+                            },
+                            {
+                                "word": "outside",
+                                "start": 8.76,
+                                "end": 9.12,
+                                "confidence": 0.9962723,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "outside"
+                            },
+                            {
+                                "word": "of",
+                                "start": 9.12,
+                                "end": 9.28,
+                                "confidence": 0.2571782,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "of"
+                            },
+                            {
+                                "word": "the",
+                                "start": 9.28,
+                                "end": 9.78,
+                                "confidence": 0.3534133,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "the"
+                            },
+                            {
+                                "word": "boxes",
+                                "start": 11.4,
+                                "end": 11.9,
+                                "confidence": 0.99740535,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "Boxes"
+                            },
+                            {
+                                "word": "as",
+                                "start": 11.92,
+                                "end": 12.099999,
+                                "confidence": 0.9910959,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "as"
+                            },
+                            {
+                                "word": "well",
+                                "start": 12.099999,
+                                "end": 12.599999,
+                                "confidence": 0.23952793,
+                                "speaker": 0,
+                                "speaker_confidence": 0.6142578,
+                                "punctuated_word": "well"
+                            },
+                            {
+                                "word": "so",
+                                "start": 16.38,
+                                "end": 16.88,
+                                "confidence": 0.98675424,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "So"
+                            },
+                            {
+                                "word": "it's",
+                                "start": 17.56,
+                                "end": 17.78,
+                                "confidence": 0.77171165,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "it's"
+                            },
+                            {
+                                "word": "kind",
+                                "start": 17.78,
+                                "end": 17.96,
+                                "confidence": 0.9953881,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "kind"
+                            },
+                            {
+                                "word": "of",
+                                "start": 17.96,
+                                "end": 18.06,
+                                "confidence": 0.9758455,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "of"
+                            },
+                            {
+                                "word": "nice",
+                                "start": 18.06,
+                                "end": 18.42,
+                                "confidence": 0.78391135,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "nice"
+                            },
+                            {
+                                "word": "to",
+                                "start": 18.42,
+                                "end": 18.64,
+                                "confidence": 0.9946824,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "to"
+                            },
+                            {
+                                "word": "do",
+                                "start": 18.64,
+                                "end": 18.8,
+                                "confidence": 0.94215244,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "do"
+                            },
+                            {
+                                "word": "this",
+                                "start": 18.8,
+                                "end": 19.0,
+                                "confidence": 0.7595376,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "this"
+                            },
+                            {
+                                "word": "in",
+                                "start": 19.0,
+                                "end": 19.119999,
+                                "confidence": 0.98965144,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "in"
+                            },
+                            {
+                                "word": "an",
+                                "start": 19.119999,
+                                "end": 19.619999,
+                                "confidence": 0.6984937,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "an"
+                            },
+                            {
+                                "word": "area",
+                                "start": 20.02,
+                                "end": 20.32,
+                                "confidence": 0.87649,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "area"
+                            },
+                            {
+                                "word": "usually",
+                                "start": 20.32,
+                                "end": 20.64,
+                                "confidence": 0.96460843,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "usually"
+                            },
+                            {
+                                "word": "kind",
+                                "start": 20.64,
+                                "end": 20.82,
+                                "confidence": 0.9593585,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "kind"
+                            },
+                            {
+                                "word": "of",
+                                "start": 20.82,
+                                "end": 20.98,
+                                "confidence": 0.9779369,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "of"
+                            },
+                            {
+                                "word": "away",
+                                "start": 20.98,
+                                "end": 21.24,
+                                "confidence": 0.980423,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "away"
+                            },
+                            {
+                                "word": "from",
+                                "start": 21.24,
+                                "end": 21.74,
+                                "confidence": 0.8606729,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "from"
+                            },
+                            {
+                                "word": "your",
+                                "start": 21.96,
+                                "end": 22.16,
+                                "confidence": 0.986233,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "your"
+                            },
+                            {
+                                "word": "work",
+                                "start": 22.16,
+                                "end": 22.42,
+                                "confidence": 0.38898277,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "work"
+                            },
+                            {
+                                "word": "area",
+                                "start": 22.42,
+                                "end": 22.92,
+                                "confidence": 0.030554507,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "area."
+                            },
+                            {
+                                "word": "just",
+                                "start": 23.14,
+                                "end": 23.3,
+                                "confidence": 0.78207445,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "Just"
+                            },
+                            {
+                                "word": "get",
+                                "start": 23.3,
+                                "end": 23.42,
+                                "confidence": 0.99778193,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "get"
+                            },
+                            {
+                                "word": "over",
+                                "start": 23.42,
+                                "end": 23.619999,
+                                "confidence": 0.9277872,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "over"
+                            },
+                            {
+                                "word": "here",
+                                "start": 23.619999,
+                                "end": 24.119999,
+                                "confidence": 0.15132703,
+                                "speaker": 0,
+                                "speaker_confidence": 0.68408203,
+                                "punctuated_word": "here."
+                            },
+                            {
+                                "word": "these",
+                                "start": 27.759998,
+                                "end": 27.84,
+                                "confidence": 0.9945622,
+                                "speaker": 0,
+                                "speaker_confidence": 0.0,
+                                "punctuated_word": "These"
+                            },
+                            {
+                                "word": "i",
+                                "start": 27.84,
+                                "end": 27.96,
+                                "confidence": 0.7283949,
+                                "speaker": 0,
+                                "speaker_confidence": 0.0,
+                                "punctuated_word": "I"
+                            },
+                            {
+                                "word": "do",
+                                "start": 27.96,
+                                "end": 28.46,
+                                "confidence": 0.9852329,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7373047,
+                                "punctuated_word": "do"
+                            },
+                            {
+                                "word": "just",
+                                "start": 29.24,
+                                "end": 29.48,
+                                "confidence": 0.9666332,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7373047,
+                                "punctuated_word": "just"
+                            },
+                            {
+                                "word": "give",
+                                "start": 29.48,
+                                "end": 29.68,
+                                "confidence": 0.9969873,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7373047,
+                                "punctuated_word": "give"
+                            },
+                            {
+                                "word": "a",
+                                "start": 29.68,
+                                "end": 29.82,
+                                "confidence": 0.75900245,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7373047,
+                                "punctuated_word": "a"
+                            },
+                            {
+                                "word": "spray",
+                                "start": 29.82,
+                                "end": 30.32,
+                                "confidence": 0.03790707,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7373047,
+                                "punctuated_word": "spray."
+                            },
+                            {
+                                "word": "it'll",
+                                "start": 31.84,
+                                "end": 32.199997,
+                                "confidence": 0.9975497,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7373047,
+                                "punctuated_word": "It'll"
+                            },
+                            {
+                                "word": "go",
+                                "start": 32.199997,
+                                "end": 32.36,
+                                "confidence": 0.6373965,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7373047,
+                                "punctuated_word": "go"
+                            },
+                            {
+                                "word": "crazy",
+                                "start": 32.36,
+                                "end": 32.713333,
+                                "confidence": 0.052576926,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7373047,
+                                "punctuated_word": "crazy."
+                            },
+                            {
+                                "word": "just",
+                                "start": 32.713333,
+                                "end": 33.066666,
+                                "confidence": 0.22369632,
+                                "speaker": 0,
+                                "speaker_confidence": 0.2133789,
+                                "punctuated_word": "Just"
+                            },
+                            {
+                                "word": "get",
+                                "start": 33.066666,
+                                "end": 33.42,
+                                "confidence": 0.5591598,
+                                "speaker": 0,
+                                "speaker_confidence": 0.2133789,
+                                "punctuated_word": "get,"
+                            },
+                            {
+                                "word": "you",
+                                "start": 33.42,
+                                "end": 33.58,
+                                "confidence": 0.99961287,
+                                "speaker": 0,
+                                "speaker_confidence": 0.2133789,
+                                "punctuated_word": "you"
+                            },
+                            {
+                                "word": "don't",
+                                "start": 33.58,
+                                "end": 33.74,
+                                "confidence": 0.9883227,
+                                "speaker": 0,
+                                "speaker_confidence": 0.2133789,
+                                "punctuated_word": "don't"
+                            },
+                            {
+                                "word": "want",
+                                "start": 33.74,
+                                "end": 33.88,
+                                "confidence": 0.90812564,
+                                "speaker": 0,
+                                "speaker_confidence": 0.2133789,
+                                "punctuated_word": "want"
+                            },
+                            {
+                                "word": "this",
+                                "start": 33.88,
+                                "end": 34.02,
+                                "confidence": 0.9604899,
+                                "speaker": 0,
+                                "speaker_confidence": 0.2133789,
+                                "punctuated_word": "this"
+                            },
+                            {
+                                "word": "to",
+                                "start": 34.02,
+                                "end": 34.08,
+                                "confidence": 0.9598074,
+                                "speaker": 0,
+                                "speaker_confidence": 0.4350586,
+                                "punctuated_word": "to"
+                            },
+                            {
+                                "word": "get",
+                                "start": 34.08,
+                                "end": 34.32,
+                                "confidence": 0.7756481,
+                                "speaker": 0,
+                                "speaker_confidence": 0.4350586,
+                                "punctuated_word": "get"
+                            },
+                            {
+                                "word": "everywhere",
+                                "start": 34.32,
+                                "end": 34.76,
+                                "confidence": 0.064466745,
+                                "speaker": 0,
+                                "speaker_confidence": 0.4350586,
+                                "punctuated_word": "everywhere."
+                            },
+                            {
+                                "word": "flip",
+                                "start": 34.76,
+                                "end": 34.96,
+                                "confidence": 0.9983803,
+                                "speaker": 0,
+                                "speaker_confidence": 0.4350586,
+                                "punctuated_word": "Flip"
+                            },
+                            {
+                                "word": "them",
+                                "start": 34.96,
+                                "end": 35.14,
+                                "confidence": 0.47651318,
+                                "speaker": 0,
+                                "speaker_confidence": 0.4350586,
+                                "punctuated_word": "them"
+                            },
+                            {
+                                "word": "over",
+                                "start": 35.14,
+                                "end": 35.64,
+                                "confidence": 0.25257286,
+                                "speaker": 0,
+                                "speaker_confidence": 0.4350586,
+                                "punctuated_word": "over."
+                            },
+                            {
+                                "word": "get",
+                                "start": 36.18,
+                                "end": 36.26,
+                                "confidence": 0.7099608,
+                                "speaker": 0,
+                                "speaker_confidence": 0.30126953,
+                                "punctuated_word": "Get"
+                            },
+                            {
+                                "word": "them",
+                                "start": 36.26,
+                                "end": 36.38,
+                                "confidence": 0.99490404,
+                                "speaker": 0,
+                                "speaker_confidence": 0.30126953,
+                                "punctuated_word": "them"
+                            },
+                            {
+                                "word": "kind",
+                                "start": 36.38,
+                                "end": 36.68,
+                                "confidence": 0.95215875,
+                                "speaker": 0,
+                                "speaker_confidence": 0.30126953,
+                                "punctuated_word": "kind"
+                            },
+                            {
+                                "word": "of",
+                                "start": 36.68,
+                                "end": 36.78,
+                                "confidence": 0.9774368,
+                                "speaker": 0,
+                                "speaker_confidence": 0.30126953,
+                                "punctuated_word": "of"
+                            },
+                            {
+                                "word": "top",
+                                "start": 36.78,
+                                "end": 36.98,
+                                "confidence": 0.9921842,
+                                "speaker": 0,
+                                "speaker_confidence": 0.30126953,
+                                "punctuated_word": "top"
+                            },
+                            {
+                                "word": "to",
+                                "start": 36.98,
+                                "end": 37.18,
+                                "confidence": 0.988356,
+                                "speaker": 0,
+                                "speaker_confidence": 0.30126953,
+                                "punctuated_word": "to"
+                            },
+                            {
+                                "word": "bottom",
+                                "start": 37.18,
+                                "end": 37.68,
+                                "confidence": 0.26874834,
+                                "speaker": 0,
+                                "speaker_confidence": 0.30126953,
+                                "punctuated_word": "bottom."
+                            },
+                            {
+                                "word": "so",
+                                "start": 45.0,
+                                "end": 45.04,
+                                "confidence": 0.9971731,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "So"
+                            },
+                            {
+                                "word": "i",
+                                "start": 45.04,
+                                "end": 45.14,
+                                "confidence": 0.98866487,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "I"
+                            },
+                            {
+                                "word": "wipe",
+                                "start": 45.14,
+                                "end": 45.4,
+                                "confidence": 0.9954242,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "wipe"
+                            },
+                            {
+                                "word": "them",
+                                "start": 45.4,
+                                "end": 45.85,
+                                "confidence": 0.94288814,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "them"
+                            },
+                            {
+                                "word": "in",
+                                "start": 45.85,
+                                "end": 46.3,
+                                "confidence": 0.6406493,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "in"
+                            },
+                            {
+                                "word": "between",
+                                "start": 46.3,
+                                "end": 46.8,
+                                "confidence": 0.049799867,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "between."
+                            },
+                            {
+                                "word": "make",
+                                "start": 47.6,
+                                "end": 47.8,
+                                "confidence": 0.9789883,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "Make"
+                            },
+                            {
+                                "word": "sure",
+                                "start": 47.8,
+                                "end": 48.0,
+                                "confidence": 0.9820671,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "sure"
+                            },
+                            {
+                                "word": "to",
+                                "start": 48.0,
+                                "end": 48.12,
+                                "confidence": 0.9844751,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "to"
+                            },
+                            {
+                                "word": "get",
+                                "start": 48.12,
+                                "end": 48.28,
+                                "confidence": 0.99307775,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "get"
+                            },
+                            {
+                                "word": "the",
+                                "start": 48.28,
+                                "end": 48.48,
+                                "confidence": 0.62972534,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "the"
+                            },
+                            {
+                                "word": "top",
+                                "start": 48.48,
+                                "end": 48.98,
+                                "confidence": 0.9830009,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "top"
+                            },
+                            {
+                                "word": "thumb",
+                                "start": 49.28,
+                                "end": 49.6,
+                                "confidence": 0.37427944,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "thumb"
+                            },
+                            {
+                                "word": "part",
+                                "start": 49.6,
+                                "end": 50.1,
+                                "confidence": 0.6929279,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "part,"
+                            },
+                            {
+                                "word": "and",
+                                "start": 50.28,
+                                "end": 50.44,
+                                "confidence": 0.98067874,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "and"
+                            },
+                            {
+                                "word": "i",
+                                "start": 50.44,
+                                "end": 50.56,
+                                "confidence": 0.98336697,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "I"
+                            },
+                            {
+                                "word": "give",
+                                "start": 50.56,
+                                "end": 50.76,
+                                "confidence": 0.98625666,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "give"
+                            },
+                            {
+                                "word": "this",
+                                "start": 50.76,
+                                "end": 50.96,
+                                "confidence": 0.88706964,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "this"
+                            },
+                            {
+                                "word": "guy",
+                                "start": 50.96,
+                                "end": 51.12,
+                                "confidence": 0.94662154,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "guy"
+                            },
+                            {
+                                "word": "a",
+                                "start": 51.12,
+                                "end": 51.2,
+                                "confidence": 0.121045105,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "a"
+                            },
+                            {
+                                "word": "little",
+                                "start": 51.2,
+                                "end": 51.7,
+                                "confidence": 0.8267415,
+                                "speaker": 0,
+                                "speaker_confidence": 0.72753906,
+                                "punctuated_word": "little"
+                            },
+                            {
+                                "word": "like",
+                                "start": 52.84,
+                                "end": 53.08,
+                                "confidence": 0.63592154,
+                                "speaker": 0,
+                                "speaker_confidence": 0.37597656,
+                                "punctuated_word": "like"
+                            },
+                            {
+                                "word": "that",
+                                "start": 53.08,
+                                "end": 53.58,
+                                "confidence": 0.5279181,
+                                "speaker": 0,
+                                "speaker_confidence": 0.37597656,
+                                "punctuated_word": "that,"
+                            },
+                            {
+                                "word": "wipe",
+                                "start": 54.48,
+                                "end": 54.98,
+                                "confidence": 0.4993686,
+                                "speaker": 0,
+                                "speaker_confidence": 0.37597656,
+                                "punctuated_word": "wipe"
+                            },
+                            {
+                                "word": "spot",
+                                "start": 55.94,
+                                "end": 56.44,
+                                "confidence": 0.01364545,
+                                "speaker": 0,
+                                "speaker_confidence": 0.37597656,
+                                "punctuated_word": "spot."
+                            },
+                            {
+                                "word": "just",
+                                "start": 57.88,
+                                "end": 58.08,
+                                "confidence": 0.99353266,
+                                "speaker": 0,
+                                "speaker_confidence": 0.39501953,
+                                "punctuated_word": "Just"
+                            },
+                            {
+                                "word": "kind",
+                                "start": 58.08,
+                                "end": 58.26,
+                                "confidence": 0.9951911,
+                                "speaker": 0,
+                                "speaker_confidence": 0.39501953,
+                                "punctuated_word": "kind"
+                            },
+                            {
+                                "word": "of",
+                                "start": 58.26,
+                                "end": 58.44,
+                                "confidence": 0.9944858,
+                                "speaker": 0,
+                                "speaker_confidence": 0.39501953,
+                                "punctuated_word": "of"
+                            },
+                            {
+                                "word": "keep",
+                                "start": 58.44,
+                                "end": 58.78,
+                                "confidence": 0.84694165,
+                                "speaker": 0,
+                                "speaker_confidence": 0.39501953,
+                                "punctuated_word": "keep"
+                            },
+                            {
+                                "word": "wiping",
+                                "start": 58.78,
+                                "end": 59.28,
+                                "confidence": 0.01122505,
+                                "speaker": 0,
+                                "speaker_confidence": 0.39501953,
+                                "punctuated_word": "wiping."
+                            },
+                            {
+                                "word": "just",
+                                "start": 63.12,
+                                "end": 63.34,
+                                "confidence": 0.97224855,
+                                "speaker": 0,
+                                "speaker_confidence": 0.35791016,
+                                "punctuated_word": "Just"
+                            },
+                            {
+                                "word": "got",
+                                "start": 63.34,
+                                "end": 63.48,
+                                "confidence": 0.97946566,
+                                "speaker": 0,
+                                "speaker_confidence": 0.35791016,
+                                "punctuated_word": "got"
+                            },
+                            {
+                                "word": "to",
+                                "start": 63.48,
+                                "end": 63.58,
+                                "confidence": 0.6800121,
+                                "speaker": 0,
+                                "speaker_confidence": 0.35791016,
+                                "punctuated_word": "to"
+                            },
+                            {
+                                "word": "get",
+                                "start": 63.58,
+                                "end": 63.78,
+                                "confidence": 0.9824264,
+                                "speaker": 0,
+                                "speaker_confidence": 0.35791016,
+                                "punctuated_word": "get"
+                            },
+                            {
+                                "word": "them",
+                                "start": 63.78,
+                                "end": 63.96,
+                                "confidence": 0.9904901,
+                                "speaker": 0,
+                                "speaker_confidence": 0.35791016,
+                                "punctuated_word": "them"
+                            },
+                            {
+                                "word": "nice",
+                                "start": 63.96,
+                                "end": 64.16,
+                                "confidence": 0.998909,
+                                "speaker": 0,
+                                "speaker_confidence": 0.35791016,
+                                "punctuated_word": "nice"
+                            },
+                            {
+                                "word": "and",
+                                "start": 64.16,
+                                "end": 64.32,
+                                "confidence": 0.96076024,
+                                "speaker": 0,
+                                "speaker_confidence": 0.35791016,
+                                "punctuated_word": "and"
+                            },
+                            {
+                                "word": "dry",
+                                "start": 64.32,
+                                "end": 64.82,
+                                "confidence": 0.024748879,
+                                "speaker": 0,
+                                "speaker_confidence": 0.35791016,
+                                "punctuated_word": "dry."
+                            },
+                            {
+                                "word": "i",
+                                "start": 71.32,
+                                "end": 71.38,
+                                "confidence": 0.99774325,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "I"
+                            },
+                            {
+                                "word": "don't",
+                                "start": 71.38,
+                                "end": 71.54,
+                                "confidence": 0.9975701,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "don't"
+                            },
+                            {
+                                "word": "know",
+                                "start": 71.54,
+                                "end": 71.72,
+                                "confidence": 0.99527955,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "know"
+                            },
+                            {
+                                "word": "if",
+                                "start": 71.72,
+                                "end": 71.84,
+                                "confidence": 0.8936061,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "if"
+                            },
+                            {
+                                "word": "the",
+                                "start": 71.84,
+                                "end": 71.979996,
+                                "confidence": 0.9724362,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "the"
+                            },
+                            {
+                                "word": "manufacturers",
+                                "start": 71.979996,
+                                "end": 72.479996,
+                                "confidence": 0.99243903,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "manufacturers"
+                            },
+                            {
+                                "word": "recommend",
+                                "start": 72.6,
+                                "end": 72.979996,
+                                "confidence": 0.9052043,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "recommend"
+                            },
+                            {
+                                "word": "this",
+                                "start": 72.979996,
+                                "end": 73.18,
+                                "confidence": 0.987171,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "this"
+                            },
+                            {
+                                "word": "or",
+                                "start": 73.18,
+                                "end": 73.34,
+                                "confidence": 0.42404523,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "or"
+                            },
+                            {
+                                "word": "not",
+                                "start": 73.34,
+                                "end": 73.52,
+                                "confidence": 0.87865204,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "not,"
+                            },
+                            {
+                                "word": "or",
+                                "start": 73.52,
+                                "end": 73.62,
+                                "confidence": 0.99552506,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "or"
+                            },
+                            {
+                                "word": "if",
+                                "start": 73.62,
+                                "end": 73.78,
+                                "confidence": 0.9069885,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "if"
+                            },
+                            {
+                                "word": "they're",
+                                "start": 73.78,
+                                "end": 73.96,
+                                "confidence": 0.9954516,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "they're"
+                            },
+                            {
+                                "word": "worried",
+                                "start": 73.96,
+                                "end": 74.24,
+                                "confidence": 0.93700874,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "worried"
+                            },
+                            {
+                                "word": "about",
+                                "start": 74.24,
+                                "end": 74.74,
+                                "confidence": 0.9422009,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "about"
+                            },
+                            {
+                                "word": "bleach",
+                                "start": 75.08,
+                                "end": 75.58,
+                                "confidence": 0.8308169,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "bleach."
+                            },
+                            {
+                                "word": "this",
+                                "start": 76.62,
+                                "end": 76.78,
+                                "confidence": 0.9977399,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "This"
+                            },
+                            {
+                                "word": "is",
+                                "start": 76.78,
+                                "end": 76.94,
+                                "confidence": 0.97458386,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "is"
+                            },
+                            {
+                                "word": "what",
+                                "start": 76.94,
+                                "end": 77.1,
+                                "confidence": 0.9683687,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "what"
+                            },
+                            {
+                                "word": "i've",
+                                "start": 77.1,
+                                "end": 77.3,
+                                "confidence": 0.9957237,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "I've"
+                            },
+                            {
+                                "word": "been",
+                                "start": 77.3,
+                                "end": 77.48,
+                                "confidence": 0.57560706,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "been"
+                            },
+                            {
+                                "word": "doing",
+                                "start": 77.48,
+                                "end": 77.78,
+                                "confidence": 0.9077871,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "doing"
+                            },
+                            {
+                                "word": "though",
+                                "start": 77.78,
+                                "end": 78.28,
+                                "confidence": 0.51457226,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "though."
+                            },
+                            {
+                                "word": "okay",
+                                "start": 79.38,
+                                "end": 79.88,
+                                "confidence": 0.95653784,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "Okay,"
+                            },
+                            {
+                                "word": "same",
+                                "start": 80.58,
+                                "end": 80.98,
+                                "confidence": 0.96842897,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "same"
+                            },
+                            {
+                                "word": "thing",
+                                "start": 80.98,
+                                "end": 81.18,
+                                "confidence": 0.995728,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "thing"
+                            },
+                            {
+                                "word": "with",
+                                "start": 81.18,
+                                "end": 81.34,
+                                "confidence": 0.9117088,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "with"
+                            },
+                            {
+                                "word": "ethanol",
+                                "start": 81.34,
+                                "end": 81.84,
+                                "confidence": 0.060027555,
+                                "speaker": 0,
+                                "speaker_confidence": 0.7314453,
+                                "punctuated_word": "ethanol."
+                            },
+                            {
+                                "word": "give",
+                                "start": 85.74,
+                                "end": 86.04,
+                                "confidence": 0.99858177,
+                                "speaker": 0,
+                                "speaker_confidence": 0.27001953,
+                                "punctuated_word": "Give"
+                            },
+                            {
+                                "word": "a",
+                                "start": 86.04,
+                                "end": 86.2,
+                                "confidence": 0.99654573,
+                                "speaker": 0,
+                                "speaker_confidence": 0.27001953,
+                                "punctuated_word": "a"
+                            },
+                            {
+                                "word": "quick",
+                                "start": 86.2,
+                                "end": 86.44,
+                                "confidence": 0.44466487,
+                                "speaker": 0,
+                                "speaker_confidence": 0.27001953,
+                                "punctuated_word": "quick"
+                            },
+                            {
+                                "word": "spray",
+                                "start": 86.44,
+                                "end": 86.94,
+                                "confidence": 0.7339572,
+                                "speaker": 0,
+                                "speaker_confidence": 0.27001953,
+                                "punctuated_word": "spray."
+                            },
+                            {
+                                "word": "flip",
+                                "start": 89.42,
+                                "end": 89.62,
+                                "confidence": 0.99889356,
+                                "speaker": 0,
+                                "speaker_confidence": 0.2944336,
+                                "punctuated_word": "Flip"
+                            },
+                            {
+                                "word": "them",
+                                "start": 89.62,
+                                "end": 89.84,
+                                "confidence": 0.83561516,
+                                "speaker": 0,
+                                "speaker_confidence": 0.2944336,
+                                "punctuated_word": "them"
+                            },
+                            {
+                                "word": "over",
+                                "start": 89.84,
+                                "end": 90.34,
+                                "confidence": 0.11109614,
+                                "speaker": 0,
+                                "speaker_confidence": 0.2944336,
+                                "punctuated_word": "over."
+                            },
+                            {
+                                "word": "okay",
+                                "start": 94.8,
+                                "end": 95.18,
+                                "confidence": 0.9831645,
+                                "speaker": 0,
+                                "speaker_confidence": 0.2109375,
+                                "punctuated_word": "Okay,"
+                            },
+                            {
+                                "word": "and",
+                                "start": 95.18,
+                                "end": 95.56,
+                                "confidence": 0.96400195,
+                                "speaker": 0,
+                                "speaker_confidence": 0.2109375,
+                                "punctuated_word": "and"
+                            },
+                            {
+                                "word": "wipe",
+                                "start": 95.56,
+                                "end": 95.94,
+                                "confidence": 0.14447093,
+                                "speaker": 0,
+                                "speaker_confidence": 0.2109375,
+                                "punctuated_word": "wipe."
+                            },
+                            {
+                                "word": "okay",
+                                "start": 95.94,
+                                "end": 96.32,
+                                "confidence": 0.9675167,
+                                "speaker": 0,
+                                "speaker_confidence": 0.2109375,
+                                "punctuated_word": "Okay,"
+                            },
+                            {
+                                "word": "and",
+                                "start": 96.32,
+                                "end": 96.7,
+                                "confidence": 0.89962554,
+                                "speaker": 0,
+                                "speaker_confidence": 0.2109375,
+                                "punctuated_word": "and"
+                            },
+                            {
+                                "word": "wipe",
+                                "start": 96.7,
+                                "end": 97.2,
+                                "confidence": 0.0049841274,
+                                "speaker": 0,
+                                "speaker_confidence": 0.2109375,
+                                "punctuated_word": "wipe."
+                            },
+                            {
+                                "word": "there",
+                                "start": 105.06,
+                                "end": 105.22,
+                                "confidence": 0.9978022,
+                                "speaker": 0,
+                                "speaker_confidence": 0.07128906,
+                                "punctuated_word": "There"
+                            },
+                            {
+                                "word": "we",
+                                "start": 105.22,
+                                "end": 105.26,
+                                "confidence": 0.6942707,
+                                "speaker": 0,
+                                "speaker_confidence": 0.07128906,
+                                "punctuated_word": "we"
+                            },
+                            {
+                                "word": "go",
+                                "start": 105.26,
+                                "end": 105.3,
+                                "confidence": 0.009964538,
+                                "speaker": 0,
+                                "speaker_confidence": 0.07128906,
+                                "punctuated_word": "go."
+                            },
+                            {
+                                "word": "surface",
+                                "start": 105.3,
+                                "end": 105.34,
+                                "confidence": 0.21229996,
+                                "speaker": 0,
+                                "speaker_confidence": 0.07128906,
+                                "punctuated_word": "Surface."
+                            },
+                            {
+                                "word": "there",
+                                "start": 105.34,
+                                "end": 105.38,
+                                "confidence": 0.99801385,
+                                "speaker": 0,
+                                "speaker_confidence": 0.33691406,
+                                "punctuated_word": "There"
+                            },
+                            {
+                                "word": "we",
+                                "start": 105.38,
+                                "end": 105.42,
+                                "confidence": 0.46964622,
+                                "speaker": 0,
+                                "speaker_confidence": 0.33691406,
+                                "punctuated_word": "we"
+                            },
+                            {
+                                "word": "go",
+                                "start": 105.42,
+                                "end": 105.92,
+                                "confidence": 0.095186785,
+                                "speaker": 0,
+                                "speaker_confidence": 0.33691406,
+                                "punctuated_word": "go."
+                            },
+                            {
+                                "word": "surface",
+                                "start": 106.98,
+                                "end": 107.48,
+                                "confidence": 0.51445687,
+                                "speaker": 0,
+                                "speaker_confidence": 0.33691406,
+                                "punctuated_word": "Surface."
+                            },
+                            {
+                                "word": "let's",
+                                "start": 113.8,
+                                "end": 114.06,
+                                "confidence": 0.98415977,
+                                "speaker": 0,
+                                "speaker_confidence": 0.49853516,
+                                "punctuated_word": "Let's"
+                            },
+                            {
+                                "word": "try",
+                                "start": 114.06,
+                                "end": 114.2,
+                                "confidence": 0.99311227,
+                                "speaker": 0,
+                                "speaker_confidence": 0.49853516,
+                                "punctuated_word": "try"
+                            },
+                            {
+                                "word": "to",
+                                "start": 114.2,
+                                "end": 114.32,
+                                "confidence": 0.40618572,
+                                "speaker": 0,
+                                "speaker_confidence": 0.49853516,
+                                "punctuated_word": "to"
+                            },
+                            {
+                                "word": "get",
+                                "start": 114.32,
+                                "end": 114.54,
+                                "confidence": 0.9900653,
+                                "speaker": 0,
+                                "speaker_confidence": 0.49853516,
+                                "punctuated_word": "get"
+                            },
+                            {
+                                "word": "it",
+                                "start": 114.54,
+                                "end": 114.72,
+                                "confidence": 0.9938554,
+                                "speaker": 0,
+                                "speaker_confidence": 0.49853516,
+                                "punctuated_word": "it"
+                            },
+                            {
+                                "word": "nice",
+                                "start": 114.72,
+                                "end": 115.0,
+                                "confidence": 0.99943525,
+                                "speaker": 0,
+                                "speaker_confidence": 0.49853516,
+                                "punctuated_word": "nice"
+                            },
+                            {
+                                "word": "and",
+                                "start": 115.0,
+                                "end": 115.16,
+                                "confidence": 0.98153883,
+                                "speaker": 0,
+                                "speaker_confidence": 0.49853516,
+                                "punctuated_word": "and"
+                            },
+                            {
+                                "word": "dry",
+                                "start": 115.16,
+                                "end": 115.66,
+                                "confidence": 0.08697572,
+                                "speaker": 0,
+                                "speaker_confidence": 0.49853516,
+                                "punctuated_word": "dry."
+                            },
+                            {
+                                "word": "if",
+                                "start": 131.1,
+                                "end": 131.3,
+                                "confidence": 0.9690345,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "If"
+                            },
+                            {
+                                "word": "your",
+                                "start": 131.3,
+                                "end": 131.46,
+                                "confidence": 0.9815121,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "your"
+                            },
+                            {
+                                "word": "towel",
+                                "start": 131.46,
+                                "end": 131.74,
+                                "confidence": 0.93135786,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "towel"
+                            },
+                            {
+                                "word": "gets",
+                                "start": 131.74,
+                                "end": 131.96,
+                                "confidence": 0.99957174,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "gets"
+                            },
+                            {
+                                "word": "too",
+                                "start": 131.96,
+                                "end": 132.14,
+                                "confidence": 0.61735433,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "too"
+                            },
+                            {
+                                "word": "wet",
+                                "start": 132.14,
+                                "end": 132.38,
+                                "confidence": 0.82280946,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "wet,"
+                            },
+                            {
+                                "word": "just",
+                                "start": 132.38,
+                                "end": 132.6,
+                                "confidence": 0.9891935,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "just"
+                            },
+                            {
+                                "word": "get",
+                                "start": 132.6,
+                                "end": 132.78,
+                                "confidence": 0.9853349,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "get"
+                            },
+                            {
+                                "word": "another",
+                                "start": 132.78,
+                                "end": 133.02,
+                                "confidence": 0.7804404,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "another"
+                            },
+                            {
+                                "word": "1",
+                                "start": 133.02,
+                                "end": 133.52,
+                                "confidence": 0.022196487,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "1."
+                            },
+                            {
+                                "word": "you",
+                                "start": 134.7,
+                                "end": 134.84,
+                                "confidence": 0.9936806,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "You"
+                            },
+                            {
+                                "word": "should",
+                                "start": 134.84,
+                                "end": 135.04,
+                                "confidence": 0.99835014,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "should"
+                            },
+                            {
+                                "word": "have",
+                                "start": 135.04,
+                                "end": 135.2,
+                                "confidence": 0.9942449,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "have"
+                            },
+                            {
+                                "word": "plenty",
+                                "start": 135.2,
+                                "end": 135.58,
+                                "confidence": 0.9978282,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "plenty"
+                            },
+                            {
+                                "word": "of",
+                                "start": 135.58,
+                                "end": 135.61143,
+                                "confidence": 0.96568877,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "of"
+                            },
+                            {
+                                "word": "towels",
+                                "start": 135.61143,
+                                "end": 135.64285,
+                                "confidence": 0.013441213,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "towels."
+                            },
+                            {
+                                "word": "okay",
+                                "start": 135.64285,
+                                "end": 135.67429,
+                                "confidence": 0.022900544,
+                                "speaker": 0,
+                                "speaker_confidence": 0.53125,
+                                "punctuated_word": "Okay."
+                            },
+                            {
+                                "word": "i've",
+                                "start": 135.67429,
+                                "end": 135.70572,
+                                "confidence": 0.24989246,
+                                "speaker": 0,
+                                "speaker_confidence": 0.22265625,
+                                "punctuated_word": "I've"
+                            },
+                            {
+                                "word": "done",
+                                "start": 135.70572,
+                                "end": 135.73715,
+                                "confidence": 0.99693906,
+                                "speaker": 0,
+                                "speaker_confidence": 0.22265625,
+                                "punctuated_word": "done"
+                            },
+                            {
+                                "word": "plenty",
+                                "start": 135.73715,
+                                "end": 135.76857,
+                                "confidence": 0.99184024,
+                                "speaker": 0,
+                                "speaker_confidence": 0.22265625,
+                                "punctuated_word": "plenty"
+                            },
+                            {
+                                "word": "of",
+                                "start": 135.76857,
+                                "end": 135.8,
+                                "confidence": 0.8504458,
+                                "speaker": 0,
+                                "speaker_confidence": 0.22265625,
+                                "punctuated_word": "of"
+                            },
+                            {
+                                "word": "towels",
+                                "start": 135.8,
+                                "end": 136.3,
+                                "confidence": 0.04424093,
+                                "speaker": 0,
+                                "speaker_confidence": 0.22265625,
+                                "punctuated_word": "towels."
+                            },
+                            {
+                                "word": "okay",
+                                "start": 140.28,
+                                "end": 140.78,
+                                "confidence": 0.047285818,
+                                "speaker": 0,
+                                "speaker_confidence": 0.12011719,
+                                "punctuated_word": "Okay."
+                            },
+                            {
+                                "word": "and",
+                                "start": 143.44,
+                                "end": 143.64,
+                                "confidence": 0.9996749,
+                                "speaker": 0,
+                                "speaker_confidence": 0.45166016,
+                                "punctuated_word": "And"
+                            },
+                            {
+                                "word": "1",
+                                "start": 143.64,
+                                "end": 143.88,
+                                "confidence": 0.7383043,
+                                "speaker": 0,
+                                "speaker_confidence": 0.45166016,
+                                "punctuated_word": "1"
+                            },
+                            {
+                                "word": "more",
+                                "start": 143.88,
+                                "end": 144.38,
+                                "confidence": 0.4151363,
+                                "speaker": 0,
+                                "speaker_confidence": 0.45166016,
+                                "punctuated_word": "more"
+                            },
+                            {
+                                "word": "quick",
+                                "start": 145.32,
+                                "end": 145.82,
+                                "confidence": 0.88742316,
+                                "speaker": 0,
+                                "speaker_confidence": 0.45166016,
+                                "punctuated_word": "quick"
+                            },
+                            {
+                                "word": "bleach",
+                                "start": 148.62,
+                                "end": 149.12,
+                                "confidence": 0.8062937,
+                                "speaker": 0,
+                                "speaker_confidence": 0.4091797,
+                                "punctuated_word": "bleach"
+                            },
+                            {
+                                "word": "wipe",
+                                "start": 150.32,
+                                "end": 150.82,
+                                "confidence": 0.054905105,
+                                "speaker": 0,
+                                "speaker_confidence": 0.4091797,
+                                "punctuated_word": "wipe."
+                            },
+                            {
+                                "word": "these",
+                                "start": 151.98,
+                                "end": 152.22,
+                                "confidence": 0.48817137,
+                                "speaker": 0,
+                                "speaker_confidence": 0.4091797,
+                                "punctuated_word": "These"
+                            },
+                            {
+                                "word": "guys",
+                                "start": 152.22,
+                                "end": 152.72,
+                                "confidence": 0.43997478,
+                                "speaker": 0,
+                                "speaker_confidence": 0.4091797,
+                                "punctuated_word": "guys,"
+                            },
+                            {
+                                "word": "it's",
+                                "start": 153.74,
+                                "end": 153.9,
+                                "confidence": 0.64183146,
+                                "speaker": 0,
+                                "speaker_confidence": 0.36523438,
+                                "punctuated_word": "It's"
+                            },
+                            {
+                                "word": "kind",
+                                "start": 153.9,
+                                "end": 154.08,
+                                "confidence": 0.9930647,
+                                "speaker": 0,
+                                "speaker_confidence": 0.36523438,
+                                "punctuated_word": "kind"
+                            },
+                            {
+                                "word": "of",
+                                "start": 154.08,
+                                "end": 154.18,
+                                "confidence": 0.99783343,
+                                "speaker": 0,
+                                "speaker_confidence": 0.36523438,
+                                "punctuated_word": "of"
+                            },
+                            {
+                                "word": "where",
+                                "start": 154.18,
+                                "end": 154.36,
+                                "confidence": 0.9973475,
+                                "speaker": 0,
+                                "speaker_confidence": 0.36523438,
+                                "punctuated_word": "where"
+                            },
+                            {
+                                "word": "you",
+                                "start": 154.36,
+                                "end": 154.52,
+                                "confidence": 0.95707464,
+                                "speaker": 0,
+                                "speaker_confidence": 0.36523438,
+                                "punctuated_word": "you"
+                            },
+                            {
+                                "word": "touch",
+                                "start": 154.52,
+                                "end": 154.72,
+                                "confidence": 0.53504515,
+                                "speaker": 0,
+                                "speaker_confidence": 0.36523438,
+                                "punctuated_word": "touch"
+                            },
+                            {
+                                "word": "them",
+                                "start": 154.72,
+                                "end": 155.22,
+                                "confidence": 0.3364475,
+                                "speaker": 0,
+                                "speaker_confidence": 0.36523438,
+                                "punctuated_word": "them."
+                            },
+                            {
+                                "word": "especially",
+                                "start": 157.36,
+                                "end": 157.78,
+                                "confidence": 0.99663085,
+                                "speaker": 0,
+                                "speaker_confidence": 0.46484375,
+                                "punctuated_word": "Especially"
+                            },
+                            {
+                                "word": "the",
+                                "start": 157.78,
+                                "end": 157.96,
+                                "confidence": 0.99753773,
+                                "speaker": 0,
+                                "speaker_confidence": 0.46484375,
+                                "punctuated_word": "the"
+                            },
+                            {
+                                "word": "thumb",
+                                "start": 157.96,
+                                "end": 158.2,
+                                "confidence": 0.9762897,
+                                "speaker": 0,
+                                "speaker_confidence": 0.46484375,
+                                "punctuated_word": "thumb"
+                            },
+                            {
+                                "word": "part",
+                                "start": 158.2,
+                                "end": 158.7,
+                                "confidence": 0.7895225,
+                                "speaker": 0,
+                                "speaker_confidence": 0.46484375,
+                                "punctuated_word": "part."
+                            },
+                            {
+                                "word": "and",
+                                "start": 164.11,
+                                "end": 164.61,
+                                "confidence": 0.52686834,
+                                "speaker": 0,
+                                "speaker_confidence": 0.0859375,
+                                "punctuated_word": "And"
+                            },
+                            {
+                                "word": "then",
+                                "start": 170.02,
+                                "end": 170.52,
+                                "confidence": 0.25461033,
+                                "speaker": 0,
+                                "speaker_confidence": 0.051757812,
+                                "punctuated_word": "then,"
+                            },
+                            {
+                                "word": "look",
+                                "start": 173.26,
+                                "end": 173.6,
+                                "confidence": 0.95764834,
+                                "speaker": 0,
+                                "speaker_confidence": 0.4296875,
+                                "punctuated_word": "look,"
+                            },
+                            {
+                                "word": "1",
+                                "start": 173.6,
+                                "end": 173.9,
+                                "confidence": 0.82024205,
+                                "speaker": 0,
+                                "speaker_confidence": 0.4296875,
+                                "punctuated_word": "1"
+                            },
+                            {
+                                "word": "towel",
+                                "start": 173.9,
+                                "end": 174.14,
+                                "confidence": 0.619441,
+                                "speaker": 0,
+                                "speaker_confidence": 0.4296875,
+                                "punctuated_word": "towel"
+                            },
+                            {
+                                "word": "left",
+                                "start": 174.14,
+                                "end": 174.44,
+                                "confidence": 0.98533636,
+                                "speaker": 0,
+                                "speaker_confidence": 0.4296875,
+                                "punctuated_word": "left,"
+                            },
+                            {
+                                "word": "perfect",
+                                "start": 174.44,
+                                "end": 174.94,
+                                "confidence": 0.0032150573,
+                                "speaker": 0,
+                                "speaker_confidence": 0.4296875,
+                                "punctuated_word": "perfect."
+                            },
+                            {
+                                "word": "okay",
+                                "start": 178.68,
+                                "end": 179.18,
+                                "confidence": 0.8394718,
+                                "speaker": 0,
+                                "speaker_confidence": 0.26611328,
+                                "punctuated_word": "Okay,"
+                            },
+                            {
+                                "word": "these",
+                                "start": 179.29999,
+                                "end": 179.79999,
+                                "confidence": 0.87771606,
+                                "speaker": 0,
+                                "speaker_confidence": 0.26611328,
+                                "punctuated_word": "these"
+                            },
+                            {
+                                "word": "guys",
+                                "start": 179.92,
+                                "end": 180.42,
+                                "confidence": 0.0039444636,
+                                "speaker": 0,
+                                "speaker_confidence": 0.26611328,
+                                "punctuated_word": "guys."
+                            },
+                            {
+                                "word": "these",
+                                "start": 180.54,
+                                "end": 180.8,
+                                "confidence": 0.5899119,
+                                "speaker": 0,
+                                "speaker_confidence": 0.26611328,
+                                "punctuated_word": "These"
+                            },
+                            {
+                                "word": "guys",
+                                "start": 180.8,
+                                "end": 181.3,
+                                "confidence": 0.06501535,
+                                "speaker": 0,
+                                "speaker_confidence": 0.26611328,
+                                "punctuated_word": "guys."
+                            },
+                            {
+                                "word": "okay",
+                                "start": 195.58,
+                                "end": 196.08,
+                                "confidence": 0.48624983,
+                                "speaker": 0,
+                                "speaker_confidence": 0.30908203,
+                                "punctuated_word": "Okay."
+                            },
+                            {
+                                "word": "here",
+                                "start": 197.26,
+                                "end": 197.46,
+                                "confidence": 0.99936587,
+                                "speaker": 0,
+                                "speaker_confidence": 0.30908203,
+                                "punctuated_word": "Here"
+                            },
+                            {
+                                "word": "we",
+                                "start": 197.46,
+                                "end": 197.62,
+                                "confidence": 0.74189484,
+                                "speaker": 0,
+                                "speaker_confidence": 0.30908203,
+                                "punctuated_word": "we"
+                            },
+                            {
+                                "word": "go",
+                                "start": 197.62,
+                                "end": 198.12,
+                                "confidence": 0.029244466,
+                                "speaker": 0,
+                                "speaker_confidence": 0.30908203,
+                                "punctuated_word": "go."
+                            },
+                            {
+                                "word": "these",
+                                "start": 198.66,
+                                "end": 199.16,
+                                "confidence": 0.9978671,
+                                "speaker": 0,
+                                "speaker_confidence": 0.30908203,
+                                "punctuated_word": "These"
+                            },
+                            {
+                                "word": "guys",
+                                "start": 199.7,
+                                "end": 199.76,
+                                "confidence": 0.9588704,
+                                "speaker": 0,
+                                "speaker_confidence": 0.19140625,
+                                "punctuated_word": "guys"
+                            },
+                            {
+                                "word": "are",
+                                "start": 199.76,
+                                "end": 199.9,
+                                "confidence": 0.99809283,
+                                "speaker": 0,
+                                "speaker_confidence": 0.19140625,
+                                "punctuated_word": "are"
+                            },
+                            {
+                                "word": "all",
+                                "start": 199.9,
+                                "end": 200.06,
+                                "confidence": 0.9952922,
+                                "speaker": 0,
+                                "speaker_confidence": 0.19140625,
+                                "punctuated_word": "all"
+                            },
+                            {
+                                "word": "ready",
+                                "start": 200.06,
+                                "end": 200.22,
+                                "confidence": 0.99899596,
+                                "speaker": 0,
+                                "speaker_confidence": 0.19140625,
+                                "punctuated_word": "ready"
+                            },
+                            {
+                                "word": "to",
+                                "start": 200.22,
+                                "end": 200.3,
+                                "confidence": 0.55556166,
+                                "speaker": 0,
+                                "speaker_confidence": 0.19140625,
+                                "punctuated_word": "to"
+                            },
+                            {
+                                "word": "go",
+                                "start": 200.3,
+                                "end": 200.46,
+                                "confidence": 0.9835243,
+                                "speaker": 0,
+                                "speaker_confidence": 0.19140625,
+                                "punctuated_word": "go"
+                            },
+                            {
+                                "word": "and",
+                                "start": 200.46,
+                                "end": 200.54,
+                                "confidence": 0.9501151,
+                                "speaker": 0,
+                                "speaker_confidence": 0.19140625,
+                                "punctuated_word": "and"
+                            },
+                            {
+                                "word": "i",
+                                "start": 200.54,
+                                "end": 200.66,
+                                "confidence": 0.993193,
+                                "speaker": 0,
+                                "speaker_confidence": 0.3413086,
+                                "punctuated_word": "I"
+                            },
+                            {
+                                "word": "just",
+                                "start": 200.66,
+                                "end": 200.86,
+                                "confidence": 0.967138,
+                                "speaker": 0,
+                                "speaker_confidence": 0.3413086,
+                                "punctuated_word": "just"
+                            },
+                            {
+                                "word": "put",
+                                "start": 200.86,
+                                "end": 201.04,
+                                "confidence": 0.9663341,
+                                "speaker": 0,
+                                "speaker_confidence": 0.3413086,
+                                "punctuated_word": "put"
+                            },
+                            {
+                                "word": "them",
+                                "start": 201.04,
+                                "end": 201.54,
+                                "confidence": 0.99094886,
+                                "speaker": 0,
+                                "speaker_confidence": 0.3413086,
+                                "punctuated_word": "them"
+                            },
+                            {
+                                "word": "on",
+                                "start": 201.98,
+                                "end": 202.22,
+                                "confidence": 0.975744,
+                                "speaker": 0,
+                                "speaker_confidence": 0.3413086,
+                                "punctuated_word": "on"
+                            },
+                            {
+                                "word": "top",
+                                "start": 202.22,
+                                "end": 202.72,
+                                "confidence": 0.5542365,
+                                "speaker": 0,
+                                "speaker_confidence": 0.3413086,
+                                "punctuated_word": "top"
+                            },
+                            {
+                                "word": "of",
+                                "start": 207.12,
+                                "end": 207.2,
+                                "confidence": 0.9926495,
+                                "speaker": 0,
+                                "speaker_confidence": 0.24414062,
+                                "punctuated_word": "of"
+                            },
+                            {
+                                "word": "where",
+                                "start": 207.2,
+                                "end": 207.42,
+                                "confidence": 0.99531955,
+                                "speaker": 0,
+                                "speaker_confidence": 0.24414062,
+                                "punctuated_word": "where"
+                            },
+                            {
+                                "word": "they",
+                                "start": 207.42,
+                                "end": 207.6,
+                                "confidence": 0.9257285,
+                                "speaker": 0,
+                                "speaker_confidence": 0.24414062,
+                                "punctuated_word": "they"
+                            },
+                            {
+                                "word": "go",
+                                "start": 207.6,
+                                "end": 208.1,
+                                "confidence": 0.005949215,
+                                "speaker": 0,
+                                "speaker_confidence": 0.24414062,
+                                "punctuated_word": "go."
+                            },
+                            {
+                                "word": "make",
+                                "start": 210.54,
+                                "end": 210.8,
+                                "confidence": 0.2382033,
+                                "speaker": 0,
+                                "speaker_confidence": 0.3408203,
+                                "punctuated_word": "Make"
+                            },
+                            {
+                                "word": "sure",
+                                "start": 210.8,
+                                "end": 211.3,
+                                "confidence": 0.29147294,
+                                "speaker": 0,
+                                "speaker_confidence": 0.3408203,
+                                "punctuated_word": "sure"
+                            },
+                            {
+                                "word": "they",
+                                "start": 211.76,
+                                "end": 212.26,
+                                "confidence": 0.013840765,
+                                "speaker": 0,
+                                "speaker_confidence": 0.3408203,
+                                "punctuated_word": "they..."
+                            },
+                            {
+                                "word": "oops",
+                                "start": 212.44,
+                                "end": 212.94,
+                                "confidence": 0.26456147,
+                                "speaker": 0,
+                                "speaker_confidence": 0.3408203,
+                                "punctuated_word": "Oops."
+                            },
+                            {
+                                "word": "there",
+                                "start": 217.52,
+                                "end": 217.68,
+                                "confidence": 0.9990632,
+                                "speaker": 0,
+                                "speaker_confidence": 0.10644531,
+                                "punctuated_word": "There"
+                            },
+                            {
+                                "word": "we",
+                                "start": 217.68,
+                                "end": 217.86,
+                                "confidence": 0.8064396,
+                                "speaker": 0,
+                                "speaker_confidence": 0.10644531,
+                                "punctuated_word": "we"
+                            },
+                            {
+                                "word": "go",
+                                "start": 217.86,
+                                "end": 218.08,
+                                "confidence": 0.49490935,
+                                "speaker": 0,
+                                "speaker_confidence": 0.10644531,
+                                "punctuated_word": "go."
+                            },
+                            {
+                                "word": "actually",
+                                "start": 218.08,
+                                "end": 218.3,
+                                "confidence": 0.9579081,
+                                "speaker": 0,
+                                "speaker_confidence": 0.06933594,
+                                "punctuated_word": "Actually,"
+                            },
+                            {
+                                "word": "i'm",
+                                "start": 218.3,
+                                "end": 218.46,
+                                "confidence": 0.9380538,
+                                "speaker": 0,
+                                "speaker_confidence": 0.06933594,
+                                "punctuated_word": "I'm"
+                            },
+                            {
+                                "word": "just",
+                                "start": 218.46,
+                                "end": 218.64,
+                                "confidence": 0.9924137,
+                                "speaker": 0,
+                                "speaker_confidence": 0.06933594,
+                                "punctuated_word": "just"
+                            },
+                            {
+                                "word": "going",
+                                "start": 218.64,
+                                "end": 218.7,
+                                "confidence": 0.98718864,
+                                "speaker": 0,
+                                "speaker_confidence": 0.22363281,
+                                "punctuated_word": "going"
+                            },
+                            {
+                                "word": "to",
+                                "start": 218.7,
+                                "end": 218.86,
+                                "confidence": 0.9589975,
+                                "speaker": 0,
+                                "speaker_confidence": 0.22363281,
+                                "punctuated_word": "to"
+                            },
+                            {
+                                "word": "get",
+                                "start": 218.86,
+                                "end": 219.0,
+                                "confidence": 0.71909845,
+                                "speaker": 0,
+                                "speaker_confidence": 0.22363281,
+                                "punctuated_word": "get"
+                            },
+                            {
+                                "word": "these",
+                                "start": 219.0,
+                                "end": 219.24,
+                                "confidence": 0.97358465,
+                                "speaker": 0,
+                                "speaker_confidence": 0.22363281,
+                                "punctuated_word": "these"
+                            },
+                            {
+                                "word": "way",
+                                "start": 219.24,
+                                "end": 219.44,
+                                "confidence": 0.97131956,
+                                "speaker": 0,
+                                "speaker_confidence": 0.22363281,
+                                "punctuated_word": "way"
+                            },
+                            {
+                                "word": "out",
+                                "start": 219.44,
+                                "end": 219.54,
+                                "confidence": 0.99535215,
+                                "speaker": 0,
+                                "speaker_confidence": 0.22363281,
+                                "punctuated_word": "out"
+                            },
+                            {
+                                "word": "of",
+                                "start": 219.54,
+                                "end": 219.66,
+                                "confidence": 0.99880326,
+                                "speaker": 0,
+                                "speaker_confidence": 0.22363281,
+                                "punctuated_word": "of"
+                            },
+                            {
+                                "word": "the",
+                                "start": 219.66,
+                                "end": 219.78,
+                                "confidence": 0.96068275,
+                                "speaker": 0,
+                                "speaker_confidence": 0.22363281,
+                                "punctuated_word": "the"
+                            },
+                            {
+                                "word": "way",
+                                "start": 219.78,
+                                "end": 220.28,
+                                "confidence": 0.4534913,
+                                "speaker": 0,
+                                "speaker_confidence": 0.22363281,
+                                "punctuated_word": "way."
+                            },
+                            {
+                                "word": "alright",
+                                "start": 225.04,
+                                "end": 225.44,
+                                "confidence": 0.94619477,
+                                "speaker": 0,
+                                "speaker_confidence": 0.5214844,
+                                "punctuated_word": "Alright,"
+                            },
+                            {
+                                "word": "so",
+                                "start": 225.44,
+                                "end": 225.68,
+                                "confidence": 0.45761734,
+                                "speaker": 0,
+                                "speaker_confidence": 0.5214844,
+                                "punctuated_word": "so"
+                            },
+                            {
+                                "word": "now",
+                                "start": 225.68,
+                                "end": 226.18,
+                                "confidence": 0.5920214,
+                                "speaker": 0,
+                                "speaker_confidence": 0.5214844,
+                                "punctuated_word": "now"
+                            },
+                            {
+                                "word": "i",
+                                "start": 227.14,
+                                "end": 227.3,
+                                "confidence": 0.9935336,
+                                "speaker": 0,
+                                "speaker_confidence": 0.5214844,
+                                "punctuated_word": "I"
+                            },
+                            {
+                                "word": "get",
+                                "start": 227.3,
+                                "end": 227.52,
+                                "confidence": 0.9969873,
+                                "speaker": 0,
+                                "speaker_confidence": 0.5214844,
+                                "punctuated_word": "get"
+                            },
+                            {
+                                "word": "my",
+                                "start": 227.52,
+                                "end": 227.72,
+                                "confidence": 0.61648774,
+                                "speaker": 0,
+                                "speaker_confidence": 0.5214844,
+                                "punctuated_word": "my"
+                            },
+                            {
+                                "word": "stuff",
+                                "start": 227.72,
+                                "end": 228.22,
+                                "confidence": 0.99361575,
+                                "speaker": 0,
+                                "speaker_confidence": 0.5214844,
+                                "punctuated_word": "stuff"
+                            },
+                            {
+                                "word": "over",
+                                "start": 228.36,
+                                "end": 228.58,
+                                "confidence": 0.97205997,
+                                "speaker": 0,
+                                "speaker_confidence": 0.5214844,
+                                "punctuated_word": "over"
+                            },
+                            {
+                                "word": "here",
+                                "start": 228.58,
+                                "end": 228.82,
+                                "confidence": 0.9948619,
+                                "speaker": 0,
+                                "speaker_confidence": 0.5214844,
+                                "punctuated_word": "here"
+                            },
+                            {
+                                "word": "to",
+                                "start": 228.82,
+                                "end": 228.96,
+                                "confidence": 0.9978563,
+                                "speaker": 0,
+                                "speaker_confidence": 0.5214844,
+                                "punctuated_word": "to"
+                            },
+                            {
+                                "word": "the",
+                                "start": 228.96,
+                                "end": 229.16,
+                                "confidence": 0.7887548,
+                                "speaker": 0,
+                                "speaker_confidence": 0.5214844,
+                                "punctuated_word": "the"
+                            },
+                            {
+                                "word": "right",
+                                "start": 229.16,
+                                "end": 229.66,
+                                "confidence": 0.0317287,
+                                "speaker": 0,
+                                "speaker_confidence": 0.5214844,
+                                "punctuated_word": "right."
+                            },
+                            {
+                                "word": "tip",
+                                "start": 234.86,
+                                "end": 235.1,
+                                "confidence": 0.9452857,
+                                "speaker": 0,
+                                "speaker_confidence": 0.23339844,
+                                "punctuated_word": "Tip"
+                            },
+                            {
+                                "word": "bucket",
+                                "start": 235.1,
+                                "end": 235.52,
+                                "confidence": 0.99919146,
+                                "speaker": 0,
+                                "speaker_confidence": 0.23339844,
+                                "punctuated_word": "bucket"
+                            },
+                            {
+                                "word": "in",
+                                "start": 235.52,
+                                "end": 235.68,
+                                "confidence": 0.99932456,
+                                "speaker": 0,
+                                "speaker_confidence": 0.23339844,
+                                "punctuated_word": "in"
+                            },
+                            {
+                                "word": "the",
+                                "start": 235.68,
+                                "end": 235.8,
+                                "confidence": 0.6133066,
+                                "speaker": 0,
+                                "speaker_confidence": 0.23339844,
+                                "punctuated_word": "the"
+                            },
+                            {
+                                "word": "middle",
+                                "start": 235.8,
+                                "end": 236.3,
+                                "confidence": 0.3004227,
+                                "speaker": 0,
+                                "speaker_confidence": 0.23339844,
+                                "punctuated_word": "middle."
+                            },
+                            {
+                                "word": "get",
+                                "start": 237.2,
+                                "end": 237.44,
+                                "confidence": 0.9962309,
+                                "speaker": 0,
+                                "speaker_confidence": 0.18896484,
+                                "punctuated_word": "Get"
+                            },
+                            {
+                                "word": "these",
+                                "start": 237.44,
+                                "end": 237.62,
+                                "confidence": 0.95658135,
+                                "speaker": 0,
+                                "speaker_confidence": 0.18896484,
+                                "punctuated_word": "these"
+                            },
+                            {
+                                "word": "guys",
+                                "start": 237.62,
+                                "end": 237.96,
+                                "confidence": 0.9973845,
+                                "speaker": 0,
+                                "speaker_confidence": 0.18896484,
+                                "punctuated_word": "guys"
+                            },
+                            {
+                                "word": "set",
+                                "start": 237.96,
+                                "end": 238.22,
+                                "confidence": 0.99529403,
+                                "speaker": 0,
+                                "speaker_confidence": 0.18896484,
+                                "punctuated_word": "set"
+                            },
+                            {
+                                "word": "up",
+                                "start": 238.22,
+                                "end": 238.72,
+                                "confidence": 0.14941242,
+                                "speaker": 0,
+                                "speaker_confidence": 0.18896484,
+                                "punctuated_word": "up."
+                            },
+                            {
+                                "word": "okay",
+                                "start": 242.08,
+                                "end": 242.58,
+                                "confidence": 0.9709845,
+                                "speaker": 0,
+                                "speaker_confidence": 0.66552734,
+                                "punctuated_word": "Okay,"
+                            },
+                            {
+                                "word": "now",
+                                "start": 243.32,
+                                "end": 243.54,
+                                "confidence": 0.9236319,
+                                "speaker": 0,
+                                "speaker_confidence": 0.66552734,
+                                "punctuated_word": "now"
+                            },
+                            {
+                                "word": "we're",
+                                "start": 243.54,
+                                "end": 243.72,
+                                "confidence": 0.9801406,
+                                "speaker": 0,
+                                "speaker_confidence": 0.66552734,
+                                "punctuated_word": "we're"
+                            },
+                            {
+                                "word": "good",
+                                "start": 243.72,
+                                "end": 243.9,
+                                "confidence": 0.9989505,
+                                "speaker": 0,
+                                "speaker_confidence": 0.66552734,
+                                "punctuated_word": "good"
+                            },
+                            {
+                                "word": "to",
+                                "start": 243.9,
+                                "end": 244.02,
+                                "confidence": 0.77521086,
+                                "speaker": 0,
+                                "speaker_confidence": 0.66552734,
+                                "punctuated_word": "to"
+                            },
+                            {
+                                "word": "go",
+                                "start": 244.02,
+                                "end": 244.52,
+                                "confidence": 0.045614347,
+                                "speaker": 0,
+                                "speaker_confidence": 0.66552734,
+                                "punctuated_word": "go."
+                            },
+                            {
+                                "word": "we're",
+                                "start": 244.78,
+                                "end": 245.28,
+                                "confidence": 0.99921155,
+                                "speaker": 0,
+                                "speaker_confidence": 0.66552734,
+                                "punctuated_word": "We're"
+                            },
+                            {
+                                "word": "all",
+                                "start": 245.54,
+                                "end": 245.64,
+                                "confidence": 0.9773745,
+                                "speaker": 0,
+                                "speaker_confidence": 0.66552734,
+                                "punctuated_word": "all"
+                            },
+                            {
+                                "word": "set",
+                                "start": 245.64,
+                                "end": 245.86,
+                                "confidence": 0.47100583,
+                                "speaker": 0,
+                                "speaker_confidence": 0.43896484,
+                                "punctuated_word": "set"
+                            },
+                            {
+                                "word": "up",
+                                "start": 245.86,
+                                "end": 246.36,
+                                "confidence": 0.94394344,
+                                "speaker": 0,
+                                "speaker_confidence": 0.43896484,
+                                "punctuated_word": "up,"
+                            },
+                            {
+                                "word": "clean",
+                                "start": 246.58,
+                                "end": 247.08,
+                                "confidence": 0.8947579,
+                                "speaker": 0,
+                                "speaker_confidence": 0.43896484,
+                                "punctuated_word": "clean,"
+                            },
+                            {
+                                "word": "pipette's",
+                                "start": 247.5,
+                                "end": 247.96,
+                                "confidence": 0.8559196,
+                                "speaker": 0,
+                                "speaker_confidence": 0.43896484,
+                                "punctuated_word": "pipette's"
+                            },
+                            {
+                                "word": "clean",
+                                "start": 247.96,
+                                "end": 248.34,
+                                "confidence": 0.97542804,
+                                "speaker": 0,
+                                "speaker_confidence": 0.43896484,
+                                "punctuated_word": "clean,"
+                            },
+                            {
+                                "word": "table",
+                                "start": 248.34,
+                                "end": 248.66,
+                                "confidence": 0.9203229,
+                                "speaker": 0,
+                                "speaker_confidence": 0.43896484,
+                                "punctuated_word": "table"
+                            },
+                            {
+                                "word": "clean",
+                                "start": 248.66,
+                                "end": 249.16,
+                                "confidence": 0.73670423,
+                                "speaker": 0,
+                                "speaker_confidence": 0.43896484,
+                                "punctuated_word": "clean,"
+                            },
+                            {
+                                "word": "accoutrement's",
+                                "start": 249.76,
+                                "end": 250.26,
+                                "confidence": 0.62981504,
+                                "speaker": 0,
+                                "speaker_confidence": 0.43896484,
+                                "punctuated_word": "accoutrement's"
+                            },
+                            {
+                                "word": "clean",
+                                "start": 250.52,
+                                "end": 251.02,
+                                "confidence": 0.9514069,
+                                "speaker": 0,
+                                "speaker_confidence": 0.43896484,
+                                "punctuated_word": "clean,"
+                            },
+                            {
+                                "word": "we're",
+                                "start": 251.6,
+                                "end": 251.78,
+                                "confidence": 0.91773176,
+                                "speaker": 0,
+                                "speaker_confidence": 0.43896484,
+                                "punctuated_word": "we're"
+                            },
+                            {
+                                "word": "good",
+                                "start": 251.78,
+                                "end": 252.28,
+                                "confidence": 0.2011177,
+                                "speaker": 0,
+                                "speaker_confidence": 0.43896484,
+                                "punctuated_word": "good."
+                            }
+                        ],
+                        "paragraphs": {
+                            "transcript": "\nSpeaker 0: So we just cleaned our table and we're gonna go through cleaning the pipettes real fast Bring them over here. I'm just gonna wipe the outside of the Boxes as well So it's kind of nice to do this in an area usually kind of away from your work area. Just get over here. These I do just give a spray. It'll go crazy.\n\nJust get, you don't want this to get everywhere. Flip them over. Get them kind of top to bottom. So I wipe them in between. Make sure to get the top thumb part, and I give this guy a little like that, wipe spot.\n\nJust kind of keep wiping. Just got to get them nice and dry. I don't know if the manufacturers recommend this or not, or if they're worried about bleach. This is what I've been doing though. Okay, same thing with ethanol.\n\nGive a quick spray. Flip them over. Okay, and wipe. Okay, and wipe. There we go.\n\nSurface. There we go. Surface. Let's try to get it nice and dry. If your towel gets too wet, just get another 1.\n\nYou should have plenty of towels. Okay. I've done plenty of towels. Okay. And 1 more quick bleach wipe.\n\nThese guys, It's kind of where you touch them. Especially the thumb part. And then, look, 1 towel left, perfect. Okay, these guys. These guys.\n\nOkay. Here we go. These guys are all ready to go and I just put them on top of where they go. Make sure they... Oops.\n\nThere we go. Actually, I'm just going to get these way out of the way. Alright, so now I get my stuff over here to the right. Tip bucket in the middle. Get these guys set up.\n\nOkay, now we're good to go. We're all set up, clean, pipette's clean, table clean, accoutrement's clean, we're good.",
+                            "paragraphs": [
+                                {
+                                    "sentences": [
+                                        {
+                                            "text": "So we just cleaned our table and we're gonna go through cleaning the pipettes real fast Bring them over here.",
+                                            "start": 0.35999998,
+                                            "end": 7.04
+                                        },
+                                        {
+                                            "text": "I'm just gonna wipe the outside of the Boxes as well So it's kind of nice to do this in an area usually kind of away from your work area.",
+                                            "start": 7.7999997,
+                                            "end": 22.92
+                                        },
+                                        {
+                                            "text": "Just get over here.",
+                                            "start": 23.14,
+                                            "end": 24.119999
+                                        },
+                                        {
+                                            "text": "These I do just give a spray.",
+                                            "start": 27.759998,
+                                            "end": 30.32
+                                        },
+                                        {
+                                            "text": "It'll go crazy.",
+                                            "start": 31.84,
+                                            "end": 32.713333
+                                        }
+                                    ],
+                                    "speaker": 0,
+                                    "num_words": 64,
+                                    "start": 0.35999998,
+                                    "end": 32.713333
+                                },
+                                {
+                                    "sentences": [
+                                        {
+                                            "text": "Just get, you don't want this to get everywhere.",
+                                            "start": 32.713333,
+                                            "end": 34.76
+                                        },
+                                        {
+                                            "text": "Flip them over.",
+                                            "start": 34.76,
+                                            "end": 35.64
+                                        },
+                                        {
+                                            "text": "Get them kind of top to bottom.",
+                                            "start": 36.18,
+                                            "end": 37.68
+                                        },
+                                        {
+                                            "text": "So I wipe them in between.",
+                                            "start": 45.0,
+                                            "end": 46.8
+                                        },
+                                        {
+                                            "text": "Make sure to get the top thumb part, and I give this guy a little like that, wipe spot.",
+                                            "start": 47.6,
+                                            "end": 56.44
+                                        }
+                                    ],
+                                    "speaker": 0,
+                                    "num_words": 44,
+                                    "start": 32.713333,
+                                    "end": 56.44
+                                },
+                                {
+                                    "sentences": [
+                                        {
+                                            "text": "Just kind of keep wiping.",
+                                            "start": 57.88,
+                                            "end": 59.28
+                                        },
+                                        {
+                                            "text": "Just got to get them nice and dry.",
+                                            "start": 63.12,
+                                            "end": 64.82
+                                        },
+                                        {
+                                            "text": "I don't know if the manufacturers recommend this or not, or if they're worried about bleach.",
+                                            "start": 71.32,
+                                            "end": 75.58
+                                        },
+                                        {
+                                            "text": "This is what I've been doing though.",
+                                            "start": 76.62,
+                                            "end": 78.28
+                                        },
+                                        {
+                                            "text": "Okay, same thing with ethanol.",
+                                            "start": 79.38,
+                                            "end": 81.84
+                                        }
+                                    ],
+                                    "speaker": 0,
+                                    "num_words": 41,
+                                    "start": 57.88,
+                                    "end": 81.84
+                                },
+                                {
+                                    "sentences": [
+                                        {
+                                            "text": "Give a quick spray.",
+                                            "start": 85.74,
+                                            "end": 86.94
+                                        },
+                                        {
+                                            "text": "Flip them over.",
+                                            "start": 89.42,
+                                            "end": 90.34
+                                        },
+                                        {
+                                            "text": "Okay, and wipe.",
+                                            "start": 94.8,
+                                            "end": 95.94
+                                        },
+                                        {
+                                            "text": "Okay, and wipe.",
+                                            "start": 95.94,
+                                            "end": 97.2
+                                        },
+                                        {
+                                            "text": "There we go.",
+                                            "start": 105.06,
+                                            "end": 105.3
+                                        }
+                                    ],
+                                    "speaker": 0,
+                                    "num_words": 16,
+                                    "start": 85.74,
+                                    "end": 105.3
+                                },
+                                {
+                                    "sentences": [
+                                        {
+                                            "text": "Surface.",
+                                            "start": 105.3,
+                                            "end": 105.34
+                                        },
+                                        {
+                                            "text": "There we go.",
+                                            "start": 105.34,
+                                            "end": 105.92
+                                        },
+                                        {
+                                            "text": "Surface.",
+                                            "start": 106.98,
+                                            "end": 107.48
+                                        },
+                                        {
+                                            "text": "Let's try to get it nice and dry.",
+                                            "start": 113.8,
+                                            "end": 115.66
+                                        },
+                                        {
+                                            "text": "If your towel gets too wet, just get another 1.",
+                                            "start": 131.1,
+                                            "end": 133.52
+                                        }
+                                    ],
+                                    "speaker": 0,
+                                    "num_words": 23,
+                                    "start": 105.3,
+                                    "end": 133.52
+                                },
+                                {
+                                    "sentences": [
+                                        {
+                                            "text": "You should have plenty of towels.",
+                                            "start": 134.7,
+                                            "end": 135.64285
+                                        },
+                                        {
+                                            "text": "Okay.",
+                                            "start": 135.64285,
+                                            "end": 135.67429
+                                        },
+                                        {
+                                            "text": "I've done plenty of towels.",
+                                            "start": 135.67429,
+                                            "end": 136.3
+                                        },
+                                        {
+                                            "text": "Okay.",
+                                            "start": 140.28,
+                                            "end": 140.78
+                                        },
+                                        {
+                                            "text": "And 1 more quick bleach wipe.",
+                                            "start": 143.44,
+                                            "end": 150.82
+                                        }
+                                    ],
+                                    "speaker": 0,
+                                    "num_words": 19,
+                                    "start": 134.7,
+                                    "end": 150.82
+                                },
+                                {
+                                    "sentences": [
+                                        {
+                                            "text": "These guys, It's kind of where you touch them.",
+                                            "start": 151.98,
+                                            "end": 155.22
+                                        },
+                                        {
+                                            "text": "Especially the thumb part.",
+                                            "start": 157.36,
+                                            "end": 158.7
+                                        },
+                                        {
+                                            "text": "And then, look, 1 towel left, perfect.",
+                                            "start": 164.11,
+                                            "end": 174.94
+                                        },
+                                        {
+                                            "text": "Okay, these guys.",
+                                            "start": 178.68,
+                                            "end": 180.42
+                                        },
+                                        {
+                                            "text": "These guys.",
+                                            "start": 180.54,
+                                            "end": 181.3
+                                        }
+                                    ],
+                                    "speaker": 0,
+                                    "num_words": 25,
+                                    "start": 151.98,
+                                    "end": 181.3
+                                },
+                                {
+                                    "sentences": [
+                                        {
+                                            "text": "Okay.",
+                                            "start": 195.58,
+                                            "end": 196.08
+                                        },
+                                        {
+                                            "text": "Here we go.",
+                                            "start": 197.26,
+                                            "end": 198.12
+                                        },
+                                        {
+                                            "text": "These guys are all ready to go and I just put them on top of where they go.",
+                                            "start": 198.66,
+                                            "end": 208.1
+                                        },
+                                        {
+                                            "text": "Make sure they...",
+                                            "start": 210.54,
+                                            "end": 212.26
+                                        },
+                                        {
+                                            "text": "Oops.",
+                                            "start": 212.44,
+                                            "end": 212.94
+                                        }
+                                    ],
+                                    "speaker": 0,
+                                    "num_words": 26,
+                                    "start": 195.58,
+                                    "end": 212.94
+                                },
+                                {
+                                    "sentences": [
+                                        {
+                                            "text": "There we go.",
+                                            "start": 217.52,
+                                            "end": 218.08
+                                        },
+                                        {
+                                            "text": "Actually, I'm just going to get these way out of the way.",
+                                            "start": 218.08,
+                                            "end": 220.28
+                                        },
+                                        {
+                                            "text": "Alright, so now I get my stuff over here to the right.",
+                                            "start": 225.04,
+                                            "end": 229.66
+                                        },
+                                        {
+                                            "text": "Tip bucket in the middle.",
+                                            "start": 234.86,
+                                            "end": 236.3
+                                        },
+                                        {
+                                            "text": "Get these guys set up.",
+                                            "start": 237.2,
+                                            "end": 238.72
+                                        }
+                                    ],
+                                    "speaker": 0,
+                                    "num_words": 37,
+                                    "start": 217.52,
+                                    "end": 238.72
+                                },
+                                {
+                                    "sentences": [
+                                        {
+                                            "text": "Okay, now we're good to go.",
+                                            "start": 242.08,
+                                            "end": 244.52
+                                        },
+                                        {
+                                            "text": "We're all set up, clean, pipette's clean, table clean, accoutrement's clean, we're good.",
+                                            "start": 244.78,
+                                            "end": 252.28
+                                        }
+                                    ],
+                                    "speaker": 0,
+                                    "num_words": 19,
+                                    "start": 242.08,
+                                    "end": 252.28
+                                }
+                            ]
+                        },
+                        "summaries": [
+                            {
+                                "summary": "So we just cleaned our table and we're gonna go through cleaning the pipettes real fast Bring them over here. I'm just gonna wipe the outside of the Boxes as well So it's kind of nice to do this in an area usually kind of away from your work area. Just get, you don't want this to get everywhere.",
+                                "start_word": 0,
+                                "end_word": 314
+                            }
+                        ],
+                        "topics": [
+                            {
+                                "text": "So we just cleaned our table and we're gonna go through cleaning the pipettes real fast Bring them over here. I'm just gonna wipe the outside of the Boxes as well So it's kind of nice to do this in an area usually kind of away from your work area. Just get over here. These I do just give a spray. It'll go crazy. Just get, you don't want this to get everywhere. Flip them over. Get them kind of top to bottom. So I wipe them in between. Make sure to get the top thumb part, and I give this guy a little like that, wipe spot.",
+                                "start_word": 0,
+                                "end_word": 108,
+                                "topics": []
+                            },
+                            {
+                                "text": "Just kind of keep wiping. Just got to get them nice and dry. I don't know if the manufacturers recommend this or not, or if they're worried about bleach. This is what I've been doing though. Okay, same thing with ethanol. Give a quick spray. Flip them over. Okay, and wipe.",
+                                "start_word": 108,
+                                "end_word": 159,
+                                "topics": [
+                                    {
+                                        "topic": "dentistry",
+                                        "confidence": 0.01598683
+                                    }
+                                ]
+                            },
+                            {
+                                "text": "Okay, and wipe. There we go. Surface. There we go. Surface. Let's try to get it nice and dry. If your towel gets too wet, just get another 1. You should have plenty of towels. Okay. I've done plenty of towels. Okay. And 1 more quick bleach wipe. These guys, It's kind of where you touch them.",
+                                "start_word": 159,
+                                "end_word": 216,
+                                "topics": []
+                            },
+                            {
+                                "text": "Especially the thumb part. And then, look, 1 towel left, perfect. Okay, these guys. These guys. Okay. Here we go. These guys are all ready to go and I just put them on top of where they go. Make sure they... Oops. There we go. Actually, I'm just going to get these way out of the way.",
+                                "start_word": 216,
+                                "end_word": 273,
+                                "topics": [
+                                    {
+                                        "topic": "men",
+                                        "confidence": 0.05396848
+                                    }
+                                ]
+                            },
+                            {
+                                "text": "Alright, so now I get my stuff over here to the right.",
+                                "start_word": 273,
+                                "end_word": 285,
+                                "topics": []
+                            },
+                            {
+                                "text": "Tip bucket in the middle. Get these guys set up. Okay, now we're good to go. We're all set up, clean, pipette's clean, table clean, accoutrement's clean, we're good.",
+                                "start_word": 285,
+                                "end_word": 314,
+                                "topics": [
+                                    {
+                                        "topic": "men",
+                                        "confidence": 0.12834316
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
