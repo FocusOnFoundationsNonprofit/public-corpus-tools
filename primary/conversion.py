@@ -12,6 +12,10 @@ from markitdown import MarkItDown
 from openai import OpenAI
 from nltk.corpus import words
 from collections import defaultdict
+import xml.etree.ElementTree as ET
+import html
+from bs4 import BeautifulSoup
+from markdownify import markdownify
 
 # from IPython.display import Markdown, display
 
@@ -123,6 +127,52 @@ def mtest_convert_file_to_md_pandoc():
     #cur_file_path = 'tests/test_manual_files/file_conversion/2021-05-18_Instructions for Use - FloodLAMP QuickColor COVID-19 Test v1.1.docx'
     cur_file_path = 'data/floodlamp_fda/subs/2021-05-18_Pre-EUA Sub - FloodLAMP Proposed Pooling and Asymptomatic Screening Study.docx'
     print(convert_file_to_md_pandoc(cur_file_path))
+def convert_md_file_to_epub(md_file_path, title=None):
+    """
+    Converts a markdown file to an epub file using pypandoc with error handling.
+
+    :param md_file_path: string, path to the markdown file to convert
+    :param title: string, optional title for the epub metadata
+    :return: string, path to the output epub file
+    """
+    output_epub_file_path = os.path.splitext(md_file_path)[0] + '.epub'
+    
+    # If no title provided, use the filename without extension
+    if not title:
+        title = os.path.splitext(os.path.basename(md_file_path))[0]
+    
+    # Build extra arguments with required metadata
+    extra_args = [
+        '--standalone',
+        '--wrap=none',
+        '-f', 'markdown-raw_html-native_divs-native_spans',  # More permissive markdown parsing
+        '--epub-chapter-level=2',
+        # Required metadata
+        '--metadata', f'title={title}',
+        '--metadata', 'lang=en-US',
+        '--metadata', 'creator=Unknown',  # Required for some EPUB readers
+        '--metadata', 'date=' + datetime.now().strftime('%Y-%m-%d')  # Add current date
+    ]
+    
+    try:
+        pypandoc.convert_file(
+            md_file_path,
+            'epub',
+            outputfile=output_epub_file_path,
+            extra_args=extra_args,
+            encoding='utf-8'  # Explicitly set encoding
+        )
+        print(f"Successfully converted {md_file_path} to EPUB with title: {title}")
+        return output_epub_file_path
+    except Exception as e:
+        print(f"Error converting file: {str(e)}")
+        raise  # Re-raise the exception to see the full error trace
+def mrun_convert_md_file_to_epub():
+    pass
+#if __name__ == "__main__": 
+    cur_md_file_path = 'data/misc_books/Sovereign Child/The Sovereign Child_sectionsJUST2.md'
+    title = "The Sovereign Child"
+    print(convert_md_file_to_epub(cur_md_file_path, title))
 
 ### MEGAPARSE
 def convert_megaparse_pdf_to_md(file_path, use_llama_parse=False, use_vision=False):
@@ -171,6 +221,8 @@ def mrun_convert_megaparse_pdf_to_md():
 #if __name__ == "__main__":
     file_path = 'data/misc_books/The Sovereign Child.pdf'
     print(convert_megaparse_pdf_to_md(file_path))
+# audiblez book.epub -l en-gb -v af_nicole -s 1.5
+# audiblez "data/misc_books/Sovereign Child/The Sovereign Child_sectionsJUST2.epub" -l en-gb -v af_sky -s 1.5
 
 ### MS MARKITDOWN
 def convert_file_to_md_msmid(file_path, new_suffix="_msmid"):
@@ -471,7 +523,7 @@ def mtest_remove_extraneous_spaces_in_words():
     pass
 #if __name__ == "__main__":
     initialize_nltk(silent=False)
-    test_text = 'Humorously, school is about college, and college is about getting a job and sustaining a life. And only then, *in your twen ties*, can food and bathing and clothes and entertainment be about those things in themselves. Shouldn’t childhood be the time when kids are free to explore those things that are integral to life, to learn about and develop relationships with them for their own sake? The magic of childhood is that kids don’t have dependents or even a responsibility to ensure their own sur vival, so it is precisely during this time that a person is most free to engage with the world directly.'
+    test_text = "Humorously, school is about college, and college is about getting a job and sustaining a life. And only then, *in your twen ties*, can food and bathing and clothes and entertainment be about those things in themselves. Shouldn't childhood be the time when kids are free to explore those things that are integral to life, to learn about and develop relationships with them for their own sake? The magic of childhood is that kids don't have dependents or even a responsibility to ensure their own sur vival, so it is precisely during this time that a person is most free to engage with the world directly."
     print(remove_extraneous_spaces_in_words(test_text, verbose=True))
 
 ### MARKDOWN
@@ -575,17 +627,31 @@ def mrun_convert_markdown_to_md_mod_text():
 #if __name__ == "__main__":
     md_file_path = "data/pv/pv_epc_evac/2024-10-23_PVSD WFPD - Wildfire Preparedness Parent Presentation 3_combo.md"
     md_mod_file_path = convert_markdown_to_md_mod_text(md_file_path)
-def combine_files_into_md(file_paths, target_file_path, max_file_size_mb=10):
+def combine_files_into_md(file_paths, target_file_path, max_file_size_mb=10, number_order=True, strip_extensions=False):
     """
     Combine multiple files into a single markdown file.
-    
-    :param file_paths: List of file paths to combine (relative to repo root)
-    :param target_file_path: Path for the output markdown file (relative to repo root)
-    :param max_file_size_mb: Maximum allowed file size in MB (default: 10)
-    :return: The relative path of the combined markdown file
+
+    :param file_paths: list, file paths to combine (relative to repo root)
+    :param target_file_path: string, path for the output markdown file (relative to repo root)
+    :param max_file_size_mb: int, maximum allowed file size in MB (default: 10)
+    :param number_order: bool, whether to sort files by first number in filename (default: True)
+    :param strip_extensions: bool, whether to strip file extensions in headers (default: False)
+    :return target_file_path: string, relative path of the combined markdown file
     """
     supported_extensions = ['.txt', '.md', '.py', '.js', '.css', '.html', '.json', '.csv']
     max_file_size_bytes = max_file_size_mb * 1024 * 1024
+
+    # Sort files by number if requested
+    if number_order:
+        def extract_first_number(filepath):
+            # Get just the filename without path
+            filename = os.path.basename(filepath)
+            # Find all numbers in the filename
+            numbers = re.findall(r'\d+', filename)
+            # Return first number if found, otherwise return infinity (to put at end)
+            return float('inf') if not numbers else int(numbers[0])
+        
+        file_paths = sorted(file_paths, key=extract_first_number)
 
     # Get the repo root directory
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -597,7 +663,9 @@ def combine_files_into_md(file_paths, target_file_path, max_file_size_mb=10):
             file_path = os.path.join(repo_root, relative_path)
             file_name = os.path.basename(file_path)
             file_extension = os.path.splitext(file_name)[1].lower()
-
+            if strip_extensions:
+                file_name = os.path.splitext(file_name)[0]
+            
             if file_extension not in supported_extensions:
                 print(f"Skipping unsupported file: {file_name}")
                 continue
@@ -639,50 +707,196 @@ def mrun_combine_files_into_md():
     "projects/math_quiz/math_quiz.css"
     ]
     combine_files_into_md(file_paths, 'projects/math_quiz/combined_math_quiz.md')
+def combine_md_files_in_folder(folder_path, target_filename='combined.md', number_order=True, strip_extensions=True):
+    """
+    Combines multiple markdown files into a single file.
+
+    :param folder_path: string, path to folder containing markdown files
+    :param target_filename: string, name for combined output file
+    :return: string, path to combined markdown file
+    """
+    target_file_path = os.path.join(folder_path, target_filename)
+    if os.path.exists(target_file_path):
+        os.remove(target_file_path)
+    file_paths = get_files_in_folder(folder_path, suffixpat_include='.md', include_subfolders=False)
+    combine_files_into_md(file_paths, target_file_path, number_order=number_order, strip_extensions=strip_extensions)
+def mrun_combine_md_files():
+    pass
+#if __name__ == "__main__":
+    folder_path = "data/deutsch/books/FOR chapters"
+    combine_md_files_in_folder(folder_path)
+
+### SCRAPING
+def format_date_for_filename(date_str):
+    """
+    Convert various date formats to YYYY-MM-DD.
+    Handles partial dates by using the first of the month/year.
+    
+    :param date_str: str, date string from RSS feed
+    :return: str, formatted date YYYY-MM-DD
+    """
+    try:
+        # Try to parse the full date string
+        date_obj = datetime.strptime(date_str, '%a, %d %b %Y %H:%M:%S %z')
+        return date_obj.strftime('%Y-%m-%d')
+    except ValueError:
+        # Handle partial dates
+        year_match = re.search(r'\b\d{4}\b', date_str)
+        month_match = re.search(r'\b(January|February|March|April|May|June|July|August|September|October|November|December)\b', date_str)
+        
+        if year_match and month_match:
+            # Year and month only
+            year = year_match.group()
+            month = datetime.strptime(month_match.group(), '%B').strftime('%m')
+            return f"{year}-{month}-01"
+        elif year_match:
+            # Year only
+            return f"{year_match.group()}-01-01"
+        else:
+            return "1900-01-01"  # Default date if parsing fails
+def extract_articles_from_feed(feed_file, output_dir, heading="article"):
+    """
+    Extract articles from an RSS feed file and save as markdown files.
+    
+    :param feed_file: str, path to the RSS feed file
+    :param output_dir: str, directory where markdown files will be saved
+    :param heading: str, heading to use for the content section (default: "article")
+    """
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Parse the XML feed
+    tree = ET.parse(feed_file)
+    root = tree.getroot()
+    
+    # Find all item elements (articles)
+    channel = root.find('channel')
+    for item in channel.findall('item'):
+        # Extract article metadata
+        title = item.find('title').text
+        date_str = item.find('pubDate').text
+        formatted_date = format_date_for_filename(date_str)
+        
+        # Get content and unescape HTML entities
+        content = item.find('{http://purl.org/rss/1.0/modules/content/}encoded').text
+        content = html.unescape(content)
+        
+        # Convert HTML to markdown
+        md_content = markdownify(content)
+        
+        # Get link if available
+        link = item.find('link')
+        link_text = link.text if link is not None else ""
+        
+        # Create filename in the specified format
+        safe_title = title.replace('/', '-').replace('\\', '-')
+        filename = f"{formatted_date}_TCS Site_{safe_title}.md"
+        filename = ''.join(c for c in filename if c.isalnum() or c in '-_. ')
+        
+        # Prepare markdown file content with new format
+        full_content = f"""## metadata
+last updated: {formatted_date}
+link: {link_text}
+
+
+## content
+
+{heading}
+
+{md_content}
+"""
+        
+        # Save to file
+        output_path = os.path.join(output_dir, filename)
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(full_content)
+        
+        print(f"Saved: {filename}")
+
+def mrun_extract_articles_from_feed():
+    pass
+#if __name__ == "__main__":
+    feed_file = "data/deutsch/essays/tcs/httrack from dd tag/by-david-deutsch/feed/index.html"
+    output_dir = "data/deutsch/essays/tcs/dd"
+    extract_articles_from_feed(feed_file, output_dir, heading="### article")
 
 ### HTML
-def wrap_qa_blocks_in_details(html_file_path, question_field="CLARIFIED QUESTION", answer_field="CLARIFIED ANSWER"):
+def wrap_qa_blocks_in_details(html_file_path, question_field, answer_field):
     """
     Wraps QA blocks in nested details tags for collapsible viewing.
     
     :param html_file_path: string, path to the HTML file to modify
-    :param question_field: string, field name for questions (default: CLARIFIED QUESTION)
-    :param answer_field: string, field name for answers (default: CLARIFIED ANSWER)
+    :param question_field: string, field name for questions
+    :param answer_field: string, field name for answers
     :return: None
     """
-    # Read the HTML file
     with open(html_file_path, 'r', encoding='utf-8') as file:
         content = file.read()
     
-    # Pattern to find QA blocks with all content
-    qa_block_pattern = r'(<p>QA Block (\d+-\d+)<br>\n' + \
-                      f'{question_field}: (.*?)<br>\n' + \
-                      f'{answer_field}: (.*?)<br>\n' + \
-                      r'.*?</p>)'
-    
-    def wrap_qa_block(match):
-        full_block = match.group(1)
-        block_num = match.group(2)
-        question = match.group(3)
-        answer = match.group(4)
-        
-        # Add block number to question
-        question_with_num = f"{block_num}. {question}"
-        
-        # Create nested details structure with all content preserved
-        wrapped_content = f'''  <details>
-    <summary>{question_with_num}</summary>
+    # Check if content has block IDs (e.g., "1-1", "2-12")
+    if 'QA BLOCK:' in content or 'QA Block' in content:
+        # Has block IDs - determine specific format
+        if 'QA BLOCK:' in content:
+            # Sovereign Child format (uppercase with colon)
+            qa_block_pattern = (
+                r'<p>\s*QA BLOCK:\s*(\d+-\d+)\s*<br\s*/?>\s*'
+                r'QUESTION:\s*(.*?)\s*<br\s*/?>\s*'
+                r'(?:.*?<br\s*/?>\s*)*?'  # Match any intermediate lines non-greedily
+                r'ANSWER:\s*(.*?)\s*<br\s*/?>\s*'
+                r'(?:.*?)</p>'
+            )
+        else:
+            # FDA townhall format (title case without colon)
+            qa_block_pattern = (
+                r'<p>QA Block (\d+-\d+)<br>\n'
+                + f'{question_field}: (.*?)<br>\n'
+                + f'{answer_field}: (.*?)<br>\n'
+                + r'.*?</p>'
+            )
+        def wrap_qa_block(match):
+            full_block = match.group(0)  # Use group(0) for the entire match
+            block_num = match.group(1)
+            question = match.group(2)
+            answer = match.group(3)
+            
+            return f'''  <details>
+    <summary>{block_num}. {question}</summary>
     <details>
       <summary>{answer}</summary>
       {full_block}</details>
   </details>'''
+    else:
+        # No block IDs - simple Q&A format
+        qa_block_pattern = (
+            r'<p>\s*'
+            + f'{question_field}:\s*(.*?)\s*<br\s*/?>\s*'
+            + r'(?:.*?<br\s*/?>\s*)*?'  # Match any intermediate lines non-greedily
+            + f'{answer_field}:\s*(.*?)(?=\s*<br|</p>)'
+            + r'.*?</p>'
+        )
         
-        return wrapped_content
+        def wrap_qa_block(match):
+            full_block = match.group(0)
+            question = match.group(1)
+            answer = match.group(2).strip()
+            
+            return f'''  <details>
+    <summary>{question}</summary>
+    {full_block}
+  </details>'''
+    
+    # Find all matches before replacing
+    matches = list(re.finditer(qa_block_pattern, content, flags=re.DOTALL))
+    
+    if not matches:
+        print("\nPattern not matching. Debug info:")
+        print(f"Pattern used: {qa_block_pattern}")
+        print("\nContent sample:")
+        print(content[:500])
     
     # Replace QA blocks with wrapped versions
     modified_content = re.sub(qa_block_pattern, wrap_qa_block, content, flags=re.DOTALL)
     
-    # Write the modified content back
     with open(html_file_path, 'w', encoding='utf-8') as file:
         file.write(modified_content)
 def clean_summaries_in_html_file(html_file_path):
@@ -731,7 +945,7 @@ def clean_summaries_in_html_file(html_file_path):
             flags=re.DOTALL | re.IGNORECASE
         )
     
-    print(f"\nProcessed {summaries_checked} summaries, cleaned {summaries_cleaned} with hrefs")
+    #print(f"Processed {summaries_checked} summaries, cleaned {summaries_cleaned} with hrefs\n")
     
     # Write the modified content back
     with open(html_file_path, 'w', encoding='utf-8') as file:
@@ -803,14 +1017,17 @@ def add_additional_html_from_template(html_file_path, template_file_path):
     # Write modified content back to file
     with open(html_file_path, 'w', encoding='utf-8') as file:
         file.write(str(html_soup.prettify()))
-def h_tune_html_file(html_file_path, tune_string, h_level, insert=True, remove_suffixext=True):
+def h_tune_html_file(html_file_path, new_heading_text, h_level, insert=True, remove_suffixext=True):
     """
     Modifies heading text in an HTML file at specified heading level.
     
     :param html_file_path: string, path to the HTML file to modify
-    :param tune_string: string, text to insert or replace with
+    :param new_heading_text: string, text to either:
+                           - insert after first underscore (if insert=True)
+                           - completely replace existing heading with (if insert=False)
     :param h_level: int, heading level to modify (1-6)
-    :param insert: bool, if True inserts tune_string after first underscore, if False replaces entire heading
+    :param insert: bool, if True inserts new_heading_text after first underscore,
+                       if False replaces entire heading
     :param remove_suffixext: bool, if True removes text after and including last underscore
     :return: None
     """
@@ -832,11 +1049,11 @@ def h_tune_html_file(html_file_path, tune_string, h_level, insert=True, remove_s
                 # Remove suffix if requested
                 if remove_suffixext:
                     base = base.rsplit('_', 1)[0]
-                return f'<h{h_level}>{parts[0]}_{tune_string} {base}</h{h_level}>'
+                return f'<h{h_level}>{parts[0]}_{new_heading_text} {base}</h{h_level}>'
             return match.group(0)  # No underscore found, return unchanged
         else:
             # Simply replace the entire heading text
-            return f'<h{h_level}>{tune_string}</h{h_level}>'
+            return f'<h{h_level}>{new_heading_text}</h{h_level}>'
     
     # Replace the heading content
     modified_content = re.sub(pattern, modify_heading, content, flags=re.DOTALL)
@@ -844,18 +1061,60 @@ def h_tune_html_file(html_file_path, tune_string, h_level, insert=True, remove_s
     # Write back to the file
     with open(html_file_path, 'w', encoding='utf-8') as file:
         file.write(modified_content)
-def convert_markdown_to_html(md_file_path, heading, collapse_h=4, css_file_path=None, cap_first=True):
+def convert_markdown_to_html(md_file_path, heading, collapse_h=4, css_file_path=None, cap_first=True, debug=True, bold_first_line=True, wrap_subsections=False):
     """
-    Converts a markdown file to an html file using pypandoc and optionally replaces style with external CSS link.
-    
+    Converts a markdown file to an html file using pypandoc with enhanced formatting options.
+
     :param md_file_path: string, path to the markdown file to convert
     :param heading: string, heading to use for the document
     :param collapse_h: int, heading level to wrap with details/summary elements (default: 4)
-    :param css_file_path: string or None, path to CSS file to link (if None - keeps default styles, if empty string - removes styles)
+    :param css_file_path: string or None, path to CSS file to link
+    :param cap_first: bool, whether to capitalize first letter of headings
+    :param debug: bool, whether to print debug information
+    :param bold_first_line: bool, whether to bold first line of paragraphs
+    :param wrap_subsections: bool, whether to wrap subsections in details tags
     :return: string, path to the output HTML file
     """
+    import re  # Add explicit import at function start
+    
     html_file_path = md_file_path.replace('.md', '.html')
     convert_text = get_heading(md_file_path, heading)
+    
+    if convert_text is None:
+        raise ValueError(f"No content found for heading '{heading}' in file {md_file_path}")
+        
+    if (heading == "CONTENT"):
+        verbose_print(debug, "For heading= 'CONTENT'")
+        convert_text = convert_text.replace("CONTENT", "")
+        
+        # Debug print to check content before scaling
+        verbose_print(debug, f"Content before scaling:\n{convert_text[:200]}...")
+        
+        # Only scale headings if there is exactly one h1 heading
+        h1_count = len(re.findall(r'^\s*#\s+', convert_text, re.MULTILINE))
+        h2_count = len(re.findall(r'^\s*##\s+', convert_text, re.MULTILINE))
+        
+        verbose_print(debug, f"Found {h1_count} h1 headings and {h2_count} h2 headings")
+        
+        if h1_count == 1:
+            verbose_print(debug, "  Found exactly one h1 heading - scaling all headings down by 2 levels")
+            convert_text = scale_headings(convert_text, 2)
+        elif h1_count > 1:
+            verbose_print(debug, "  Found multiple h1 headings - scaling all headings down by 3 levels") 
+            convert_text = scale_headings(convert_text, 3)
+        else:
+            if h2_count == 1:
+                verbose_print(debug, "  Found exactly one h2 heading - scaling all headings down by 1 level")
+                convert_text = scale_headings(convert_text, 1)
+            elif h2_count > 1:
+                verbose_print(debug, "  Found multiple h2 headings - scaling all headings down by 2 levels")
+                convert_text = scale_headings(convert_text, 2)
+        
+        # Debug print to check content after scaling
+        verbose_print(debug, f"Content after scaling:\n{convert_text[:200]}...")
+
+    # Strip any blank lines from the beginning of the text
+    convert_text = convert_text.lstrip('\n')
     
     # Create temporary file with the text to convert
     temp_file_path = 'temp_convert_md_to_html.md'
@@ -881,9 +1140,28 @@ def convert_markdown_to_html(md_file_path, heading, collapse_h=4, css_file_path=
         content = file.read()
     content = content.replace('<br />', '<br>')
     
-    # Add details/summary around h4 tags
+    # Bold first line of paragraphs if requested
+    if bold_first_line:
+        content = re.sub(r'(<p>)(.*?)(<br|</p>)', 
+                        lambda m: f'{m.group(1)}<strong>{m.group(2)}</strong>{m.group(3)}', 
+                        content, flags=re.DOTALL)
+
+    # Add details/summary around subsections if requested
+    if wrap_subsections:
+        # Pattern matches any h5 tag and its content up to the next h5 or h4
+        subsection_pattern = r'(<h5.*?</h5>)(.*?)(?=<h[45]|$)'
+        def wrap_subsection(match):
+            heading = match.group(1)
+            content = match.group(2)
+            return f'''<details class="subsection">
+  <summary>{heading}</summary>{content}
+</details>'''
+        
+        # Process subsections before main collapse_h
+        content = re.sub(subsection_pattern, wrap_subsection, content, flags=re.DOTALL)
+
+    # Handle main section collapsing
     if collapse_h:
-        import re
         pattern = f'(<h{collapse_h}.*?</h{collapse_h}>)(.*?)(?=<h{collapse_h}|$)'
         def wrap_section(match):
             heading = match.group(1)  # The complete h4 tag

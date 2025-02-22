@@ -91,6 +91,16 @@
       "docstring": "Copies the file with a new suffix added before the file extension.\n\n    :param file_path: string of the path to the original file.\n    :param suffix_new: string of the suffix to be appended to the original filename before the file extension.\n    :return: string of the path to the newly created file with the new suffix."
     },
     {
+      "id": "fileops.copy_file_and_replace_suffix",
+      "label": "copy_file_and_replace_suffix",
+      "group": "function",
+      "module": "fileops.py",
+      "submodule": "SUFFIX",
+      "def": "def copy_file_and_replace_suffix(file_path, suffix_new):",
+      "line": null,
+      "docstring": "Copies the file with a new suffix replacing any existing suffix before the file extension.\n\n    :param file_path: string of the path to the original file.\n    :param suffix_new: string of the suffix to replace any existing suffix in the filename.\n    :return: string of the path to the newly created file with the replaced suffix."
+    },
+    {
       "id": "fileops.sub_suffix_in_file",
       "label": "sub_suffix_in_file",
       "group": "function",
@@ -198,47 +208,97 @@
       "submodule": "READ WRITE",
       "def": "def write_metadata_and_content(file_path, metadata, content, suffix_new='_temp', overwrite='no', verbose=False):",
       "line": null,
-      "docstring": "Writes the metadata and content text to a new file with a specified suffix and handles overwrite logic.\n    Insert 2 blank lines between the metadata and content sections if metadata is present or empty string.\n\n    :param file_path: string, the path to the original file.\n    :param metadata: string or None, the metadata section to be written to the new file, inclusive of '## metadata' or 'METADATA'.\n    :param content: string, the content section to be written to the new file, inclusive of '## content' or 'CONTENT'.\n    :param suffix_new: string, the suffix to be appended to the original filename for the new file.\n    :param overwrite: string, the overwrite mode. Default is 'no'.\n    :param verbose: boolean, whether to print verbose messages. Default is False.\n    :return: string, the path to the final file after applying overwrite logic."
+      "docstring": "Writes the metadata and content text to a new file with a specified suffix and handles overwrite logic.\n    Insert 2 blank lines between the metadata and content sections if metadata is present or empty string.\n    Preserves the format style (Format 1: ## metadata/## content or Format 2: METADATA/CONTENT) based on metadata.\n\n    :param file_path: string, the path to the original file.\n    :param metadata: string or None, the metadata section to be written to the new file, inclusive of '## metadata' or 'METADATA'.\n    :param content: string, the content section to be written to the new file, inclusive of '## content' or 'CONTENT'.\n    :param suffix_new: string, the suffix to be appended to the original filename for the new file.\n    :param overwrite: string, the overwrite mode. Default is 'no'.\n    :param verbose: boolean, whether to print verbose messages. Default is False.\n    :return: string, the path to the final file after applying overwrite logic."
     },
     {
-      "id": "fileops.pretty_print_json_object",
-      "label": "pretty_print_json_object",
+      "id": "fileops.pretty_print_json_data",
+      "label": "pretty_print_json_data",
       "group": "function",
       "module": "fileops.py",
-      "submodule": "JSON",
-      "def": "def pretty_print_json_object(json_obj, level_limit=None, print_values=False):",
+      "submodule": "JSON - NO UNIT TESTS",
+      "def": "def pretty_print_json_data(json_data, level_limit=None, print_values=True):",
       "line": null,
-      "docstring": "Prints the structure of a JSON object with colored output for different levels.\n\n    :param json_obj: dict or list, the JSON object to print.\n    :param level_limit: int, the maximum level of nesting to print. None means no limit.\n    :param print_values: bool, whether to print values at leaf nodes.\n    :return: list, the output lines generated (without color)."
+      "docstring": "Prints the structure of JSON data with colored output for different levels.\n\n    :param json_data: dict or list, the JSON data to print.\n    :param level_limit: int, the maximum level of nesting to print. None means no limit.\n    :param print_values: bool, whether to print values at leaf nodes.\n    :return: list, the output lines generated (without color)."
     },
     {
       "id": "fileops.pretty_print_json_file",
       "label": "pretty_print_json_file",
       "group": "function",
       "module": "fileops.py",
-      "submodule": "JSON",
+      "submodule": "JSON - NO UNIT TESTS",
       "def": "def pretty_print_json_file(json_file_path, level_limit=None, save_to_file=False):",
       "line": null,
       "docstring": "Prints the structure of a JSON file and optionally saves it to a file with a '.pretty' extension.\n\n    :param json_file_path: string, path to the json file.\n    :param level_limit: int, the maximum level of nesting to print. None means no limit.\n    :param save_to_file: bool, whether to save the output to a file.\n    :return: None."
     },
     {
-      "id": "fileops.write_json_file_from_object",
-      "label": "write_json_file_from_object",
+      "id": "fileops.write_json_file_from_json_data",
+      "label": "write_json_file_from_json_data",
       "group": "function",
       "module": "fileops.py",
-      "submodule": "JSON",
-      "def": "def write_json_file_from_object(json_object, file_path, overwrite=\"no\"):",
+      "submodule": "JSON - NO UNIT TESTS",
+      "def": "def write_json_file_from_json_data(json_data, file_path, overwrite=\"no\"):",
       "line": null,
-      "docstring": "Writes a JSON object to a file at the specified path.\n\n    :param json_object: dictionary or list to be written as JSON.\n    :param file_path: string of the path where the JSON file will be written.\n    :param overwrite: string of either 'yes' or 'no' to determine if existing files should be overwritten. default is 'no'.\n    :return: None."
+      "docstring": "Writes a JSON object to a file at the specified path.\n    Strictly speaking in JSON \u201cobject\u201d means the key\u2013value mapping, here the functions allow lists too.\n\n    :param json_data: dictionary or list to be written as JSON.\n    :param file_path: string of the path where the JSON file will be written.\n    :param overwrite: string of either 'yes' or 'no' to determine if existing files should be overwritten. default is 'no'.\n    :return: None."
     },
     {
-      "id": "fileops.read_json_object_from_file",
-      "label": "read_json_object_from_file",
+      "id": "fileops.get_json_data_from_json_file",
+      "label": "get_json_data_from_json_file",
       "group": "function",
       "module": "fileops.py",
-      "submodule": "JSON",
-      "def": "def read_json_object_from_file(file_path):  # consider moving to fileops",
+      "submodule": "JSON - NO UNIT TESTS",
+      "def": "def get_json_data_from_json_file(json_file_path):",
       "line": null,
-      "docstring": "Reads a JSON object from a file at the specified path.\n\n    :param file_path: string of the path to the JSON file to be read.\n    :return: dictionary or list representing the JSON object read from the file."
+      "docstring": "Reads a JSON object from a file at the specified path.\n\n    :param json_file_path: string of the path to the JSON file to be read.\n    :return: dictionary or list representing the JSON data read from the file."
+    },
+    {
+      "id": "fileops.count_non_json_compatible",
+      "label": "count_non_json_compatible",
+      "group": "function",
+      "module": "fileops.py",
+      "submodule": "JSON - NO UNIT TESTS",
+      "def": "def count_non_json_compatible(data):",
+      "line": null,
+      "docstring": "Recursively counts the number of non-JSON-compatible items in the data.\n    JSON-compatible types are: dict (with string keys), list, str, int, float, bool, and None.\n    \n    :param data: any Python data structure.\n    :return: int, the number of non-JSON-compatible items found."
+    },
+    {
+      "id": "fileops.convert_data_object_to_json_data",
+      "label": "convert_data_object_to_json_data",
+      "group": "function",
+      "module": "fileops.py",
+      "submodule": "JSON - NO UNIT TESTS",
+      "def": "def convert_data_object_to_json_data(data_object, default_handler=None, verbose=False, print_analysis=False, print_values=False):",
+      "line": null,
+      "docstring": "Recursively converts a Python data object to a JSON-compatible Python structure.\n    \n    JSON-compatible data includes dicts (with string keys), lists, strings, numbers, booleans, and None.\n    For non-compatible types, attempts to convert to dict first, then falls back to default_handler.\n    \n    :param data_object: The Python object to convert.\n    :param default_handler: Optional function to convert non-JSON-compatible objects.\n    :param verbose: bool, if True prints diagnostic messages.\n    :param print_analysis: bool, if True, prints the analyzed structure.\n    :param print_values: bool, passed to pretty_print_json_data to control leaf value printing.\n    :return: A JSON-compatible Python object (e.g. dict or list)."
+    },
+    {
+      "id": "fileops.check_json_compatibility",
+      "label": "check_json_compatibility",
+      "group": "function",
+      "module": "fileops.py",
+      "submodule": "JSON - NO UNIT TESTS",
+      "def": "def check_json_compatibility(data_object):",
+      "line": null,
+      "docstring": "Checks whether the provided data_object is fully JSON compatible.\n    \n    :param data_object: any Python object.\n    :return: Boolean, True if fully JSON-compatible; False otherwise."
+    },
+    {
+      "id": "fileops.save_object_to_pickle_file",
+      "label": "save_object_to_pickle_file",
+      "group": "function",
+      "module": "fileops.py",
+      "submodule": "JSON - NO UNIT TESTS",
+      "def": "def save_object_to_pickle_file(data_object, pickle_file_path, verbose=False, print_object=False):",
+      "line": null,
+      "docstring": "Save an object to a pickle file.\n\n    :param data_object: object, the object to save to pickle file\n    :param pickle_file_path: str, path to the file where the object will be saved\n    :param verbose: bool, whether to print verbose saving info\n    :param print_object: bool, whether to print the full object being saved\n    :return: None"
+    },
+    {
+      "id": "fileops.get_object_from_pickle_file",
+      "label": "get_object_from_pickle_file",
+      "group": "function",
+      "module": "fileops.py",
+      "submodule": "JSON - NO UNIT TESTS",
+      "def": "def get_object_from_pickle_file(pickle_file_path, verbose=False, print_object=False):",
+      "line": null,
+      "docstring": "Load any Python object from a pickle file.\n    \n    :param pickle_file_path: str, path to the pickle file.\n    :param verbose: bool, if True prints verbose loading info.\n    :param print_object: bool, if True, analyzes and prints the object's structure.\n    :return: The raw object that was pickled."
     },
     {
       "id": "fileops.rename_file",
@@ -566,9 +626,9 @@
       "group": "function",
       "module": "fileops.py",
       "submodule": "FIND AND REPLACE",
-      "def": "def find_and_replace_pairs(file_path, find_replace_pairs, use_regex=False):",
+      "def": "def find_and_replace_pairs(file_path, find_replace_pairs, debug=False, use_regex=False, include_metadata=False):",
       "line": null,
-      "docstring": "Finds and replaces multiple specified strings or regex patterns in the file and overwrites the original file.\n    Usage - cur_find_replace_pairs = [('Mervin Praison', 'John Smith'), ('Summary', 'Tamagotchi')]\n\n    :param file_path: string, the path to the file where the find and replace operations will be performed.\n    :param find_replace_pairs: list of tuples, each containing a string or regex pattern to be found and a string to replace it with.\n    :param use_regex: boolean for whether to use regex patterns for finding. Default is False (use exact string matching).\n    :return: int, the total number of replacements made."
+      "docstring": "Finds and replaces multiple specified strings or regex patterns in the file and overwrites the original file.\n    Usage - cur_find_replace_pairs = [('Mervin Praison', 'John Smith'), ('Summary', 'Tamagotchi')]\n\n    :param file_path: string, the path to the file where the find and replace operations will be performed.\n    :param find_replace_pairs: list of tuples, each containing a string or regex pattern to be found and a string to replace it with.\n    :param debug: boolean, whether to print debug information.\n    :param use_regex: boolean for whether to use regex patterns for finding. Default is False (use exact string matching).\n    :param include_metadata: boolean for whether to search and replace in metadata section. Default is True.\n    :return: int, the total number of replacements made."
     },
     {
       "id": "fileops.parse_csv_for_find_replace",
@@ -596,7 +656,7 @@
       "group": "function",
       "module": "fileops.py",
       "submodule": "FIND AND REPLACE",
-      "def": "def find_and_replace_from_csv(folder_path, find_replace_csv, suffixpat_include=None, include_subfolders=False, verbose=False):",
+      "def": "def find_and_replace_from_csv(folder_path, find_replace_csv, suffixpat_include=None, include_subfolders=False, include_metadata=False, verbose=False):",
       "line": null,
       "docstring": "Applies find and replace operations on all files in a specified folder based on pairs defined in a CSV file.\n    Overwrite is fixed at 'yes' so you have to copy the files before running.\n    IMPORTANT csv file cannot be in the same folder if suffixpat_include=None\n    Good practice is to always include a suffixpat_include even if those are the only type of file in the folder.\n\n    :param folder_path: string, the path to the folder where the files are located.\n    :param find_replace_csv: string, the path to the CSV file containing find and replace pairs.\n    :param suffixpat_include: string, the suffix pattern that included files must have. If None, all files will be processed.\n    :param verbose: boolean, if True prints verbose messages.\n    :return: None"
     },
@@ -636,9 +696,9 @@
       "group": "function",
       "module": "fileops.py",
       "submodule": "HEADINGS",
-      "def": "def get_heading(file_path, heading):",
+      "def": "def get_heading(file_path, heading, strip_heading_line=False):",
       "line": null,
-      "docstring": "Extracts the markdown heading and its associated text from a file, including any subheadings of equal or lower order.\n    Uses the complete text and does not parse the metadata and content sections.\n\n    :param file_path: string, the path to the file to be read.\n    :param heading: string, the markdown heading to be extracted, including the '#' characters and the following space.\n    :return: string, the markdown heading and its associated text, including any subheadings of equal or lower order."
+      "docstring": "Extracts the markdown heading and its associated text from a file, including any subheadings of equal or lower order.\n    Uses the complete text and does not parse the metadata and content sections.\n\n    :param file_path: string, the path to the file to be read.\n    :param heading: string, the markdown heading to be extracted, including the '#' characters and the following space.\n    :param strip_heading_line: bool, if True strips the heading line and any blank lines after it from the result.\n    :return: string, the markdown heading and its associated text, including any subheadings of equal or lower order."
     },
     {
       "id": "fileops.set_heading",
@@ -691,6 +751,36 @@
       "docstring": "Deletes all instances of the specified markdown heading and their following text, including subheadings.\n    Stops at headings of equal or higher level (fewer or same number of '#' characters).\n\n    :param file_path: string, the path to the file from which the headings will be deleted.\n    :param heading: string, the markdown heading to be deleted, including the '#' characters and the following space."
     },
     {
+      "id": "fileops.create_list_of_strings_from_md_file",
+      "label": "create_list_of_strings_from_md_file",
+      "group": "function",
+      "module": "fileops.py",
+      "submodule": "HEADINGS",
+      "def": "def create_list_of_strings_from_md_file(md_file_path, heading_level, verbose=True):",
+      "line": null,
+      "docstring": "Creates a list of strings from a markdown file, where each string contains the text between headings of the specified level.\n\n    :param md_file_path: string, path to the markdown file to process.\n    :param heading_level: int, the heading level to split on (e.g., 2 for '## ' headings).\n    :return: list of strings, where each string contains the text between headings of the specified level."
+    },
+    {
+      "id": "fileops.get_heading_above",
+      "label": "get_heading_above",
+      "group": "function",
+      "module": "fileops.py",
+      "submodule": "HEADINGS",
+      "def": "def get_heading_above(file_path, search_text):",
+      "line": null,
+      "docstring": "Find the markdown heading immediately above the first instance of the search text in the file.\n\n    :param file_path: string, path to the file to search in\n    :param search_text: string, the text to find the heading above\n    :return heading: string, the heading found (including the ### markers) or None if not found"
+    },
+    {
+      "id": "fileops.scale_headings",
+      "label": "scale_headings",
+      "group": "function",
+      "module": "fileops.py",
+      "submodule": "HEADINGS",
+      "def": "def scale_headings(full_text, scale_factor):",
+      "line": null,
+      "docstring": "Scales the level of all headings in the text by a specified amount.\n\n    :param full_text: string, the text containing the headings to be scaled.\n    :param scale_factor: int, the amount to scale the heading levels by (positive to increase level, negative to decrease).\n    :return: string, the text with scaled heading levels.\n    :raises ValueError: if scaling would result in invalid heading levels (< 1 or > 6)."
+    },
+    {
       "id": "fileops.set_metadata_field",
       "label": "set_metadata_field",
       "group": "function",
@@ -698,7 +788,7 @@
       "submodule": "METADATA",
       "def": "def set_metadata_field(metadata, field, value):",
       "line": null,
-      "docstring": "Sets or updates a metadata field with a given value.\n\n    :param metadata: string, the metadata from which a metadata field is to be set or updated.\n    :param field: string, the metadata field to be set or updated without the : and space.\n    :param value: string, the value to be set for the metadata field.\n    :return: string, the updated metadata with the set or updated metadata field."
+      "docstring": "Sets or updates a metadata field with a given value.\n\n    :param metadata: string, the metadata section already extracted from the file.\n    :param field: string, the metadata field to be set or updated without the : and space.\n    :param value: string, the value to be set for the metadata field.\n    :return: string, the updated metadata with the set or updated metadata field."
     },
     {
       "id": "fileops.remove_metadata_field",
@@ -906,7 +996,7 @@
       "group": "function",
       "module": "transcribe.py",
       "submodule": "YOUTUBE",
-      "def": "def extract_feature_from_youtube_md(yt_md_file_path, feature):",
+      "def": "def extract_feature_from_youtube_md(yt_md_file_path, feature):  # updated 1-28-25 RT to use get_heading",
       "line": null,
       "docstring": "Extracts a specified feature from a YouTube markdown file and returns it as a string.\n\n    :param yt_md_file_path: string of the path to the markdown file from which the feature is to be extracted.\n    :param feature: string of the feature to be extracted (e.g., 'chapters', 'description', 'transcript').\n    :return: string of the extracted text under the specified feature"
     },
@@ -989,6 +1079,26 @@
       "def": "def set_various_transcript_headings(file_path, feature, source):",
       "line": null,
       "docstring": "Sets the transcript heading in a file based on the extracted feature from a specified source.\n\n    :param file_path: string of the path to the file where the heading is to be set.\n    :param feature: string of the feature to extract and use as the heading.\n    :param source: string of the source from which to extract the feature ('deepgram' or 'youtube').\n    :return: None."
+    },
+    {
+      "id": "transcribe.get_transcript_speaker_lines",
+      "label": "get_transcript_speaker_lines",
+      "group": "function",
+      "module": "transcribe.py",
+      "submodule": "JSON AND TRANSCRIPT SUPPORT",
+      "def": "def get_transcript_speaker_lines(transcript_text):",
+      "line": null,
+      "docstring": "Extracts speaker lines with timestamps from transcript text.\n\n    :param transcript_text: string, the full transcript text to process.\n    :return result: list of tuples, each containing (line_number, speaker_line_text)."
+    },
+    {
+      "id": "transcribe.apply_youtube_chapters_as_section_titles",
+      "label": "apply_youtube_chapters_as_section_titles",
+      "group": "function",
+      "module": "transcribe.py",
+      "submodule": "JSON AND TRANSCRIPT SUPPORT",
+      "def": "def apply_youtube_chapters_as_section_titles(transcript_file_path):",
+      "line": null,
+      "docstring": "Applies the YouTube chapters timestamps and titles as section headings in the transcript file.\n\n    :param transcript_file_path: string, path to the transcript markdown file\n    :return: None"
     },
     {
       "id": "transcribe.test_deepgram_client",
@@ -1336,9 +1446,19 @@
       "group": "function",
       "module": "llm.py",
       "submodule": "PRINT AND TOKENS",
-      "def": "def cost_llm_on_file(file_path, prompt, model, token_cost_dict, verbose=False, chunking_function=None, chunking_function_args=(), output_tokens_ratio=1, output_tokens_fixed=0):  # no unittests",
+      "def": "def cost_llm_on_file(file_path, prompt, model, token_price_dict, is_cached_input=False, verbose=False, chunking_function=None, chunking_function_args=(), output_tokens_ratio=1, output_tokens_fixed=0):  # no unittests",
       "line": null,
-      "docstring": "Calculates the cost of processing a file using a language model, based on the number of input and output tokens.\n\n    :param file_path: string of the path to the file to be processed.\n    :param prompt: string of the prompt to be used for the language model.\n    :param model: string of the name of the language model to be used.\n    :param token_cost_dict: dictionary containing the cost per token for the input and output of the model.\n    :param chunking_function: function to be used for chunking the file, defaults to None.\n    :param chunking_function_args: tuple of arguments to be passed to the chunking function, defaults to an empty tuple.\n    :param output_tokens_ratio: ratio of input tokens to output tokens, defaults to 1.\n    :param output_tokens_fixed: fixed number of output tokens per chunk, defaults to 0.\n    :return: tuple of total input cost, total output cost, and total cost."
+      "docstring": "Calculates the cost of processing a file using a language model, based on the number of input and output tokens.\n\n    :param file_path: string of the path to the file to be processed.\n    :param prompt: string of the prompt to be used for the language model.\n    :param model: string of the name of the language model to be used.\n    :param token_price_dict: dictionary containing the cost per token for the input and output of the model.\n    :param chunking_function: function to be used for chunking the file, defaults to None.\n    :param chunking_function_args: tuple of arguments to be passed to the chunking function, defaults to an empty tuple.\n    :param output_tokens_ratio: ratio of input tokens to output tokens, defaults to 1.\n    :param output_tokens_fixed: fixed number of output tokens per chunk, defaults to 0.\n    :return: tuple of total input cost, total output cost, and total cost."
+    },
+    {
+      "id": "llm.cost_llm_input_only",
+      "label": "cost_llm_input_only",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "PRINT AND TOKENS",
+      "def": "def cost_llm_input_only(file_path, token_price_dict, is_cached_input=False):",
+      "line": null,
+      "docstring": "Calculate and display input token costs for a file across all models in the token cost dictionary.\n\n    :param file_path: string, path to the file to analyze\n    :param token_price_dict: dictionary containing token cost information for different models\n    :param is_cached_input: boolean, whether to use cached input token price if available\n    :return: None"
     },
     {
       "id": "llm.cost_llm_on_corpus",
@@ -1346,9 +1466,9 @@
       "group": "function",
       "module": "llm.py",
       "submodule": "PRINT AND TOKENS",
-      "def": "def cost_llm_on_corpus(corpus_path, prompt, model, token_cost_dict, verbose=False, suffix_include=None, suffix_exclude=None, include_subfolders=False, chunking_function=None, chunking_function_args=(), output_tokens_ratio=1, output_tokens_fixed=0):",
+      "def": "def cost_llm_on_corpus(corpus_path, prompt, model, token_price_dict, is_cached_input=False, verbose=False, suffix_include=None, suffix_exclude=None, include_subfolders=False, chunking_function=None, chunking_function_args=(), output_tokens_ratio=1, output_tokens_fixed=0):",
       "line": null,
-      "docstring": "Calculates the cost of processing a corpus using a language model, based on the number of input and output tokens.\n\n    :param corpus_path: string of the path to the corpus to be processed.\n    :param prompt: string of the prompt to be used for the language model.\n    :param model: string of the name of the language model to be used.\n    :param token_cost_dict: dictionary containing the cost per token for the input and output of the model.\n    :param chunking_function: function to be used for chunking the file, defaults to None.\n    :param chunking_function_args: tuple of arguments to be passed to the chunking function, defaults to an empty tuple.\n    :param output_tokens_ratio: ratio of input tokens to output tokens, defaults to 1.\n    :param output_tokens_fixed: fixed number of output tokens per chunk, defaults to 0.\n    :param suffix_include: string of the suffix that included files must have, defaults to None.\n    :param suffix_exclude: string of the suffix that files must not have to be included, defaults to None.\n    :param include_subfolders: boolean indicating whether to include files from subfolders, defaults to False.\n    :return: tuple of total input cost, total output cost, and total cost for the entire corpus."
+      "docstring": "Calculates the cost of processing a corpus using a language model, based on the number of input and output tokens.\n\n    :param corpus_path: string of the path to the corpus to be processed.\n    :param prompt: string of the prompt to be used for the language model.\n    :param model: string of the name of the language model to be used.\n    :param token_price_dict: dictionary containing the cost per token for the input and output of the model.\n    :param is_cached_input: boolean indicating whether to use cached input token price, defaults to False.\n    :param chunking_function: function to be used for chunking the file, defaults to None.\n    :param chunking_function_args: tuple of arguments to be passed to the chunking function, defaults to an empty tuple.\n    :param output_tokens_ratio: ratio of input tokens to output tokens, defaults to 1.\n    :param output_tokens_fixed: fixed number of output tokens per chunk, defaults to 0.\n    :param suffix_include: string of the suffix that included files must have, defaults to None.\n    :param suffix_exclude: string of the suffix that files must not have to be included, defaults to None.\n    :param include_subfolders: boolean indicating whether to include files from subfolders, defaults to False.\n    :return: tuple of total input cost, total output cost, and total cost for the entire corpus."
     },
     {
       "id": "llm.add_token_counts_to_headings",
@@ -1361,14 +1481,44 @@
       "docstring": "Adds token counts to markdown headings in the given text.\n\n    :param text: string, the text content to process.\n    :return: string, the text with token counts added to headings."
     },
     {
-      "id": "llm.get_o1_cost_from_response",
-      "label": "get_o1_cost_from_response",
+      "id": "llm.print_cost_table",
+      "label": "print_cost_table",
       "group": "function",
       "module": "llm.py",
       "submodule": "PRINT AND TOKENS",
-      "def": "def get_o1_cost_from_response(response, verbose=True):",
+      "def": "def print_cost_table(table_data, title=None):",
       "line": null,
-      "docstring": "Get the cost of an o1 response from the response object.\n\n    :param response: dict, the response object from an o1 API call containing usage information\n    :param verbose: boolean, whether to print detailed cost breakdown\n    :return: float, total cost of the API call in dollars"
+      "docstring": "Print a formatted cost table from CSV-style data.\n\n    :param table_data: list of lists, where first row contains headers and subsequent rows contain data\n    :param title: string, optional title to print before the table\n    :return: None"
+    },
+    {
+      "id": "llm.get_reasoning_model_cost_table_from_response",
+      "label": "get_reasoning_model_cost_table_from_response",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "PRINT AND TOKENS",
+      "def": "def get_reasoning_model_cost_table_from_response(response, reasoning_model, verbose=True):",
+      "line": null,
+      "docstring": "Get the cost of a reasoning model response from the response object.\n\n    :param response: dict, the response object from an API call containing usage information\n    :param reasoning_model: string, the model name to use for cost calculations (default: 'o3-mini')\n    :param verbose: boolean, whether to print detailed cost breakdown\n    :return: list of lists, the table data or None if error"
+    },
+    {
+      "id": "llm.compare_reasoning_model_cost_table_from_response",
+      "label": "compare_reasoning_model_cost_table_from_response",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "PRINT AND TOKENS",
+      "def": "def compare_reasoning_model_cost_table_from_response(response, reasoning_models=[\"o1\", \"o3-mini\", \"deepseek-reasoner\"], verbose=True):",
+      "line": null,
+      "docstring": "Compare the cost of two reasoning models based on the response object.\n\n    :param response: dict, the response object from an API call containing usage information\n    :param reasoning_models: list of strings, the models to compare\n    :param verbose: boolean, whether to print detailed cost breakdown\n    :return: list of lists, the table data"
+    },
+    {
+      "id": "llm.get_call_cost_from_response",
+      "label": "get_call_cost_from_response",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "PRINT AND TOKENS",
+      "def": "def get_call_cost_from_response(response, model, token_price_dict, verbose=True):",
+      "line": null,
+      "docstring": "Get the cost of a reasoning model response from the response object.\n\n    :param response: dict or ChatCompletion object from an API call containing usage information\n    :param model: string, the model name to use for cost calculations (e.g. 'o3-mini')\n    :param token_price_dict: dictionary containing the cost per token for the input and output of the model.\n    :param verbose: bool, if True, prints detailed cost breakdown.\n    :return: total call cost in pennies (integer or float, depending on the cost calculation)"
     },
     {
       "id": "llm.get_line_numbers_with_match",
@@ -1461,6 +1611,16 @@
       "docstring": "Add block delimiters to a file with one block per speaker segment regardless of speaker.\n\n    :param file_path: path to the file to be processed\n    :param token_cap: integer of maximum number of tokens, using words = .75 tokens\n    :param skip_string: string to identify speaker segments to skip\n    :param suffix_new: suffix for the new file with block delimiters\n    :return: file_path of new file with separator delimiters ('---') with suffix_new='_blocks' by default"
     },
     {
+      "id": "llm.save_llm_response_files",
+      "label": "save_llm_response_files",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "LLM PROCESSING",
+      "def": "def save_llm_response_files(response, datetime, model, query, base_dir=\"exchanges/response_files/\", verbose=True):",
+      "line": null,
+      "docstring": "Save LLM response as both JSON and pickle files.\n\n    :param response: object, the LLM response to save\n    :param datetime: str, datetime string to use in filename\n    :param model: str, model name used for the response\n    :param query: str, query text to include in filename\n    :param base_dir: str, base directory for saving files\n    :param verbose: bool, whether to print status messages\n    :return: tuple of (json_file_path, pickle_file_path) or None if save failed"
+    },
+    {
       "id": "llm.generate_openai_testcurl_command",
       "label": "generate_openai_testcurl_command",
       "group": "function",
@@ -1477,6 +1637,16 @@
       "module": "llm.py",
       "submodule": "OPENAI LLM",
       "def": "def get_openai_models(api_key):",
+      "line": null,
+      "docstring": "Send a chat completion request to the OpenAI API with the provided messages and optional tools and tool choice.\n\n    :param messages: a list of message dictionaries to send in the chat completion request\n    :param tools: optional list of tools to include in the request\n    :param tool_choice: optional tool choice to include in the request\n    :param model: the model to use for the chat completion request\n    :return: the response object from the OpenAI API request"
+    },
+    {
+      "id": "llm.test_openai_connection",
+      "label": "test_openai_connection",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "OPENAI LLM",
+      "def": "def test_openai_connection():",
       "line": null,
       "docstring": "Send a chat completion request to the OpenAI API with the provided messages and optional tools and tool choice.\n\n    :param messages: a list of message dictionaries to send in the chat completion request\n    :param tools: optional list of tools to include in the request\n    :param tool_choice: optional tool choice to include in the request\n    :param model: the model to use for the chat completion request\n    :return: the response object from the OpenAI API request"
     },
@@ -1506,9 +1676,9 @@
       "group": "function",
       "module": "llm.py",
       "submodule": "OPENAI LLM",
-      "def": "def openai_chat_completion_request_sdk(messages, model=OPENAI_MODEL, tools=None, tool_choice=None, reasoning_effort=None, temperature=None, max_completion_tokens=None):",
+      "def": "def openai_chat_completion_request_sdk(messages, model, tools=None, tool_choice=None, reasoning_effort=None, temperature=None, max_completion_tokens=None):",
       "line": null,
-      "docstring": "Send a chat completion request using the OpenAI SDK.\n\n    :param messages: list of message dictionaries\n    :param tools: optional list of tools\n    :param tool_choice: optional tool choice\n    :param model: the model to use\n    :param reasoning_effort: optional float to control model reasoning effort\n    :param temperature: optional float to control randomness\n    :param max_completion_tokens: optional int to limit response length\n    :return: the response object from the OpenAI API"
+      "docstring": "Send a chat completion request using the OpenAI SDK.\n\n    :param messages: list of message dictionaries\n    :param model: the model to use\n    :param tools: optional list of tools\n    :param tool_choice: optional tool choice\n    :param reasoning_effort: optional float to control model reasoning effort\n    :param temperature: optional float to control randomness\n    :param max_completion_tokens: optional int to limit response length\n    :return: the response object from the OpenAI API"
     },
     {
       "id": "llm.simple_openai_chat_completion_request",
@@ -1589,6 +1759,86 @@
       "def": "def simple_anthropic_chat_rawapi(prompt, model=ANTHROPIC_MODEL):  # Not currently used",
       "line": null,
       "docstring": "Make a simple chat completion request to Anthropic's API.\n\n    :param prompt: String containing the user's prompt or message\n    :param model: String specifying the Anthropic model to use\n    :return: String containing the generated message content, or an error message if the request fails"
+    },
+    {
+      "id": "llm.test_deepseek_connection",
+      "label": "test_deepseek_connection",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "DEEPSEEK",
+      "def": "def test_deepseek_connection():",
+      "line": null,
+      "docstring": "Tests DeepSeek-v3 API connection by requesting a dad joke."
+    },
+    {
+      "id": "llm.test_deepseek_chat",
+      "label": "test_deepseek_chat",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "DEEPSEEK",
+      "def": "def test_deepseek_chat():",
+      "line": null,
+      "docstring": "Tests DeepSeek-v3 API connection by requesting a dad joke."
+    },
+    {
+      "id": "llm.deepseek_chat_completion_request_sdk",
+      "label": "deepseek_chat_completion_request_sdk",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "DEEPSEEK",
+      "def": "def deepseek_chat_completion_request_sdk(messages, model=\"deepseek-reasoner\", max_completion_tokens=None):",
+      "line": null,
+      "docstring": "Send a chat completion request using the OpenAI SDK configured for DeepSeek's API.\n\n    :param messages: list of message dictionaries\n    :param model: the model to use (default is 'deepseek-reasoner')\n    :param max_completion_tokens: optional int to limit response length\n    :return: the response object from the DeepSeek API"
+    },
+    {
+      "id": "llm.simple_deepseek_chat",
+      "label": "simple_deepseek_chat",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "DEEPSEEK",
+      "def": "def simple_deepseek_chat(prompt, model=\"deepseek-reasoner\"):",
+      "line": null,
+      "docstring": "Simplified version of chat completion that takes a single prompt string.\n\n    :param prompt: str, the prompt to send to the model\n    :param model: str, the model to use\n    :return: str, the generated response content"
+    },
+    {
+      "id": "llm.deepseek_structured_output",
+      "label": "deepseek_structured_output",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "DEEPSEEK",
+      "def": "def deepseek_structured_output(prompt, content, output_schema, model=\"deepseek-reasoner\", verbose=False):",
+      "line": null,
+      "docstring": "Get structured output from DeepSeek using their JSON Output feature.\n    \n    :param prompt: str, system prompt to guide the model's behavior\n    :param content: str, the content to process\n    :param output_schema: dict, the expected JSON schema structure\n    :param model: str, the model to use\n    :param verbose: bool, whether to print detailed information\n    :return: dict containing the structured response or None if error"
+    },
+    {
+      "id": "llm.reasoning_response_to_md_multipart_deepseek",
+      "label": "reasoning_response_to_md_multipart_deepseek",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "REASONING",
+      "def": "def reasoning_response_to_md_multipart_deepseek(prompt_parts, response, model, md_file_path, datetime, heading_level=1):",
+      "line": null,
+      "docstring": "Process a Deepseek reasoningresponse with multipart prompts and write/append it to a markdown file.\n\n    :param prompt_parts: dict, containing prompt components (query, rag_context, etc.)\n    :param response: object, the Deepseek chat completion response object\n    :param md_file_path: str, path to the markdown file\n    :param heading_level: int, base heading level for the question\n    :return: None"
+    },
+    {
+      "id": "llm.reasoning_response_to_md_multipart_openai",
+      "label": "reasoning_response_to_md_multipart_openai",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "Large Context (FILE PATH ONLY)",
+      "def": "def reasoning_response_to_md_multipart_openai(prompt_parts, response, model, md_file_path, datetime, heading_level=1):",
+      "line": null,
+      "docstring": "Process an OpenAI reasoning response with multipart prompts and write/append it to a markdown file.\n    This function is tailored to the OpenAI response object structure.\n\n    :param prompt_parts: dict, containing prompt components (query, rag_context, etc.)\n    :param response: object, the OpenAI chat completion response object\n    :param model: str, the model used (e.g. 'o3-mini-2025-01-31')\n    :param md_file_path: str, path to the markdown file\n    :param datetime: str, a file-friendly datetime string\n    :param heading_level: int, base heading level for the question\n    :return: None"
+    },
+    {
+      "id": "llm.reasoning_prompt_to_md_multipart",
+      "label": "reasoning_prompt_to_md_multipart",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "Large Context (FILE PATH ONLY)",
+      "def": "def reasoning_prompt_to_md_multipart(prompt_parts, model, md_file_path, heading_level=1, save_files=True):",
+      "line": null,
+      "docstring": "Process a multipart reasoning prompt and write/append it to a markdown file.\n    Only writes to the file if the response is successful.\n    Returns the raw response from the model which can be saved or ignored.\n\n    :param prompt_parts: dict, containing prompt components:\n        - prompt_initial: str, initial prompt text\n        - query: str, the main query\n        - query_context: str, formatted query context\n        - rag_context: str, RAG context to include in markdown\n        - large_context: str, additional context (not included in markdown)\n    :param md_file_path: str, path to the markdown file\n    :param heading_level: int, base heading level for the question\n    :return: None"
     },
     {
       "id": "llm.llm_process_block",
@@ -1836,7 +2086,7 @@
       "group": "function",
       "module": "llm.py",
       "submodule": "QA BY SECTIONS - FULL BLOCKS",
-      "def": "def create_qa_file_from_transcript_sections(file_path, fcall_prompt, provider=\"openai\", delimiter='---'):",
+      "def": "def create_qa_file_from_transcript_sections(file_path, fcall_prompt, provider=\"openai\", heading=\"### transcript\", delimiter='---'):",
       "line": null,
       "docstring": "Extract QA blocks from a transcript file by processing sections delimited by a separator.\n    \n    :param file_path: string path to the transcript file\n    :param fcall_prompt: string prompt for function calling\n    :param provider: string indicating which provider to use ('openai' or 'anthropic')\n    :param delimiter: string used to separate transcript sections\n    :return qa_file_path: string path to the created QA file"
     },
@@ -1921,14 +2171,14 @@
       "docstring": "Create the extract log header information for a specific round.\n\n    :param fcall_prompt: string prompt for function calling\n    :param provider: string indicating which provider to use\n    :param model: string indicating which model is being used\n    :param round_num: integer indicating which round this is\n    :param round_name: string name of the extraction round\n    :return: list of log lines"
     },
     {
-      "id": "llm.get_transcript_metadata_and_sections",
-      "label": "get_transcript_metadata_and_sections",
+      "id": "llm.get_file_metadata_and_sections",
+      "label": "get_file_metadata_and_sections",
       "group": "function",
       "module": "llm.py",
       "submodule": "QA BY SECTIONS - Q ONLY",
-      "def": "def get_transcript_metadata_and_sections(transcript_file_path, delimiter='---'):",
+      "def": "def get_file_metadata_and_sections(file_path, heading='### transcript', delimiter='---', auto_detect_section_titles=True):",
       "line": null,
-      "docstring": "Read a transcript file and extract metadata, content and transcript sections.\n\n    :param transcript_file_path: string, path to the transcript file\n    :param delimiter: string, used to separate transcript sections\n    :return metadata: dict, metadata from file\n    :return sections: list, transcript sections split by delimiter\n    :return total_sections: int, total number of sections"
+      "docstring": "Read metadata and content from a file, splitting sections by delimiter or next-level headings.\n\n    :param file_path: string, path to the file to read\n    :param heading: string, heading to extract content from, or None to use full content\n    :param delimiter: string, delimiter used to split content into sections, or None to skip delimiter check\n    :param auto_detect_section_titles: bool, if True and no delimiters found, split by next heading level\n    :return metadata: dict, metadata from the file\n    :return sections: list, sections split by delimiter or headings\n    :return total_sections: int, number of sections found"
     },
     {
       "id": "llm.log_section_items",
@@ -1948,7 +2198,17 @@
       "submodule": "QA BY SECTIONS - Q ONLY",
       "def": "def tools_qa_qonly_explicit():",
       "line": null,
-      "docstring": "Process a single transcript section to extract explicit questions.\n    \n    :param transcript_section: string containing a section of the transcript to process\n    :param fcall_prompt: string containing the prompt for function calling\n    :param provider: string indicating which provider to use ('openai' or 'anthropic')\n    :param debug: boolean to enable debug printing\n    :return: list of clarified explicit questions found in the section, or None if error"
+      "docstring": "Process a single section of text to extract explicit questions.\n    \n    :param section_text: string containing a section of the text to process\n    :param fcall_prompt: string containing the prompt for function calling\n    :param provider: string indicating which provider to use ('openai' or 'anthropic')\n    :param debug: boolean to enable debug printing\n    :return: list of clarified explicit questions found in the section, or None if error"
+    },
+    {
+      "id": "llm.deepseek_qa_output_schema",
+      "label": "deepseek_qa_output_schema",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "QA BY SECTIONS - Q ONLY",
+      "def": "def deepseek_qa_output_schema():",
+      "line": null,
+      "docstring": "Process a single section of text to extract explicit questions.\n    \n    :param section_text: string containing a section of the text to process\n    :param fcall_prompt: string containing the prompt for function calling\n    :param provider: string indicating which provider to use ('openai' or 'anthropic')\n    :param debug: boolean to enable debug printing\n    :return: list of clarified explicit questions found in the section, or None if error"
     },
     {
       "id": "llm.fcall_qa_qonly_explicit",
@@ -1956,9 +2216,9 @@
       "group": "function",
       "module": "llm.py",
       "submodule": "QA BY SECTIONS - Q ONLY",
-      "def": "def fcall_qa_qonly_explicit(transcript_section, fcall_prompt, provider=\"openai\", debug=False):",
+      "def": "def fcall_qa_qonly_explicit(section_text, fcall_prompt, provider=\"openai\", debug=False):",
       "line": null,
-      "docstring": "Process a single transcript section to extract explicit questions.\n    \n    :param transcript_section: string containing a section of the transcript to process\n    :param fcall_prompt: string containing the prompt for function calling\n    :param provider: string indicating which provider to use ('openai' or 'anthropic')\n    :param debug: boolean to enable debug printing\n    :return: list of clarified explicit questions found in the section, or None if error"
+      "docstring": "Process a single section of text to extract explicit questions.\n    \n    :param section_text: string containing a section of the text to process\n    :param fcall_prompt: string containing the prompt for function calling\n    :param provider: string indicating which provider to use ('openai' or 'anthropic')\n    :param debug: boolean to enable debug printing\n    :return: list of clarified explicit questions found in the section, or None if error"
     },
     {
       "id": "llm.do_qonly_round_1_explicit",
@@ -1966,9 +2226,9 @@
       "group": "function",
       "module": "llm.py",
       "submodule": "QA BY SECTIONS - Q ONLY",
-      "def": "def do_qonly_round_1_explicit(transcript_file_path, fcall_prompt, provider=\"openai\", delimiter='---', suffix_new='_qa-qonly'):",
+      "def": "def do_qonly_round_1_explicit(source_file_path, fcall_prompt, provider=\"openai\", heading=\"### transcript\", delimiter='---', suffix_new='_qa-qonly'):",
       "line": null,
-      "docstring": "Extract explicit questions from a transcript file by processing sections delimited by a separator.\n    Creates a new file with extraction log but no QA blocks yet.\n\n    :param transcript_file_path: string path to the transcript file\n    :param fcall_prompt: string prompt for function calling\n    :param provider: string indicating which provider to use ('openai' or 'anthropic')\n    :param delimiter: string used to separate transcript sections\n    :param suffix_new: string suffix for the new file name\n    :return qa_file_path: string path to the created file"
+      "docstring": "Extract explicit questions from a text file by processing sections delimited by a separator.\n    Creates a new file with extraction log but no QA blocks yet.\n\n    :param ile_path: string path to the file\n    :param fcall_prompt: string prompt for function calling\n    :param provider: string indicating which provider to use ('openai' or 'anthropic')\n    :param delimiter: string used to separate sections\n    :param suffix_new: string suffix for the new file name\n    :return qa_file_path: string path to the created file"
     },
     {
       "id": "llm.tools_qa_qonly_implicit",
@@ -1986,9 +2246,9 @@
       "group": "function",
       "module": "llm.py",
       "submodule": "QA BY SECTIONS - Q ONLY",
-      "def": "def fcall_qa_qonly_implicit(transcript_section, fcall_prompt, prev_questions, provider=\"openai\", debug=False, abort_on_error=True):",
+      "def": "def fcall_qa_qonly_implicit(section_text, fcall_prompt, prev_questions, provider=\"openai\", debug=False, abort_on_error=True):",
       "line": null,
-      "docstring": "Process a single transcript section to extract implicit questions.\n    \n    :param transcript_section: string containing a section of the transcript to process\n    :param fcall_prompt: string containing the prompt for function calling\n    :param prev_questions: list of previously extracted explicit questions\n    :param provider: string indicating which provider to use ('openai' or 'anthropic')\n    :param debug: boolean to enable debug printing\n    :param abort_on_error: boolean to control whether to raise exceptions on error\n    :return: list of clarified implicit questions found in the section, or None if error"
+      "docstring": "Process a single section of text to extract implicit questions.\n    \n    :param section_text: string containing a section of text to process\n    :param fcall_prompt: string containing the prompt for function calling\n    :param prev_questions: list of previously extracted explicit questions\n    :param provider: string indicating which provider to use ('openai' or 'anthropic')\n    :param debug: boolean to enable debug printing\n    :param abort_on_error: boolean to control whether to raise exceptions on error\n    :return: list of clarified implicit questions found in the section, or None if error"
     },
     {
       "id": "llm.do_qonly_round_2_implicit",
@@ -1996,9 +2256,9 @@
       "group": "function",
       "module": "llm.py",
       "submodule": "QA BY SECTIONS - Q ONLY",
-      "def": "def do_qonly_round_2_implicit(transcript_file_path, fcall_prompt, provider=\"openai\", delimiter='---', suffix_new='_qa-qonly'):",
+      "def": "def do_qonly_round_2_implicit(source_file_path, fcall_prompt, provider=\"openai\", heading=\"### transcript\", delimiter='---', suffix_new='_qa-qonly'):",
       "line": null,
-      "docstring": "Extract implicit questions from a transcript file by processing sections delimited by a separator.\n    Modifies an existing QA file by appending implicit questions to the extract log.\n\n    :param transcript_file_path: string, path to the transcript file\n    :param fcall_prompt: string, prompt for function calling\n    :param provider: string, indicating which provider to use ('openai' or 'anthropic')\n    :param delimiter: string, used to separate transcript sections\n    :param suffix_new: string, suffix for the existing QA file\n    :return qa_file_path: string, path to the modified file"
+      "docstring": "Extract implicit questions from a source file by processing sections delimited by a separator.\n    Modifies an existing QA file by appending implicit questions to the extract log.\n\n    :param source_file_path: string, path to the source file\n    :param fcall_prompt: string, prompt for function calling\n    :param provider: string, indicating which provider to use ('openai' or 'anthropic')\n    :param delimiter: string, used to separate sections\n    :param suffix_new: string, suffix for the existing QA file\n    :return qa_file_path: string, path to the modified file"
     },
     {
       "id": "llm.single_section_qonly_round_2_implicit",
@@ -2006,7 +2266,7 @@
       "group": "function",
       "module": "llm.py",
       "submodule": "QA BY SECTIONS - Q ONLY",
-      "def": "def single_section_qonly_round_2_implicit(transcript_file_path, fcall_prompt, section_num, provider=\"openai\", delimiter='---', suffix_new='_qa-qonly'):",
+      "def": "def single_section_qonly_round_2_implicit(source_file_path, fcall_prompt, section_num, provider=\"openai\", heading=\"### transcript\", delimiter='---', suffix_new='_qa-qonly'):",
       "line": null,
       "docstring": "You are an expert text analyzer trained in extracting full Q&A blocks for FDA Town Hall transcripts on COVID-19 diagnostics.\n\nYour Role:\n- A single, *already clarified* question will be provided to you as input along with an section of transcript text.\n- Your task is to generate exactly one Q&A block following the schema:\n\n1. 'verbatim_question': \n   - Using the provided question, find the exact text from the transcript section that corresponds to it.\n   - If the question is implied, set this to 'IMPLICIT' because the verbatim_answer field will contain the relevant text from the trancript.\n2. 'verbatim_answer': \n   - Provide the exact text of the answer from the transcript excerpt (minus speaker labels/newlines).\n   - Find the best answer possible from the transcript excerpt.\n   - This verbatim_answer field must be found and extracted from the transcript section text.\n3. 'clarified_answer': \n   - Provide a concise, edited restatement of the answer. Use 'FDA' where appropriate; do not include personal names.\n4. 'speaker_question': \n   - Name/role exactly as it appears in the transcript (preceding a colon or timestamp). \n   - If the question is implied from an authority speaker, set 'NOT APPLICABLE'.\n5. 'speaker_answer': \n   - Name/role exactly as it appears in the transcript for the speaker who provides the answer. \n   - If the question is implicit, use the speaker\u2019s name who implied it.\n6. 'topics': \n   - List 1\u20133 brief topics addressed; if none, return an empty list [].\n7. 'review_flag': \n   - True if uncertain or incomplete; else False.\n\nReturn only a single JSON object, nothing else."
     },
@@ -2026,9 +2286,9 @@
       "group": "function",
       "module": "llm.py",
       "submodule": "QA BY SECTIONS - Q ONLY",
-      "def": "def fcall_qa_qonly_block(transcript_section, fcall_prompt, question, provider=\"openai\", debug=False):",
+      "def": "def fcall_qa_qonly_block(section_text, fcall_prompt, question, provider=\"openai\", debug=False):",
       "line": null,
-      "docstring": "Process a single transcript section to extract a QA block for a given question.\n    \n    :param transcript_section: string containing a section of the transcript to process\n    :param fcall_prompt: string containing the prompt for function calling\n    :param question: string containing the already clarified question\n    :param provider: string indicating which provider to use ('openai' or 'anthropic')\n    :param debug: boolean to enable debug printing\n    :return: tuple of (qa_block, None) for successful extraction, or (None, error_msg) if error"
+      "docstring": "Process a single section of text to extract a QA block for a given question.\n    \n    :param section_text: string containing a section of text to process\n    :param fcall_prompt: string containing the prompt for function calling\n    :param question: string containing the already clarified question\n    :param provider: string indicating which provider to use ('openai' or 'anthropic')\n    :param debug: boolean to enable debug printing\n    :return: tuple of (qa_block, None) for successful extraction, or (None, error_msg) if error"
     },
     {
       "id": "llm.get_last_qa_block_identifier",
@@ -2046,9 +2306,9 @@
       "group": "function",
       "module": "llm.py",
       "submodule": "QA BY SECTIONS - Q ONLY",
-      "def": "def do_qonly_round_3_blocks(transcript_file_path, fcall_prompt, provider=\"openai\", delimiter='---', suffix_new='_qa-qonly'):",
+      "def": "def do_qonly_round_3_blocks(file_path, fcall_prompt, provider=\"openai\", heading=\"### transcript\", delimiter='---', suffix_new='_qa-qonly'):",
       "line": null,
-      "docstring": "Extract QA blocks for previously identified questions from a transcript file.\n    Can resume processing from the last completed QA block in a partially processed file.\n    \n    :param transcript_file_path: string path to the transcript file\n    :param fcall_prompt: string prompt for function calling\n    :param provider: string indicating which provider to use ('openai' or 'anthropic')\n    :param delimiter: string used to separate transcript sections\n    :param suffix_new: string suffix for the QA file\n    :return qa_file_path: string path to the modified file"
+      "docstring": "Extract QA blocks for previously identified questions from a textfile.\n    Can resume processing from the last completed QA block in a partially processed file.\n    \n    :param file_path: string path to the text file\n    :param fcall_prompt: string prompt for function calling\n    :param provider: string indicating which provider to use ('openai' or 'anthropic')\n    :param delimiter: string used to separate transcript sections\n    :param suffix_new: string suffix for the QA file\n    :return qa_file_path: string path to the modified file"
     },
     {
       "id": "llm.move_removed_qa_blocks",
@@ -2056,9 +2316,9 @@
       "group": "function",
       "module": "llm.py",
       "submodule": "QA BY SECTIONS - Q ONLY",
-      "def": "def move_removed_qa_blocks(qa_file_path, removed_questions, new_section_name=\"### removed qa blocks\"):",
+      "def": "def move_removed_qa_blocks(qa_file_path, block_ids_to_remove, new_section_name=\"### removed qa blocks\"):",
       "line": null,
-      "docstring": "Moves specified QA blocks from the qa section to a new section.\n\n    :param qa_file_path: string, path to the QA file.\n    :param removed_questions: list, question identifiers to move (e.g., ['16-4', '16-5']).\n    :param new_section_name: string, name of the section to move blocks to.\n    :return: None"
+      "docstring": "Moves specified QA blocks from the qa section to a new section.\n\n    :param qa_file_path: string, path to the QA file.\n    :param block_ids_to_remove: list, block identifiers to move (e.g., ['16-4', '16-5']).\n    :param new_section_name: string, name of the section to move blocks to.\n    :return: None"
     },
     {
       "id": "llm.rerun_qa_block_fcall",
@@ -2066,7 +2326,7 @@
       "group": "function",
       "module": "llm.py",
       "submodule": "QA BY SECTIONS - Q ONLY",
-      "def": "def rerun_qa_block_fcall(transcript_file_path, fcall_prompt, first_2_qa_block_lines, provider=\"openai\", delimiter='---', suffix_new='_qa-qonly'):",
+      "def": "def rerun_qa_block_fcall(source_file_path, fcall_prompt, first_2_qa_block_lines, provider=\"openai\", heading=\"### transcript\", delimiter='---', suffix_new='_qa-qonly'):",
       "line": null,
       "docstring": "QA Block 4-1\nCLARIFIED QUESTION: How high should the CT values be for low positives in retrospective studies of a rapid antigen test?"
     },
@@ -2076,9 +2336,9 @@
       "group": "function",
       "module": "llm.py",
       "submodule": "QA BY SECTIONS - Q ONLY",
-      "def": "def search_for_no_answers_in_qa_blocks(qa_file_path):",
+      "def": "def search_for_no_answers_in_qa_blocks(qa_file_path, verbose=False):",
       "line": null,
-      "docstring": "Search for patterns indicating missing or no answers in QA sections.\n\n    :param qa_file_path: str, path to the QA file to analyze.\n    :return matches: list, found matches with their pattern, matching line and full QA block."
+      "docstring": "Search for patterns indicating missing or no answers in QA sections.\n\n    :param qa_file_path: str, path to the QA file to analyze.\n    :param verbose: bool, whether to print detailed match information.\n    :return block_ids: list, block identifiers (e.g. ['28-3', '28-5']) for blocks with no answers."
     },
     {
       "id": "llm.auto_process_qa_qonly",
@@ -2086,59 +2346,99 @@
       "group": "function",
       "module": "llm.py",
       "submodule": "QA BY SECTIONS - Q ONLY",
-      "def": "def auto_process_qa_qonly(transcript_file_path):",
+      "def": "def auto_process_qa_qonly(source_file_path, heading):",
       "line": null,
-      "docstring": "You will receive a single section of text. From that text, generate one section title that is no more than ten words. Aim for six words if possible. The title should capture the main idea, question, or topic in a condensed format.\nImportant Requirements:\nNo additional text beyond the section title.\nNo preamble, explanations, or quotes around the title\u2014only the title itself.\nThe title must be one line and stand on its own.\nINSTRUCTIONS:\nIdentify the core theme or question in the text.\nCraft a concise heading of up to ten words, ideally six.\nDo not include any other text, formatting, or commentary.\nWhen you are finished, your entire response should contain only that single section title, with no quotation marks, extra text, or spacing before or after it."
+      "docstring": "You are an expert text analyzer trained in extracting and clarifying questions from any type of text content.\n\nYour Role:\n- Analyze the provided text to identify key questions that would help a reader understand the main points and concepts.\n- Extract both explicit questions (directly stated) and implicit questions (derived from statements or concepts).\n- Break down complex topics into clear, focused questions.\n- Ensure questions are comprehensive but non-redundant.\n\nGuidelines:\n1. Create clear, concise questions that capture the essential information.\n2. Break multi-part questions into separate, focused questions.\n3. Avoid overly broad or vague questions.\n4. Remove any speaker names or unnecessary context from questions.\n5. Maintain the original meaning while making questions more direct and clear.\n6. Include questions about key concepts, definitions, examples, and relationships.\n\nReturn only the structured output following the schema, nothing else."
     },
     {
-      "id": "llm.write_section_titles",
-      "label": "write_section_titles",
+      "id": "llm.create_extract_log_header_config",
+      "label": "create_extract_log_header_config",
       "group": "function",
       "module": "llm.py",
-      "submodule": "QA BY SECTIONS - Q ONLY",
-      "def": "def write_section_titles(transcript_file_path, scall_prompt, provider=\"openai\", delimiter='---', prepend=\"\\n\\n#### \", suffix_new='_section-titles'):",
+      "submodule": "QA QONLY REFACTOR",
+      "def": "def create_extract_log_header_config(config):",
       "line": null,
-      "docstring": "Generate section titles for transcript sections and replace delimiters with these titles.\n\n    :param transcript_file_path: string, path to the transcript file\n    :param scall_prompt: string, prompt for section title generation\n    :param provider: string, which provider to use ('openai' or 'anthropic')\n    :param delimiter: string, used to separate transcript sections\n    :param suffix_new: string, suffix for the new file name\n    :return new_file_path: string, path to the created file"
+      "docstring": "Create the header for the extract log with config information.\n    Shows the config exactly as it appears in the global variable definition.\n\n    :param config: dict, the configuration dictionary\n    :return: list of header lines"
+    },
+    {
+      "id": "llm.extract_questions_single_round",
+      "label": "extract_questions_single_round",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "QA QONLY REFACTOR",
+      "def": "def extract_questions_single_round(section_text, prompt, tools=None, prev_questions=None, provider=\"openai\", max_retries=2, debug=False, abort_on_error=True):",
+      "line": null,
+      "docstring": "Extract questions from a single section of text, either by function calling or \n    simple call, depending on provider/tools.\n\n    :param section_text: str, the content of the section\n    :param prompt: str, the LLM prompt to use (could be specialized for function calling or not)\n    :param tools: list or None, if present -> function-calling approach; if None -> simple call\n    :param prev_questions: list of str, previously extracted questions (optional)\n    :param provider: str, e.g. 'openai', 'anthropic', 'deepseek', or others\n    :param debug: bool, for debug prints\n    :param abort_on_error: bool, raise exceptions if True\n    :param max_retries: int, how many times to retry in case of errors\n    :return: list of extracted question strings, or None if error"
+    },
+    {
+      "id": "llm.process_qa_extraction_rounds",
+      "label": "process_qa_extraction_rounds",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "QA QONLY REFACTOR",
+      "def": "def process_qa_extraction_rounds(source_file_path, config, do_blocks=True,debug=False):",
+      "line": null,
+      "docstring": "Process one or more rounds of question extraction from a source file,\n    optionally followed by QA-block extraction if 'qa_block_extraction' is in config.\n    \n    Merges aspects of both your run_q_extraction_by_sections() and Sonnet's process_qa_extraction_rounds().\n\n    :param source_file_path: str, path to the source file\n    :param config: dict, configuration for extraction rounds and optionally QA block generation\n    :param debug: bool, enable debug output\n    :return: str, path to the created/modified QA file"
+    },
+    {
+      "id": "llm.get_section_lines_by_speakers",
+      "label": "get_section_lines_by_speakers",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "ADD SECTIONS",
+      "def": "def get_section_lines_by_speakers(file_path, remove_speakers, remove_duplicates=False, verbose=False):",
+      "line": null,
+      "docstring": "Get speaker lines and their line numbers from a transcript file.\n    \n    :param file_path: string of the path to the file to process\n    :param remove_speakers: list of strings, any speaker containing these strings will be removed\n    :param remove_duplicates: boolean, if True removes consecutive duplicate speakers\n    :return: list of tuples containing (speaker_full, line_number) where line_number is absolute to file start"
+    },
+    {
+      "id": "llm.get_section_lines_by_perfect_segments",
+      "label": "get_section_lines_by_perfect_segments",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "ADD SECTIONS",
+      "def": "def get_section_lines_by_perfect_segments(eval_seg_csv_path, ref_transcript_path):",
+      "line": null,
+      "docstring": "Get line numbers for blank lines before markdown headings of specified level or lower.\n    Raises ValueError if any heading doesn't have a blank line before it.\n\n    :param md_file_path: string, path to the markdown file to process\n    :param heading_level_: int, maximum heading level to consider (e.g., 3 means look for ###, ##, and #)\n    :return: list of integers, line numbers of blank lines before headings (1-based)"
+    },
+    {
+      "id": "llm.get_section_lines_by_markdown",
+      "label": "get_section_lines_by_markdown",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "ADD SECTIONS",
+      "def": "def get_section_lines_by_markdown(md_file_path, heading_level):",
+      "line": null,
+      "docstring": "Get line numbers for blank lines before markdown headings of specified level or lower.\n    Raises ValueError if any heading doesn't have a blank line before it.\n\n    :param md_file_path: string, path to the markdown file to process\n    :param heading_level_: int, maximum heading level to consider (e.g., 3 means look for ###, ##, and #)\n    :return: list of integers, line numbers of blank lines before headings (1-based)"
+    },
+    {
+      "id": "llm.add_section_delimiters",
+      "label": "add_section_delimiters",
+      "group": "function",
+      "module": "llm.py",
+      "submodule": "ADD SECTIONS",
+      "def": "def add_section_delimiters(file_path, line_numbers, delimiter=\"---\"):",
+      "line": null,
+      "docstring": "Add delimiter strings at specified line numbers in a file.\n    \n    :param file_path: string, path to the file to modify\n    :param line_numbers: list of integers, line numbers where delimiters should be added (1-based)\n    :param delimiter: string, delimiter to add at specified lines (default: '---')\n    :return: None"
     },
     {
       "id": "llm.propagate_section_titles_to_qa",
       "label": "propagate_section_titles_to_qa",
       "group": "function",
       "module": "llm.py",
-      "submodule": "QA BY SECTIONS - Q ONLY",
-      "def": "def propagate_section_titles_to_qa(transcript_file_path, section_heading='####', suffix_new='_qa-qonly'):",
+      "submodule": "ADD SECTIONS",
+      "def": "def propagate_section_titles_to_qa(source_file_path, section_heading='####', suffix_new='_qa-qonly'):",
       "line": null,
-      "docstring": "Propagates section titles from transcript file to corresponding QA file.\n\n    :param transcript_file_path: string, path to the transcript file containing section titles\n    :param section_heading: string, heading format to look for in transcript file\n    :param suffix_new: string, suffix to identify QA file\n    :return qa_file_path: string, path to the modified QA file"
+      "docstring": "Propagates section titles from text file to corresponding QA file.\n\n    :param source_file_path: string, path to the source file containing section titles\n    :param section_heading: string, heading format to look for in source file\n    :param suffix_new: string, suffix to identify QA file\n    :return qa_file_path: string, path to the modified QA file"
     },
     {
-      "id": "llm.get_speaker_lines_by_speakers",
-      "label": "get_speaker_lines_by_speakers",
+      "id": "llm.write_section_titles",
+      "label": "write_section_titles",
       "group": "function",
       "module": "llm.py",
       "submodule": "ADD SECTIONS",
-      "def": "def get_speaker_lines_by_speakers(file_path, remove_speakers, remove_duplicates=False, verbose=False):",
+      "def": "def write_section_titles(source_file_path, scall_prompt, provider=\"openai\", heading=\"### transcript\", delimiter='---', prepend=\"\\n\\n#### \", suffix_new='_section-titles'):",
       "line": null,
-      "docstring": "Get speaker lines and their line numbers from a transcript file.\n    \n    :param file_path: string of the path to the file to process\n    :param remove_speakers: list of strings, any speaker containing these strings will be removed\n    :param remove_duplicates: boolean, if True removes consecutive duplicate speakers\n    :return: list of tuples containing (speaker_full, line_number) where line_number is absolute to file start"
-    },
-    {
-      "id": "llm.get_speaker_lines_by_perfect_segments",
-      "label": "get_speaker_lines_by_perfect_segments",
-      "group": "function",
-      "module": "llm.py",
-      "submodule": "ADD SECTIONS",
-      "def": "def get_speaker_lines_by_perfect_segments(eval_seg_csv_path, ref_transcript_path):",
-      "line": null,
-      "docstring": "Add delimiter strings at specified line numbers in a file.\n    \n    :param file_path: string, path to the file to modify\n    :param line_numbers: list of integers, line numbers where delimiters should be added (1-based)\n    :param delimiter: string, delimiter to add at specified lines (default: '---')\n    :return: None"
-    },
-    {
-      "id": "llm.add_transcript_section_delimiters",
-      "label": "add_transcript_section_delimiters",
-      "group": "function",
-      "module": "llm.py",
-      "submodule": "ADD SECTIONS",
-      "def": "def add_transcript_section_delimiters(file_path, line_numbers, delimiter=\"---\"):",
-      "line": null,
-      "docstring": "Add delimiter strings at specified line numbers in a file.\n    \n    :param file_path: string, path to the file to modify\n    :param line_numbers: list of integers, line numbers where delimiters should be added (1-based)\n    :param delimiter: string, delimiter to add at specified lines (default: '---')\n    :return: None"
+      "docstring": "Generate section titles and replace delimiters with these titles.\n\n    :param source_file_path: string, path to the source file\n    :param scall_prompt: string, prompt for section title generation\n    :param provider: string, which provider to use ('openai' or 'anthropic')\n    :param delimiter: string, used to separate sections\n    :param suffix_new: string, suffix for the new file name\n    :return new_file_path: string, path to the created file"
     },
     {
       "id": "llm.tools_qonly_explicit_list",
@@ -2231,6 +2531,16 @@
       "docstring": "Creates a file containing corrected question-answer pairs from a QA fixed file.\n\n    :param file_path: string of the path to the original file\n    :param split_file_function: function used to separate the original file into blocks\n    :param prompt: string of the prompt to process each block with\n    :param args: additional positional arguments passed to the block separation function\n    :param kwargs: additional keyword arguments passed to the block separation function\n    :return: string of the path to the file with corrected question-answer pairs"
     },
     {
+      "id": "vectordb.convert_date_to_unix",
+      "label": "convert_date_to_unix",
+      "group": "function",
+      "module": "vectordb.py",
+      "submodule": "VECTOR DB SUPPORT",
+      "def": "def convert_date_to_unix(date_str, utc_offset=0):",
+      "line": null,
+      "docstring": "Converts an ISO date string to Unix timestamp with UTC offset.\n\n    :param date_str: string, date in ISO format (e.g., '2024-01-01')\n    :param utc_offset: integer, UTC offset in hours (default: 0 for UTC)\n    :return: integer, Unix timestamp adjusted for UTC offset"
+    },
+    {
       "id": "vectordb.generate_embedding",
       "label": "generate_embedding",
       "group": "function",
@@ -2246,7 +2556,7 @@
       "group": "function",
       "module": "vectordb.py",
       "submodule": "VECTOR DB SUPPORT",
-      "def": "def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=True, embedding_field='QUESTION', date_from_filename=False):",
+      "def": "def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=False, embedding_field='QUESTION', date_from_filename=False):",
       "line": null,
       "docstring": "Generates vectors from markdown files in the specified folder paths.\n\n    :param folder_paths: list of strings of the paths to the folders containing markdown files.\n    :param suffixpat_include: string pattern to filter files by suffix.\n    :param include_subfolders: boolean indicating whether to search for markdown files in subfolders.\n    :param embedding_field: string indicating which field to use for generating embeddings. Default is 'QUESTION'.\n    :param date_from_filename: boolean indicating whether to extract ISO date from filename. Default is False.\n    :return: vectors as a list of dictionaries, each containing an id, values, and metadata.\n    :raises ValueError: if date_from_filename is True and any filename has an invalid ISO date format,\n                       or if any block is missing the specified embedding_field."
     },
@@ -2386,9 +2696,9 @@
       "group": "function",
       "module": "rag.py",
       "submodule": "VRAG",
-      "def": "def print_vrag_display_text(json_object, show_prompt=False):",
+      "def": "def print_vrag_display_text(vrag_json_object, show_prompt=False):",
       "line": null,
-      "docstring": "Prints a formatted display text for VRAG (Vector Retrieval Augmented Generation) results.\n\n    :param json_object: dictionary containing VRAG results with 'content' key.\n    :param show_prompt: boolean to determine whether to show the full LLM prompt.\n    :return: None."
+      "docstring": "Prints a formatted display text for VRAG (Vector Retrieval Augmented Generation) results.\n\n    :param vrag_json_object: dictionary containing VRAG results with 'content' key.\n    :param show_prompt: boolean to determine whether to show the full LLM prompt.\n    :return: None."
     },
     {
       "id": "rag.vrag_llm_call",
@@ -2396,7 +2706,7 @@
       "group": "function",
       "module": "rag.py",
       "submodule": "VRAG",
-      "def": "def vrag_llm_call(user_question, vector_index_name, num_chunks, vrag_preamble=VRAG_PREAMBLE_V1, llm_model=DEFAULT_LLM_MODEL, user_id='default', vrag_version=\"1.0\"):",
+      "def": "def vrag_llm_call(user_question, vector_index_name, num_chunks, vrag_preamble=VRAG_PREAMBLE_V1, llm_model='deepseek-reasoner', user_id='default', vrag_version=\"1.0\"):",
       "line": null,
       "docstring": "Initiates a chat session using vector retrieval augmented generation (VRAG) with a specified question,\n    prompt template, and index name. Returns a JSON object with the results.\n\n    :param user_question: string of the question to initiate the chat with.\n    :param vector_index_name: string of the name of the pinecone index to use for retrieval.\n    :param num_chunks: integer specifying the number of chunks to retrieve.\n    :param vrag_preamble: string of the preamble used to format the chat prompt.\n    :param llm_model: string of the language model to use.\n    :param user_id: string of the user identifier.\n    :param bot_version: string of the bot version.\n    :return: dictionary containing the chat response and metadata."
     },
@@ -2436,9 +2746,9 @@
       "group": "function",
       "module": "rag.py",
       "submodule": "QRAG",
-      "def": "def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict, date_range=None, routes_bounds=[0.3, 0.9], llm_model=DEFAULT_LLM_MODEL, user_id='default', user_context=None, qrag_version=\"1.0\"):",
+      "def": "def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict, date_range=None, routes_bounds=[0.3, 0.9], user_id='default', user_context=None, qrag_version=\"2.0\"):",
       "line": null,
-      "docstring": "Routes a user question through a question retrieval augmented generation (QRAG) process.\n\n    :param user_question: str, the question asked by the user.\n    :param vector_index_name: str, name of the vector index to search.\n    :param num_chunks: int, number of chunks to retrieve and process.\n    :param routes_dict: dict, containing routing information and templates.\n    :param date_range: optional list of two dates [start_date, end_date] in ISO format (e.g., ['2021-01-01', '2021-12-31']).\n    :param routes_bounds: list, lower and upper similarity bounds for routing.\n    :param llm_model: str, name of the language model to use.\n    :param user_id: str, identifier for the user.\n    :param qrag_version: str, version of the QRAG system.\n    :return response: dict, containing metadata and content of the QRAG response."
+      "docstring": "Routes a user question through a question retrieval augmented generation (QRAG) process.\n\n    :param user_question: str, the question asked by the user.\n    :param vector_index_name: str, name of the vector index to search.\n    :param num_chunks: int, number of chunks to retrieve and process.\n    :param routes_dict: dict, containing routing information and templates.\n    :param date_range: optional list of two dates [start_date, end_date] in ISO format.\n    :param routes_bounds: list, lower and upper similarity bounds for routing.\n    :param user_id: str, identifier for the user.\n    :param user_context: dict, optional context about the user.\n    :param qrag_version: str, version of the QRAG system.\n    :return response: dict, containing metadata and content of the QRAG response."
     },
     {
       "id": "rag.qrag_llm_call",
@@ -2446,19 +2756,9 @@
       "group": "function",
       "module": "rag.py",
       "submodule": "QRAG",
-      "def": "def qrag_llm_call(json_object):",
+      "def": "def qrag_llm_call(qrag_json_object, llm_model='o3-mini', large_context=None, large_context_filename=None):",
       "line": null,
-      "docstring": "Generates an AI answer for a given JSON object containing question and context information.\n\n    :param json_object: dictionary containing the question, context, and metadata for generating an AI answer.\n    :return: dictionary with the updated JSON object including the AI-generated answer."
-    },
-    {
-      "id": "rag.print_qrag_display_text",
-      "label": "print_qrag_display_text",
-      "group": "function",
-      "module": "rag.py",
-      "submodule": "QRAG",
-      "def": "def print_qrag_display_text(json_object):",
-      "line": null,
-      "docstring": "Prints a formatted display text for QRAG (Question Retrieval Augmented Generation) results.\n\n    :param json_object: dictionary containing QRAG results with 'content' key.\n    :return: None."
+      "docstring": "Generates an AI answer for a given JSON object containing question and context information.\n\n    :param qrag_json_object: dictionary containing the question, context, and metadata for generating an AI answer.\n    :param llm_model: str, name of the language model to use.\n    :param large_context: str, optional text content of the large context file.\n    :param large_context_filename: str, optional filename of the large context file.\n    :return: dictionary with the updated JSON object including the AI-generated answer."
     },
     {
       "id": "rag.qrag_2step",
@@ -2466,9 +2766,29 @@
       "group": "function",
       "module": "rag.py",
       "submodule": "QRAG",
-      "def": "def qrag_2step(user_question, routes_dict, vector_index_name, num_chunks=2, verbose=True):",
+      "def": "def qrag_2step(user_question, vector_index_name, num_chunks, routes_dict, date_range=None, llm_model='o3-mini', large_context_filename=None, large_context_folder=\"data/large_context_files\", verbose=False):",
       "line": null,
-      "docstring": "Performs a two-step question-answering process using QRAG (Question Retrieval Augmented Generation).\n\n    :param user_question: string of the user's input question.\n    :return: None"
+      "docstring": "Performs a two-step question-answering process using QRAG (Question Retrieval Augmented Generation).\n\n    :param user_question: str, the question asked by the user.\n    :param vector_index_name: str, name of the vector index to search.\n    :param num_chunks: int, number of chunks to retrieve and process.\n    :param routes_dict: dict, containing routing information and templates.\n    :param date_range: optional list of two dates [start_date, end_date] in ISO format.\n    :param llm_model: str, name of the language model to use.\n    :param large_context_filename: str, optional filename of large context file.\n    :param large_context_folder: str, path to folder containing large context files.\n    :param verbose: bool, control debug output.\n    :return: qrag_json_object: dict, containing the QRAG response."
+    },
+    {
+      "id": "rag.print_qrag_display_text",
+      "label": "print_qrag_display_text",
+      "group": "function",
+      "module": "rag.py",
+      "submodule": "QRAG",
+      "def": "def print_qrag_display_text(qrag_json_object):",
+      "line": null,
+      "docstring": "Prints a formatted display text for QRAG (Question Retrieval Augmented Generation) results\n    and copies it to the clipboard.\n\n    :param qrag_json_object: dictionary containing QRAG results with 'content' key.\n    :return: None."
+    },
+    {
+      "id": "rag.create_md_from_qrag_exchange_json",
+      "label": "create_md_from_qrag_exchange_json",
+      "group": "function",
+      "module": "rag.py",
+      "submodule": "QRAG",
+      "def": "def create_md_from_qrag_exchange_json(exchange_json_filepath):",
+      "line": null,
+      "docstring": "Creates a markdown file from a qrag exchange JSON object and saves it in the same folder as the JSON.\n\n    :param exchange_json_filepath: string, path to the JSON exchange file.\n    :return: string, path to the created markdown file."
     },
     {
       "id": "conversion.convert_llamaparse_pdf_to_md",
@@ -2499,6 +2819,16 @@
       "def": "def convert_file_to_md_pandoc(file_path, suffix_new=\"_pandoc\"):",
       "line": null,
       "docstring": "Converts any pandoc supported file format to a markdown file using pypandoc.\n    Including but not limited to: doc, docx, html, latex, epub, odt, rtf, ascii doc.\n    pdf has limitations.\n\n    :param file_path: string of the path to the file to be converted."
+    },
+    {
+      "id": "conversion.convert_md_file_to_epub",
+      "label": "convert_md_file_to_epub",
+      "group": "function",
+      "module": "conversion.py",
+      "submodule": "PANDOC",
+      "def": "def convert_md_file_to_epub(md_file_path, title=None):",
+      "line": null,
+      "docstring": "Converts a markdown file to an epub file using pypandoc with error handling.\n\n    :param md_file_path: string, path to the markdown file to convert\n    :param title: string, optional title for the epub metadata\n    :return: string, path to the output epub file"
     },
     {
       "id": "conversion.convert_megaparse_pdf_to_md",
@@ -2646,9 +2976,39 @@
       "group": "function",
       "module": "conversion.py",
       "submodule": "MARKDOWN",
-      "def": "def combine_files_into_md(file_paths, target_file_path, max_file_size_mb=10):",
+      "def": "def combine_files_into_md(file_paths, target_file_path, max_file_size_mb=10, number_order=True, strip_extensions=False):",
       "line": null,
-      "docstring": "Combine multiple files into a single markdown file.\n    \n    :param file_paths: List of file paths to combine (relative to repo root)\n    :param target_file_path: Path for the output markdown file (relative to repo root)\n    :param max_file_size_mb: Maximum allowed file size in MB (default: 10)\n    :return: The relative path of the combined markdown file"
+      "docstring": "Combine multiple files into a single markdown file.\n\n    :param file_paths: list, file paths to combine (relative to repo root)\n    :param target_file_path: string, path for the output markdown file (relative to repo root)\n    :param max_file_size_mb: int, maximum allowed file size in MB (default: 10)\n    :param number_order: bool, whether to sort files by first number in filename (default: True)\n    :param strip_extensions: bool, whether to strip file extensions in headers (default: False)\n    :return target_file_path: string, relative path of the combined markdown file"
+    },
+    {
+      "id": "conversion.combine_md_files_in_folder",
+      "label": "combine_md_files_in_folder",
+      "group": "function",
+      "module": "conversion.py",
+      "submodule": "MARKDOWN",
+      "def": "def combine_md_files_in_folder(folder_path, target_filename='combined.md', number_order=True, strip_extensions=True):",
+      "line": null,
+      "docstring": "Combines multiple markdown files into a single file.\n\n    :param folder_path: string, path to folder containing markdown files\n    :param target_filename: string, name for combined output file\n    :return: string, path to combined markdown file"
+    },
+    {
+      "id": "conversion.format_date_for_filename",
+      "label": "format_date_for_filename",
+      "group": "function",
+      "module": "conversion.py",
+      "submodule": "SCRAPING",
+      "def": "def format_date_for_filename(date_str):",
+      "line": null,
+      "docstring": "Convert various date formats to YYYY-MM-DD.\n    Handles partial dates by using the first of the month/year.\n    \n    :param date_str: str, date string from RSS feed\n    :return: str, formatted date YYYY-MM-DD"
+    },
+    {
+      "id": "conversion.extract_articles_from_feed",
+      "label": "extract_articles_from_feed",
+      "group": "function",
+      "module": "conversion.py",
+      "submodule": "SCRAPING",
+      "def": "def extract_articles_from_feed(feed_file, output_dir, heading=\"article\"):",
+      "line": null,
+      "docstring": "Extract articles from an RSS feed file and save as markdown files.\n    \n    :param feed_file: str, path to the RSS feed file\n    :param output_dir: str, directory where markdown files will be saved\n    :param heading: str, heading to use for the content section (default: 'article')"
     },
     {
       "id": "conversion.wrap_qa_blocks_in_details",
@@ -2656,9 +3016,9 @@
       "group": "function",
       "module": "conversion.py",
       "submodule": "HTML",
-      "def": "def wrap_qa_blocks_in_details(html_file_path, question_field=\"CLARIFIED QUESTION\", answer_field=\"CLARIFIED ANSWER\"):",
+      "def": "def wrap_qa_blocks_in_details(html_file_path, question_field, answer_field):",
       "line": null,
-      "docstring": "Wraps QA blocks in nested details tags for collapsible viewing.\n    \n    :param html_file_path: string, path to the HTML file to modify\n    :param question_field: string, field name for questions (default: CLARIFIED QUESTION)\n    :param answer_field: string, field name for answers (default: CLARIFIED ANSWER)\n    :return: None"
+      "docstring": "Wraps QA blocks in nested details tags for collapsible viewing.\n    \n    :param html_file_path: string, path to the HTML file to modify\n    :param question_field: string, field name for questions\n    :param answer_field: string, field name for answers\n    :return: None"
     },
     {
       "id": "conversion.clean_summaries_in_html_file",
@@ -2686,9 +3046,9 @@
       "group": "function",
       "module": "conversion.py",
       "submodule": "HTML",
-      "def": "def h_tune_html_file(html_file_path, tune_string, h_level, insert=True, remove_suffixext=True):",
+      "def": "def h_tune_html_file(html_file_path, new_heading_text, h_level, insert=True, remove_suffixext=True):",
       "line": null,
-      "docstring": "Modifies heading text in an HTML file at specified heading level.\n    \n    :param html_file_path: string, path to the HTML file to modify\n    :param tune_string: string, text to insert or replace with\n    :param h_level: int, heading level to modify (1-6)\n    :param insert: bool, if True inserts tune_string after first underscore, if False replaces entire heading\n    :param remove_suffixext: bool, if True removes text after and including last underscore\n    :return: None"
+      "docstring": "Modifies heading text in an HTML file at specified heading level.\n    \n    :param html_file_path: string, path to the HTML file to modify\n    :param new_heading_text: string, text to either:\n                           - insert after first underscore (if insert=True)\n                           - completely replace existing heading with (if insert=False)\n    :param h_level: int, heading level to modify (1-6)\n    :param insert: bool, if True inserts new_heading_text after first underscore,\n                       if False replaces entire heading\n    :param remove_suffixext: bool, if True removes text after and including last underscore\n    :return: None"
     },
     {
       "id": "conversion.convert_markdown_to_html",
@@ -2696,9 +3056,9 @@
       "group": "function",
       "module": "conversion.py",
       "submodule": "HTML",
-      "def": "def convert_markdown_to_html(md_file_path, heading, collapse_h=4, css_file_path=None, cap_first=True):",
+      "def": "def convert_markdown_to_html(md_file_path, heading, collapse_h=4, css_file_path=None, cap_first=True, debug=True, bold_first_line=True, wrap_subsections=False):",
       "line": null,
-      "docstring": "Converts a markdown file to an html file using pypandoc and optionally replaces style with external CSS link.\n    \n    :param md_file_path: string, path to the markdown file to convert\n    :param heading: string, heading to use for the document\n    :param collapse_h: int, heading level to wrap with details/summary elements (default: 4)\n    :param css_file_path: string or None, path to CSS file to link (if None - keeps default styles, if empty string - removes styles)\n    :return: string, path to the output HTML file"
+      "docstring": "Converts a markdown file to an html file using pypandoc with enhanced formatting options.\n\n    :param md_file_path: string, path to the markdown file to convert\n    :param heading: string, heading to use for the document\n    :param collapse_h: int, heading level to wrap with details/summary elements (default: 4)\n    :param css_file_path: string or None, path to CSS file to link\n    :param cap_first: bool, whether to capitalize first letter of headings\n    :param debug: bool, whether to print debug information\n    :param bold_first_line: bool, whether to bold first line of paragraphs\n    :param wrap_subsections: bool, whether to wrap subsections in details tags\n    :return: string, path to the output HTML file"
     },
     {
       "id": "conversion.do_ocr_on_image",
@@ -2736,7 +3096,7 @@
       "group": "function",
       "module": "structured.py",
       "submodule": "BLOCK PROCESSING",
-      "def": "def get_blocks_from_file(qa_file_path, heading=\"### qa\"):",
+      "def": "def get_blocks_from_file(file_path, heading=\"### qa\"):",
       "line": null,
       "docstring": "Extracts and validates blocks of text from a file.\n\n    :param qa_file_path: string of the path to the file to be read.\n    :param verbose: boolean, if True, prints verbose messages. Default is False.\n    :return: list of valid blocks from the file."
     },
@@ -2789,6 +3149,36 @@
       "def": "def propagate_fields_by_subheading(file_path, full_fields, required_fields, delete_fields=[], heading=\"### qa\", keep_only_heading=True):",
       "line": null,
       "docstring": "Propagates fields defined under markdown subheadings to all blocks within those subheadings.\n\n\n    :param file_path: Path to the input QA markdown file.\n    :param full_fields: List of all possible fields for reference and ordering.\n    :param required_fields: List of fields that must be present in every QA block.\n    :param delete_fields: List of fields to delete from every QA block.\n    :param heading: The markdown heading to process. Default is '### qa'.\n    :return: The relative file path of the new file with propagated fields."
+    },
+    {
+      "id": "structured.select_blocks_top_stars",
+      "label": "select_blocks_top_stars",
+      "group": "function",
+      "module": "structured.py",
+      "submodule": "BLOCK PROCESSING",
+      "def": "def select_blocks_top_stars(blocks_list, num_blocks=5):",
+      "line": null,
+      "docstring": "Selects the top num_blocks from the list based on stars count, with timestamp as a tiebreaker.\n    Blocks with no stars or equal stars are sorted by earliest timestamp.\n\n    :param blocks_list: list of text blocks to process\n    :param num_blocks: int, number of top blocks to return\n    :return: list of the top num_blocks blocks sorted by stars (desc) and timestamp (asc)"
+    },
+    {
+      "id": "structured.create_qa_top_stars_file",
+      "label": "create_qa_top_stars_file",
+      "group": "function",
+      "module": "structured.py",
+      "submodule": "BLOCK PROCESSING",
+      "def": "def create_qa_top_stars_file(qa_file_path, suffix_new=\"_qa-topstars\", num_blocks=5):",
+      "line": null,
+      "docstring": "Creates a new file with the top num_blocks from the list of blocks based on the number of stars."
+    },
+    {
+      "id": "structured.create_transcript_top_stars_file",
+      "label": "create_transcript_top_stars_file",
+      "group": "function",
+      "module": "structured.py",
+      "submodule": "BLOCK PROCESSING",
+      "def": "def create_transcript_top_stars_file(qa_top_stars_file_path, suffix_orig=\"_vrb\", suffix_new=\"_vrb-topstars\", debug=False):",
+      "line": null,
+      "docstring": "Creates a new transcript file containing only the speaker segments related to the top-starred QA pairs.\n\n    :param qa_top_stars_file_path: string, path to the QA top stars file\n    :param suffix_orig: string, suffix of the original transcript file\n    :param suffix_new: string, suffix for the new transcript file\n    :param debug: boolean, if True prints debug information\n    :return: string, path to the newly created transcript file"
     },
     {
       "id": "structured.validate_stars",
@@ -2908,7 +3298,7 @@
       "submodule": "TOPICS",
       "def": "def review_singlet_topic_SONNET(folder_paths, matrix_csv_file_path, starting_letter=\"a\"):",
       "line": null,
-      "docstring": "Remove lines from a string of FDA townhall transcript text that match certain patterns.\n\n    :param text: string of the transcript text to be cleaned.\n    :return: string of the cleaned transcript text."
+      "docstring": "Compare two fields in a file and print the differences.\n\n    :param file_path: string, the file path to process.\n    :param field1: string, the first field to compare.\n    :param field2: string, the second field to compare.\n    :param print_same_exceptions: bool, whether to print blocks that are same with exceptions.\n    :param print_different: bool, whether to print blocks that are different.\n    :return: None."
     },
     {
       "id": "structured.review_singlet_topic",
@@ -2917,6 +3307,86 @@
       "module": "structured.py",
       "submodule": "TOPICS",
       "def": "def review_singlet_topic(folder_paths, matrix_csv_file_path, starting_letter=\"a\"):",
+      "line": null,
+      "docstring": "Compare two fields in a file and print the differences.\n\n    :param file_path: string, the file path to process.\n    :param field1: string, the first field to compare.\n    :param field2: string, the second field to compare.\n    :param print_same_exceptions: bool, whether to print blocks that are same with exceptions.\n    :param print_different: bool, whether to print blocks that are different.\n    :return: None."
+    },
+    {
+      "id": "structured.compare_fields",
+      "label": "compare_fields",
+      "group": "function",
+      "module": "structured.py",
+      "submodule": "QA",
+      "def": "def compare_fields(file_path, field1, field2, print_same_exceptions=False, print_different=True):",
+      "line": null,
+      "docstring": "Compare two fields in a file and print the differences.\n\n    :param file_path: string, the file path to process.\n    :param field1: string, the first field to compare.\n    :param field2: string, the second field to compare.\n    :param print_same_exceptions: bool, whether to print blocks that are same with exceptions.\n    :param print_different: bool, whether to print blocks that are different.\n    :return: None."
+    },
+    {
+      "id": "structured.write_blocks_to_heading",
+      "label": "write_blocks_to_heading",
+      "group": "function",
+      "module": "structured.py",
+      "submodule": "QA",
+      "def": "def write_blocks_to_heading(file_path, blocks, heading):",
+      "line": null,
+      "docstring": "Write blocks of text under a specified heading in a file, converting any field containing a list of strings \n    to a comma-separated format.\n\n    :param file_path: string, path to the file to write to\n    :param blocks: list of strings, each string being a block of text\n    :param heading: string, the heading to write under (including # markers)\n    :return: None"
+    },
+    {
+      "id": "structured.remap_fields",
+      "label": "remap_fields",
+      "group": "function",
+      "module": "structured.py",
+      "submodule": "QA",
+      "def": "def remap_fields(file_path, rename_fields, delete_fields=[]):",
+      "line": null,
+      "docstring": "Remap fields in a file based on tuples of old field names to new field names.\n\n    :param file_path: string, path to the file to process\n    :param rename_fields: list of tuples (old_field, new_field) for renaming\n    :param delete_fields: list of fields to delete\n    :return: None"
+    },
+    {
+      "id": "corpuses.collect_s3_source_files",
+      "label": "collect_s3_source_files",
+      "group": "function",
+      "module": "corpuses.py",
+      "submodule": "S3 WEBFLOW UPLOADS",
+      "def": "def collect_s3_source_files(folder_path, transcript_suffix, qa_suffix):",
+      "line": null,
+      "docstring": "Remove lines from a string of FDA townhall transcript text that match certain patterns.\n\n    :param text: string of the transcript text to be cleaned.\n    :return: string of the cleaned transcript text."
+    },
+    {
+      "id": "corpuses.build_s3_source_file_mapping",
+      "label": "build_s3_source_file_mapping",
+      "group": "function",
+      "module": "corpuses.py",
+      "submodule": "S3 WEBFLOW UPLOADS",
+      "def": "def build_s3_source_file_mapping(files_group, config, s3_upload=True, s3_prompt_overwrite=True):",
+      "line": null,
+      "docstring": "Remove lines from a string of FDA townhall transcript text that match certain patterns.\n\n    :param text: string of the transcript text to be cleaned.\n    :return: string of the cleaned transcript text."
+    },
+    {
+      "id": "corpuses.create_cms_item_list",
+      "label": "create_cms_item_list",
+      "group": "function",
+      "module": "corpuses.py",
+      "submodule": "S3 WEBFLOW UPLOADS",
+      "def": "def create_cms_item_list(file_mapping, config):",
+      "line": null,
+      "docstring": "Remove lines from a string of FDA townhall transcript text that match certain patterns.\n\n    :param text: string of the transcript text to be cleaned.\n    :return: string of the cleaned transcript text."
+    },
+    {
+      "id": "corpuses.process_webflow_cms",
+      "label": "process_webflow_cms",
+      "group": "function",
+      "module": "corpuses.py",
+      "submodule": "S3 WEBFLOW UPLOADS",
+      "def": "def process_webflow_cms(cms_items, config, webflow_cms_prompt_overwrite=True):",
+      "line": null,
+      "docstring": "Remove lines from a string of FDA townhall transcript text that match certain patterns.\n\n    :param text: string of the transcript text to be cleaned.\n    :return: string of the cleaned transcript text."
+    },
+    {
+      "id": "corpuses.process_corpus_s3_webflow_upload",
+      "label": "process_corpus_s3_webflow_upload",
+      "group": "function",
+      "module": "corpuses.py",
+      "submodule": "S3 WEBFLOW UPLOADS",
+      "def": "def process_corpus_s3_webflow_upload(config, s3_upload=True, webflow_upload=True, s3_prompt_overwrite=True, webflow_cms_prompt_overwrite=True):",
       "line": null,
       "docstring": "Remove lines from a string of FDA townhall transcript text that match certain patterns.\n\n    :param text: string of the transcript text to be cleaned.\n    :return: string of the cleaned transcript text."
     },
@@ -2989,6 +3459,26 @@
       "def": "def upload_s3_and_webflow_fda_townhalls(s3_upload=True, s3_prompt_overwrite=True, webflow_upload=True):",
       "line": null,
       "docstring": "Uploads FDA townhall files to S3 and creates corresponding Webflow CMS items.\n\n    :param s3_upload: bool, whether to upload files to S3\n    :param s3_prompt_overwrite: bool, whether to prompt before overwriting S3 files\n    :param webflow_upload: bool, whether to create Webflow CMS items\n    :return: None"
+    },
+    {
+      "id": "corpuses.upload_s3_and_webflow_sovereign_child",
+      "label": "upload_s3_and_webflow_sovereign_child",
+      "group": "function",
+      "module": "corpuses.py",
+      "submodule": "Sovereign Child",
+      "def": "def upload_s3_and_webflow_sovereign_child(s3_upload=True, s3_prompt_overwrite=True, webflow_upload=True):",
+      "line": null,
+      "docstring": "Uploads Sovereign Child files to S3 and creates corresponding Webflow CMS items.\n\n    :param s3_upload: bool, whether to upload files to S3\n    :param s3_prompt_overwrite: bool, whether to prompt before overwriting S3 files\n    :param webflow_upload: bool, whether to create Webflow CMS items\n    :return: None"
+    },
+    {
+      "id": "corpuses.get_timestamps_for_qa_from_transcript",
+      "label": "get_timestamps_for_qa_from_transcript",
+      "group": "function",
+      "module": "corpuses.py",
+      "submodule": "Sovereign Child",
+      "def": "def get_timestamps_for_qa_from_transcript(qa_file_path, transcript_file_path, debug=True):",
+      "line": null,
+      "docstring": "Adds timestamps to QA blocks by matching answers with transcript dialogue.\n\n    :param qa_file_path: string, path to QA markdown file\n    :param transcript_file_path: string, path to transcript markdown file\n    :return: None, updates QA file in place"
     },
     {
       "id": "corpuses.create_csv_of_files_by_suffix",
@@ -3119,6 +3609,26 @@
       "def": "def generate_presigned_s3_url(bucket, object_key, method='get', content_type=None, expire_seconds=1800):",
       "line": null,
       "docstring": "Generate a presigned URL for 'get' or 'put' to allow temporary access to S3 objects.\n\n    :param bucket: S3 bucket name\n    :param object_key: Full S3 key, e.g. 'audio/filename.mp3'\n    :param method: 'get' or 'put'\n    :param content_type: Set this if you're generating a PUT URL for JSON or other media\n    :param expire_seconds: How many seconds this URL remains valid (default 30 min)\n    :return: The presigned URL string"
+    },
+    {
+      "id": "aws.get_large_context_from_s3",
+      "label": "get_large_context_from_s3",
+      "group": "function",
+      "module": "aws.py",
+      "submodule": "AWS S3",
+      "def": "def get_large_context_from_s3(filename):",
+      "line": null,
+      "docstring": "Fetch large context file from S3.\n\n    :param filename: str, name of the file to fetch from large-context-files folder\n    :return: str, content of the file\n    :raises: ClientError with specific error details"
+    },
+    {
+      "id": "aws.upload_large_context_files_to_s3",
+      "label": "upload_large_context_files_to_s3",
+      "group": "function",
+      "module": "aws.py",
+      "submodule": "AWS S3",
+      "def": "def upload_large_context_files_to_s3(folder_path='data/large_context_files'):  # not tested",
+      "line": null,
+      "docstring": "Create an API key in API Gateway.\n    \n    :param key_name: Name of the API key\n    :param description: Description of the API key\n    :return: API key ID and value"
     },
     {
       "id": "aws.create_api_key",
@@ -3289,16 +3799,6 @@
       "def": "def test_waf_limit(initial_rapid_requests=20, wait_minutes=2, post_wait_requests=5, verbose=False):",
       "line": null,
       "docstring": "Aggressive test focusing only on WAF rate limit with detailed diagnostics\n    \n    :param verbose: If True, prints detailed debugging info including full responses\n    :param initial_rapid_requests: Number of initial rapid requests to send\n    :param wait_minutes: Minutes to wait after initial requests (0 to skip wait and post-wait requests)\n    :param post_wait_requests: Number of requests to send after waiting"
-    },
-    {
-      "id": "aws.setup_api_gateway_logging",
-      "label": "setup_api_gateway_logging",
-      "group": "function",
-      "module": "aws.py",
-      "submodule": "AWS LOGGING",
-      "def": "def setup_api_gateway_logging(api_names=None):",
-      "line": null,
-      "docstring": "Set up detailed logging for API Gateway stages.\n    If api_names is None, will configure all APIs in LAMBDA_GLOBALS_MAPPING.\n    \n    :param api_names: list of str, optional list of API names to configure\n    :return: dict, results of configuration attempts"
     },
     {
       "id": "aws.get_jwt_signing_key",
@@ -3731,6 +4231,10 @@
       "to": "fileops.get_suffix"
     },
     {
+      "from": "fileops.copy_file_and_replace_suffix",
+      "to": "fileops.sub_suffix_in_str"
+    },
+    {
       "from": "fileops.sub_suffix_in_file",
       "to": "fileops.sub_suffix_in_str"
     },
@@ -3804,7 +4308,27 @@
     },
     {
       "from": "fileops.pretty_print_json_file",
-      "to": "fileops.pretty_print_json_object"
+      "to": "fileops.pretty_print_json_data"
+    },
+    {
+      "from": "fileops.count_non_json_compatible",
+      "to": "fileops.count_non_json_compatible"
+    },
+    {
+      "from": "fileops.convert_data_object_to_json_data",
+      "to": "fileops.convert_data_object_to_json_data"
+    },
+    {
+      "from": "fileops.convert_data_object_to_json_data",
+      "to": "fileops.pretty_print_json_data"
+    },
+    {
+      "from": "fileops.check_json_compatibility",
+      "to": "fileops.count_non_json_compatible"
+    },
+    {
+      "from": "fileops.get_object_from_pickle_file",
+      "to": "fileops.convert_data_object_to_json_data"
     },
     {
       "from": "fileops.delete_files_with_suffix",
@@ -3972,6 +4496,10 @@
     },
     {
       "from": "fileops.find_and_replace_pairs",
+      "to": "fileops.verbose_print"
+    },
+    {
+      "from": "fileops.find_and_replace_pairs",
       "to": "fileops.write_complete_text"
     },
     {
@@ -4069,6 +4597,18 @@
     {
       "from": "fileops.delete_all_heading_instances",
       "to": "fileops.write_complete_text"
+    },
+    {
+      "from": "fileops.create_list_of_strings_from_md_file",
+      "to": "fileops.read_complete_text"
+    },
+    {
+      "from": "fileops.get_heading_above",
+      "to": "fileops.read_complete_text"
+    },
+    {
+      "from": "fileops.scale_headings",
+      "to": "fileops.get_heading_level"
     },
     {
       "from": "fileops.set_last_updated",
@@ -4187,6 +4727,10 @@
       "to": "transcribe.create_youtube_md"
     },
     {
+      "from": "transcribe.extract_feature_from_youtube_md",
+      "to": "fileops.get_heading"
+    },
+    {
       "from": "transcribe.get_media_length",
       "to": "fileops.tune_timestamp"
     },
@@ -4233,6 +4777,30 @@
     {
       "from": "transcribe.set_various_transcript_headings",
       "to": "transcribe.extract_feature_from_youtube_md"
+    },
+    {
+      "from": "transcribe.get_transcript_speaker_lines",
+      "to": "fileops.get_timestamp"
+    },
+    {
+      "from": "transcribe.apply_youtube_chapters_as_section_titles",
+      "to": "fileops.get_heading"
+    },
+    {
+      "from": "transcribe.apply_youtube_chapters_as_section_titles",
+      "to": "fileops.set_heading"
+    },
+    {
+      "from": "transcribe.apply_youtube_chapters_as_section_titles",
+      "to": "fileops.sub_suffix_in_str"
+    },
+    {
+      "from": "transcribe.apply_youtube_chapters_as_section_titles",
+      "to": "transcribe.extract_feature_from_youtube_md"
+    },
+    {
+      "from": "transcribe.apply_youtube_chapters_as_section_titles",
+      "to": "transcribe.get_transcript_speaker_lines"
     },
     {
       "from": "transcribe.transcribe_deepgram_sync",
@@ -4519,6 +5087,10 @@
       "to": "llm.count_tokens"
     },
     {
+      "from": "llm.cost_llm_input_only",
+      "to": "llm.count_tokens"
+    },
+    {
       "from": "llm.cost_llm_on_corpus",
       "to": "fileops.get_files_in_folder"
     },
@@ -4533,6 +5105,18 @@
     {
       "from": "llm.add_token_counts_to_headings",
       "to": "llm.count_tokens"
+    },
+    {
+      "from": "llm.get_reasoning_model_cost_table_from_response",
+      "to": "llm.print_cost_table"
+    },
+    {
+      "from": "llm.compare_reasoning_model_cost_table_from_response",
+      "to": "llm.get_reasoning_model_cost_table_from_response"
+    },
+    {
+      "from": "llm.compare_reasoning_model_cost_table_from_response",
+      "to": "llm.print_cost_table"
     },
     {
       "from": "llm.get_speaker_segments",
@@ -4603,6 +5187,26 @@
       "to": "llm.group_segments_token_cap"
     },
     {
+      "from": "llm.save_llm_response_files",
+      "to": "fileops.convert_data_object_to_json_data"
+    },
+    {
+      "from": "llm.save_llm_response_files",
+      "to": "fileops.save_object_to_pickle_file"
+    },
+    {
+      "from": "llm.save_llm_response_files",
+      "to": "fileops.verbose_print"
+    },
+    {
+      "from": "llm.save_llm_response_files",
+      "to": "fileops.write_json_file_from_json_data"
+    },
+    {
+      "from": "llm.save_llm_response_files",
+      "to": "llm.get_call_cost_from_response"
+    },
+    {
       "from": "llm.test_openai_chat",
       "to": "llm.openai_chat_completion_request"
     },
@@ -4621,6 +5225,50 @@
     {
       "from": "llm.anthropic_function_call",
       "to": "llm.anthropic_chat_completion_request"
+    },
+    {
+      "from": "llm.test_deepseek_chat",
+      "to": "llm.openai_chat_completion_request_sdk"
+    },
+    {
+      "from": "llm.simple_deepseek_chat",
+      "to": "llm.deepseek_chat_completion_request_sdk"
+    },
+    {
+      "from": "llm.deepseek_structured_output",
+      "to": "llm.deepseek_chat_completion_request_sdk"
+    },
+    {
+      "from": "llm.reasoning_response_to_md_multipart_deepseek",
+      "to": "llm.get_call_cost_from_response"
+    },
+    {
+      "from": "llm.reasoning_response_to_md_multipart_openai",
+      "to": "llm.get_call_cost_from_response"
+    },
+    {
+      "from": "llm.reasoning_prompt_to_md_multipart",
+      "to": "fileops.get_current_datetime_filefriendly"
+    },
+    {
+      "from": "llm.reasoning_prompt_to_md_multipart",
+      "to": "llm.deepseek_chat_completion_request_sdk"
+    },
+    {
+      "from": "llm.reasoning_prompt_to_md_multipart",
+      "to": "llm.openai_chat_completion_request_sdk"
+    },
+    {
+      "from": "llm.reasoning_prompt_to_md_multipart",
+      "to": "llm.reasoning_response_to_md_multipart_deepseek"
+    },
+    {
+      "from": "llm.reasoning_prompt_to_md_multipart",
+      "to": "llm.reasoning_response_to_md_multipart_openai"
+    },
+    {
+      "from": "llm.reasoning_prompt_to_md_multipart",
+      "to": "llm.save_llm_response_files"
     },
     {
       "from": "llm.llm_process_block",
@@ -4879,11 +5527,15 @@
       "to": "fileops.get_current_datetime_humanfriendly"
     },
     {
-      "from": "llm.get_transcript_metadata_and_sections",
+      "from": "llm.get_file_metadata_and_sections",
       "to": "fileops.get_heading"
     },
     {
-      "from": "llm.get_transcript_metadata_and_sections",
+      "from": "llm.get_file_metadata_and_sections",
+      "to": "fileops.get_heading_level"
+    },
+    {
+      "from": "llm.get_file_metadata_and_sections",
       "to": "fileops.read_metadata_and_content"
     },
     {
@@ -4897,6 +5549,14 @@
     {
       "from": "llm.fcall_qa_qonly_explicit",
       "to": "llm.convert_tools_to_anthropic_format"
+    },
+    {
+      "from": "llm.fcall_qa_qonly_explicit",
+      "to": "llm.deepseek_qa_output_schema"
+    },
+    {
+      "from": "llm.fcall_qa_qonly_explicit",
+      "to": "llm.deepseek_structured_output"
     },
     {
       "from": "llm.fcall_qa_qonly_explicit",
@@ -4932,7 +5592,7 @@
     },
     {
       "from": "llm.do_qonly_round_1_explicit",
-      "to": "llm.get_transcript_metadata_and_sections"
+      "to": "llm.get_file_metadata_and_sections"
     },
     {
       "from": "llm.do_qonly_round_1_explicit",
@@ -4980,11 +5640,11 @@
     },
     {
       "from": "llm.do_qonly_round_2_implicit",
-      "to": "llm.get_questions_from_qa_file"
+      "to": "llm.get_file_metadata_and_sections"
     },
     {
       "from": "llm.do_qonly_round_2_implicit",
-      "to": "llm.get_transcript_metadata_and_sections"
+      "to": "llm.get_questions_from_qa_file"
     },
     {
       "from": "llm.do_qonly_round_2_implicit",
@@ -5000,11 +5660,11 @@
     },
     {
       "from": "llm.single_section_qonly_round_2_implicit",
-      "to": "llm.get_questions_from_qa_file"
+      "to": "llm.get_file_metadata_and_sections"
     },
     {
       "from": "llm.single_section_qonly_round_2_implicit",
-      "to": "llm.get_transcript_metadata_and_sections"
+      "to": "llm.get_questions_from_qa_file"
     },
     {
       "from": "llm.fcall_qa_qonly_block",
@@ -5044,15 +5704,15 @@
     },
     {
       "from": "llm.do_qonly_round_3_blocks",
+      "to": "llm.get_file_metadata_and_sections"
+    },
+    {
+      "from": "llm.do_qonly_round_3_blocks",
       "to": "llm.get_last_qa_block_identifier"
     },
     {
       "from": "llm.do_qonly_round_3_blocks",
       "to": "llm.get_questions_from_extract_log"
-    },
-    {
-      "from": "llm.do_qonly_round_3_blocks",
-      "to": "llm.get_transcript_metadata_and_sections"
     },
     {
       "from": "llm.move_removed_qa_blocks",
@@ -5076,7 +5736,7 @@
     },
     {
       "from": "llm.rerun_qa_block_fcall",
-      "to": "llm.get_transcript_metadata_and_sections"
+      "to": "llm.get_file_metadata_and_sections"
     },
     {
       "from": "llm.search_for_no_answers_in_qa_blocks",
@@ -5135,24 +5795,92 @@
       "to": "llm.search_for_no_answers_in_qa_blocks"
     },
     {
-      "from": "llm.write_section_titles",
+      "from": "llm.create_extract_log_header_config",
       "to": "fileops.get_current_datetime_humanfriendly"
     },
     {
-      "from": "llm.write_section_titles",
+      "from": "llm.extract_questions_single_round",
+      "to": "fileops.verbose_print"
+    },
+    {
+      "from": "llm.extract_questions_single_round",
+      "to": "llm.anthropic_function_call"
+    },
+    {
+      "from": "llm.extract_questions_single_round",
+      "to": "llm.convert_tools_to_anthropic_format"
+    },
+    {
+      "from": "llm.extract_questions_single_round",
+      "to": "llm.deepseek_qa_output_schema"
+    },
+    {
+      "from": "llm.extract_questions_single_round",
+      "to": "llm.deepseek_structured_output"
+    },
+    {
+      "from": "llm.extract_questions_single_round",
+      "to": "llm.openai_function_call"
+    },
+    {
+      "from": "llm.extract_questions_single_round",
+      "to": "llm.parse_function_call_response"
+    },
+    {
+      "from": "llm.process_qa_extraction_rounds",
+      "to": "fileops.get_current_datetime_humanfriendly"
+    },
+    {
+      "from": "llm.process_qa_extraction_rounds",
+      "to": "fileops.get_heading"
+    },
+    {
+      "from": "llm.process_qa_extraction_rounds",
+      "to": "fileops.set_heading"
+    },
+    {
+      "from": "llm.process_qa_extraction_rounds",
       "to": "fileops.set_metadata_field"
     },
     {
-      "from": "llm.write_section_titles",
+      "from": "llm.process_qa_extraction_rounds",
+      "to": "fileops.sub_suffix_in_str"
+    },
+    {
+      "from": "llm.process_qa_extraction_rounds",
       "to": "fileops.write_metadata_and_content"
     },
     {
-      "from": "llm.write_section_titles",
-      "to": "llm.get_transcript_metadata_and_sections"
+      "from": "llm.process_qa_extraction_rounds",
+      "to": "llm.create_extract_log_header_config"
     },
     {
-      "from": "llm.write_section_titles",
-      "to": "llm.simple_openai_chat_completion_request"
+      "from": "llm.process_qa_extraction_rounds",
+      "to": "llm.do_qonly_round_3_blocks"
+    },
+    {
+      "from": "llm.process_qa_extraction_rounds",
+      "to": "llm.extract_questions_single_round"
+    },
+    {
+      "from": "llm.process_qa_extraction_rounds",
+      "to": "llm.get_file_metadata_and_sections"
+    },
+    {
+      "from": "llm.process_qa_extraction_rounds",
+      "to": "llm.log_section_items"
+    },
+    {
+      "from": "llm.get_section_lines_by_speakers",
+      "to": "fileops.find_line_number_in_file"
+    },
+    {
+      "from": "llm.get_section_lines_by_speakers",
+      "to": "fileops.get_heading"
+    },
+    {
+      "from": "llm.get_section_lines_by_speakers",
+      "to": "fileops.get_timestamp"
     },
     {
       "from": "llm.propagate_section_titles_to_qa",
@@ -5167,16 +5895,24 @@
       "to": "fileops.sub_suffix_in_str"
     },
     {
-      "from": "llm.get_speaker_lines_by_speakers",
-      "to": "fileops.find_line_number_in_file"
+      "from": "llm.write_section_titles",
+      "to": "fileops.get_current_datetime_humanfriendly"
     },
     {
-      "from": "llm.get_speaker_lines_by_speakers",
-      "to": "fileops.get_heading"
+      "from": "llm.write_section_titles",
+      "to": "fileops.set_metadata_field"
     },
     {
-      "from": "llm.get_speaker_lines_by_speakers",
-      "to": "fileops.get_timestamp"
+      "from": "llm.write_section_titles",
+      "to": "fileops.write_metadata_and_content"
+    },
+    {
+      "from": "llm.write_section_titles",
+      "to": "llm.get_file_metadata_and_sections"
+    },
+    {
+      "from": "llm.write_section_titles",
+      "to": "llm.simple_openai_chat_completion_request"
     },
     {
       "from": "llm.scall_meeting_sections",
@@ -5276,6 +6012,10 @@
     },
     {
       "from": "vectordb.generate_vectors_qa",
+      "to": "vectordb.convert_date_to_unix"
+    },
+    {
+      "from": "vectordb.generate_vectors_qa",
       "to": "vectordb.generate_embedding"
     },
     {
@@ -5356,6 +6096,10 @@
     },
     {
       "from": "rag.pinecone_retriever",
+      "to": "vectordb.convert_date_to_unix"
+    },
+    {
+      "from": "rag.pinecone_retriever",
       "to": "vectordb.generate_embedding"
     },
     {
@@ -5380,15 +6124,27 @@
     },
     {
       "from": "rag.qrag_llm_call",
-      "to": "llm.simple_openai_chat_completion_request"
+      "to": "llm.deepseek_chat_completion_request_sdk"
+    },
+    {
+      "from": "rag.qrag_llm_call",
+      "to": "llm.get_call_cost_from_response"
+    },
+    {
+      "from": "rag.qrag_llm_call",
+      "to": "llm.openai_chat_completion_request_sdk"
     },
     {
       "from": "rag.qrag_2step",
-      "to": "fileops.pretty_print_json_object"
+      "to": "fileops.get_current_datetime_filefriendly"
     },
     {
       "from": "rag.qrag_2step",
-      "to": "rag.print_qrag_display_text"
+      "to": "fileops.pretty_print_json_data"
+    },
+    {
+      "from": "rag.qrag_2step",
+      "to": "fileops.write_json_file_from_json_data"
     },
     {
       "from": "rag.qrag_2step",
@@ -5397,6 +6153,14 @@
     {
       "from": "rag.qrag_2step",
       "to": "rag.qrag_routing_call"
+    },
+    {
+      "from": "rag.create_md_from_qrag_exchange_json",
+      "to": "fileops.get_json_data_from_json_file"
+    },
+    {
+      "from": "rag.create_md_from_qrag_exchange_json",
+      "to": "rag.print_qrag_display_text"
     },
     {
       "from": "conversion.get_image_description_msmid",
@@ -5415,8 +6179,28 @@
       "to": "conversion.convert_csv_to_md_table"
     },
     {
+      "from": "conversion.combine_md_files_in_folder",
+      "to": "conversion.combine_files_into_md"
+    },
+    {
+      "from": "conversion.combine_md_files_in_folder",
+      "to": "fileops.get_files_in_folder"
+    },
+    {
+      "from": "conversion.extract_articles_from_feed",
+      "to": "conversion.format_date_for_filename"
+    },
+    {
       "from": "conversion.convert_markdown_to_html",
       "to": "fileops.get_heading"
+    },
+    {
+      "from": "conversion.convert_markdown_to_html",
+      "to": "fileops.scale_headings"
+    },
+    {
+      "from": "conversion.convert_markdown_to_html",
+      "to": "fileops.verbose_print"
     },
     {
       "from": "conversion.vary_ocr_on_image",
@@ -5469,6 +6253,50 @@
     {
       "from": "structured.propagate_fields_by_subheading",
       "to": "structured.get_all_fields_dict"
+    },
+    {
+      "from": "structured.select_blocks_top_stars",
+      "to": "fileops.convert_timestamp_to_seconds"
+    },
+    {
+      "from": "structured.select_blocks_top_stars",
+      "to": "structured.get_field_value"
+    },
+    {
+      "from": "structured.create_qa_top_stars_file",
+      "to": "fileops.copy_file_and_replace_suffix"
+    },
+    {
+      "from": "structured.create_qa_top_stars_file",
+      "to": "fileops.set_heading"
+    },
+    {
+      "from": "structured.create_qa_top_stars_file",
+      "to": "structured.get_blocks_from_file"
+    },
+    {
+      "from": "structured.create_qa_top_stars_file",
+      "to": "structured.select_blocks_top_stars"
+    },
+    {
+      "from": "structured.create_transcript_top_stars_file",
+      "to": "fileops.copy_file_and_replace_suffix"
+    },
+    {
+      "from": "structured.create_transcript_top_stars_file",
+      "to": "fileops.set_heading"
+    },
+    {
+      "from": "structured.create_transcript_top_stars_file",
+      "to": "fileops.sub_suffix_in_str"
+    },
+    {
+      "from": "structured.create_transcript_top_stars_file",
+      "to": "fileops.verbose_print"
+    },
+    {
+      "from": "structured.create_transcript_top_stars_file",
+      "to": "structured.get_blocks_from_file"
     },
     {
       "from": "structured.validate_blocks",
@@ -5551,6 +6379,78 @@
       "to": "structured.change_topic_in_file"
     },
     {
+      "from": "structured.compare_fields",
+      "to": "structured.get_all_fields_dict"
+    },
+    {
+      "from": "structured.compare_fields",
+      "to": "structured.get_blocks_from_file"
+    },
+    {
+      "from": "structured.write_blocks_to_heading",
+      "to": "fileops.set_heading"
+    },
+    {
+      "from": "structured.remap_fields",
+      "to": "fileops.get_heading_above"
+    },
+    {
+      "from": "structured.remap_fields",
+      "to": "structured.get_all_fields_dict"
+    },
+    {
+      "from": "structured.remap_fields",
+      "to": "structured.get_blocks_from_file"
+    },
+    {
+      "from": "structured.remap_fields",
+      "to": "structured.write_blocks_to_heading"
+    },
+    {
+      "from": "corpuses.collect_s3_source_files",
+      "to": "fileops.get_files_in_folder"
+    },
+    {
+      "from": "corpuses.build_s3_source_file_mapping",
+      "to": "aws.upload_file_to_s3"
+    },
+    {
+      "from": "corpuses.build_s3_source_file_mapping",
+      "to": "fileops.read_metadata_field_from_file"
+    },
+    {
+      "from": "corpuses.process_webflow_cms",
+      "to": "webflow_api.webflow_cms_create_item"
+    },
+    {
+      "from": "corpuses.process_webflow_cms",
+      "to": "webflow_api.webflow_cms_get_collection_details"
+    },
+    {
+      "from": "corpuses.process_webflow_cms",
+      "to": "webflow_api.webflow_cms_list_items"
+    },
+    {
+      "from": "corpuses.process_webflow_cms",
+      "to": "webflow_api.webflow_cms_update_item"
+    },
+    {
+      "from": "corpuses.process_corpus_s3_webflow_upload",
+      "to": "corpuses.build_s3_source_file_mapping"
+    },
+    {
+      "from": "corpuses.process_corpus_s3_webflow_upload",
+      "to": "corpuses.collect_s3_source_files"
+    },
+    {
+      "from": "corpuses.process_corpus_s3_webflow_upload",
+      "to": "corpuses.create_cms_item_list"
+    },
+    {
+      "from": "corpuses.process_corpus_s3_webflow_upload",
+      "to": "corpuses.process_webflow_cms"
+    },
+    {
       "from": "corpuses.validate_corpus_deutsch",
       "to": "structured.validate_blocks_in_folders"
     },
@@ -5625,6 +6525,50 @@
     {
       "from": "corpuses.upload_s3_and_webflow_fda_townhalls",
       "to": "webflow_api.webflow_cms_update_item"
+    },
+    {
+      "from": "corpuses.upload_s3_and_webflow_sovereign_child",
+      "to": "aws.upload_file_to_s3"
+    },
+    {
+      "from": "corpuses.upload_s3_and_webflow_sovereign_child",
+      "to": "fileops.read_metadata_field_from_file"
+    },
+    {
+      "from": "corpuses.upload_s3_and_webflow_sovereign_child",
+      "to": "webflow_api.webflow_cms_create_item"
+    },
+    {
+      "from": "corpuses.upload_s3_and_webflow_sovereign_child",
+      "to": "webflow_api.webflow_cms_get_collection_details"
+    },
+    {
+      "from": "corpuses.upload_s3_and_webflow_sovereign_child",
+      "to": "webflow_api.webflow_cms_list_items"
+    },
+    {
+      "from": "corpuses.upload_s3_and_webflow_sovereign_child",
+      "to": "webflow_api.webflow_cms_update_item"
+    },
+    {
+      "from": "corpuses.get_timestamps_for_qa_from_transcript",
+      "to": "fileops.get_heading"
+    },
+    {
+      "from": "corpuses.get_timestamps_for_qa_from_transcript",
+      "to": "fileops.set_heading"
+    },
+    {
+      "from": "corpuses.get_timestamps_for_qa_from_transcript",
+      "to": "structured.get_all_fields_dict"
+    },
+    {
+      "from": "corpuses.get_timestamps_for_qa_from_transcript",
+      "to": "structured.get_blocks_from_file"
+    },
+    {
+      "from": "corpuses.get_timestamps_for_qa_from_transcript",
+      "to": "structured.get_field_value"
     },
     {
       "from": "corpuses.create_csv_of_files_by_suffix",

@@ -239,8 +239,11 @@ cd - > /dev/null
 echo "Previous validation state: $VALIDATION_STATE"
 
 # Modified user input section
-read -p "Check chalicelib files and config.json - Press Enter to continue with chalice deploy, or any other key to abort: " user_input
+# read -p "Check chalicelib files and config.json - Press Enter to continue with chalice deploy, or any other key to abort: " user_input
 
+# if [ -z "$user_input" ]; then
+# Auto-confirm by setting empty user input
+user_input=""
 if [ -z "$user_input" ]; then
     # Run chalice deploy
     echo "Running chalice deploy..."
@@ -290,7 +293,7 @@ echo "Restored original config.json"
 # Disable debug mode (if enabled)
 #set +x
 
-echo "Script completed."
+echo "Script completed at $(date '+%Y-%m-%d %H:%M:%S')"
 
 # ===== END OF FILE chalicelib_mirror_deploy.sh =====
 

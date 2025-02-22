@@ -69,7 +69,7 @@ from primary.aws_valid import *
 from primary.rag import *
 from primary.vectordb import *
 from primary.rag_prompts_routes import *
-from primary.video import *
+from secondary.video import *
 from primary.webflow_api import *
 from primary.dbgen import *
 from docs.vis.codebase_graph_vis import *

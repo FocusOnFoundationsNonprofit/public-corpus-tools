@@ -53,7 +53,7 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    var fileInfoSiteBody = `webflow-qrag-input-component-date-embed.html   1-23 0443 major refactor of date range and num chunks`;
+    var fileInfoSiteBody = `webflow-qrag-input-component-date-embed.html   2-02 0823 add date range to deutsch and pv-evac`;
     console.log('Loading JavaScript for QRAG Input Component Embed: ', fileInfoSiteBody);
 
     // Find parent BotContainer and set date range visibility
@@ -63,7 +63,12 @@
     // Define num chunks variables and functions first
     const numChunksOptions = qragInputComponent.querySelectorAll('.num-chunks-option');
     const defaultNumChunksValue = '3';
-    let selectedNumChunksValue = sessionStorage.getItem('num-chunks') || defaultNumChunksValue;
+
+    // Always ensure num_chunks has a value in session storage
+    if (!sessionStorage.getItem('num-chunks')) {
+        sessionStorage.setItem('num-chunks', defaultNumChunksValue);
+    }
+    let selectedNumChunksValue = sessionStorage.getItem('num-chunks');
 
     function updateSelectedOption(selectedElement) {
         numChunksOptions.forEach(option => option.classList.remove('selected'));
@@ -75,16 +80,31 @@
 
     if (botContainer) {
         const containerId = botContainer.id;
-        const showDateRange = containerId.includes('fda-townhalls');
+        let showDateRange = false;
+        
+        // Initialize date range inputs
+        const startDate = qragInputComponent.querySelector('#start-date');
+        const endDate = qragInputComponent.querySelector('#end-date');
+        
+        let minAllowedDate, maxAllowedDate;
+        
+        // Set specific date ranges for each container type
+        if (containerId.includes('fda-townhalls')) {
+            minAllowedDate = '2020-03-02';
+            maxAllowedDate = '2023-04-26';
+            showDateRange = true;
+        } else if (containerId.includes('deutsch')) {
+            minAllowedDate = '1995-01-01';
+            maxAllowedDate = '2024-12-23';
+            showDateRange = true;
+        } else if (containerId.includes('pv-evac')) {
+            minAllowedDate = '2023-09-20';
+            maxAllowedDate = '2024-10-23';
+            showDateRange = true;
+        }
         
         // Set the data attribute
         qragInputComponent.setAttribute('data-show-date-range', showDateRange);
-        
-        // Initialize date range inputs and set fixed limits
-        const startDate = qragInputComponent.querySelector('#start-date');
-        const endDate = qragInputComponent.querySelector('#end-date');
-        const minAllowedDate = '2020-03-02';
-        const maxAllowedDate = '2023-04-26';
         
         // Set the min/max constraints
         if (startDate && endDate) {
@@ -93,7 +113,7 @@
             endDate.min = minAllowedDate;
             endDate.max = maxAllowedDate;
             
-            // Reset non-user info items to defaults based on page type
+            // Reset non-user info items based on page type
             if (showDateRange) {
                 // FDA page - set date range defaults
                 sessionStorage.setItem('qrag-start-date', minAllowedDate);
@@ -133,21 +153,9 @@
                 }
             }
         }
-
-        // Reset num_chunks to default for all pages
-        sessionStorage.setItem('num-chunks', defaultNumChunksValue);
-        
-        // Update UI to match new session storage values
-        numChunksOptions.forEach(option => {
-            if (option.getAttribute('data-value') === defaultNumChunksValue) {
-                updateSelectedOption(option);
-            }
-        });
-        
-        console.log(`Date range visibility set to ${showDateRange} for container ${containerId}`);
     }
 
-    // Initialize the UI with the stored or default value
+    // Initialize the UI with the stored value
     numChunksOptions.forEach(option => {
         if (option.getAttribute('data-value') === selectedNumChunksValue) {
             updateSelectedOption(option);

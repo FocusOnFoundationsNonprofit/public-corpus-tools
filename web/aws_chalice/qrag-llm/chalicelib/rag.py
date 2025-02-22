@@ -1,19 +1,20 @@
+# ===== START OF FILE chalicelib/rag.py =====
+# Library of functions and execution code to do RAG tasks
+
 import os
 from datetime import datetime
 from pinecone import Pinecone
 
-from chalicelib.vectordb import generate_embedding
-from chalicelib.llm import simple_openai_chat_completion_request  # 10-6-24 commmented out for qrag-routing
+from chalicelib.vectordb import generate_embedding, convert_date_to_unix
+from chalicelib.llm import simple_openai_chat_completion_request, deepseek_chat_completion_request_sdk, openai_chat_completion_request_sdk
+from chalicelib.llm import get_call_cost_from_response, TOKEN_PRICE_DICT
 from chalicelib.rag_prompts_routes import *
+from chalicelib.fileops import convert_data_object_to_json_data
 
 # ---API KEYS AND SECRETS---
-OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
-# ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY_LOCAL"]  # Not in chalice/config.json  # Not in chalice/config.json
 PINECONE_API_KEY = os.environ["PINECONE_API_KEY"]
  
 # ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
-
-DEFAULT_LLM_MODEL = 'gpt-4o'
 
 ### RETRIEVAL
 def pinecone_retriever(query, vector_index_name, num_chunks, date_range=None):
@@ -27,6 +28,7 @@ def pinecone_retriever(query, vector_index_name, num_chunks, date_range=None):
     :return: tuple containing fetched question chunks and a dictionary of retrieved IDs with their scores.
     """
     pinecone_client = Pinecone(api_key=PINECONE_API_KEY)
+    print(f"DEBUG: Starting pinecone_retriever with date_range={date_range}")
 
     vectorized_query = generate_embedding(query)
     index = pinecone_client.Index(vector_index_name)
@@ -41,16 +43,32 @@ def pinecone_retriever(query, vector_index_name, num_chunks, date_range=None):
     
     # Add date range filter if provided
     if date_range and len(date_range) == 2:
-        # Convert ISO date strings to Unix timestamps
-        start_date_timestamp_unix = int(datetime.fromisoformat(date_range[0]).timestamp())
-        end_date_timestamp_unix = int(datetime.fromisoformat(date_range[1]).timestamp())
-        
-        query_params["filter"] = {
-            "DATE": {
-                "$gte": start_date_timestamp_unix,
-                "$lte": end_date_timestamp_unix
+        try:
+            # Use UTC-7 (PDT) to match how vectors were created
+            utc_offset = -7
+            
+            # Convert dates to timestamps using UTC-7
+            start_date_timestamp_unix = convert_date_to_unix(date_range[0], utc_offset)
+            end_date_timestamp_unix = convert_date_to_unix(date_range[1], utc_offset)
+            
+            print(f"DEBUG: Converting dates (UTC-7/PDT):")
+            print(f"  Input dates: {date_range[0]} to {date_range[1]}")
+            print(f"  Unix timestamps: {start_date_timestamp_unix} to {end_date_timestamp_unix}")
+            
+            query_params["filter"] = {
+                "DATE": {
+                    "$gte": start_date_timestamp_unix,
+                    "$lte": end_date_timestamp_unix
+                }
             }
-        }
+            
+            # Create a copy of query_params with truncated vector for logging
+            log_params = query_params.copy()
+            log_params['vector'] = f"[{log_params['vector'][0]:.4f}, ... {len(log_params['vector'])} values]"
+            print(f"DEBUG: Final query_params: {log_params}")
+        except Exception as e:
+            print(f"DEBUG: Error in date conversion: {str(e)}")
+            raise
     
     retrieved_qchunks = index.query(**query_params)
     
@@ -65,31 +83,32 @@ def pinecone_retriever(query, vector_index_name, num_chunks, date_range=None):
 
 
 ### VRAG
-def print_vrag_display_text(json_object, show_prompt=False):
+def print_vrag_display_text(vrag_json_object, show_prompt=False):
     """
     Prints a formatted display text for VRAG (Vector Retrieval Augmented Generation) results.
 
-    :param json_object: dictionary containing VRAG results with 'content' key.
+    :param vrag_json_object: dictionary containing VRAG results with 'content' key.
     :param show_prompt: boolean to determine whether to show the full LLM prompt.
     :return: None.
     """
-    user_question = json_object['content']['user_question']
-    ai_answer = json_object['content']['ai_answer']
+    user_question = vrag_json_object['content']['user_question']
+    ai_answer = vrag_json_object['content']['ai_answer']
     
     display_text = f"USER QUESTION: {user_question}\n\n"
     
     if show_prompt:
-        llm_prompt = json_object['content']['llm_prompt']
+        llm_prompt = vrag_json_object['content']['llm_prompt']
         display_text += f"LLM PROMPT:\n{llm_prompt}\n\n"
     else:
-        chunk_texts = json_object['content']['chunk_texts']
+        chunk_texts = vrag_json_object['content']['chunk_texts']
         display_text += f"RETRIEVED CHUNKS:\n{chunk_texts}\n\n"
     
     display_text += f"AI ANSWER: {ai_answer}"
     
     print(display_text)
-    
-def vrag_llm_call(user_question, vector_index_name, num_chunks, vrag_preamble=VRAG_PREAMBLE_V1, llm_model=DEFAULT_LLM_MODEL, user_id='default', vrag_version="1.0"):
+
+# TODO: update for deepseek-reasoner
+def vrag_llm_call(user_question, vector_index_name, num_chunks, vrag_preamble=VRAG_PREAMBLE_V1, llm_model='deepseek-reasoner', user_id='default', vrag_version="1.0"):
     """
     Initiates a chat session using vector retrieval augmented generation (VRAG) with a specified question,
     prompt template, and index name. Returns a JSON object with the results.
@@ -112,7 +131,7 @@ def vrag_llm_call(user_question, vector_index_name, num_chunks, vrag_preamble=VR
     chunk_texts = chunk_texts.rstrip('\n')  # Remove trailing newline if present
 
     llm_prompt = vrag_preamble + "\n" + chunk_texts + "\nUSER QUESTION: " + user_question + "\n\nAI ANSWER: "
-    llm_answer = simple_openai_chat_completion_request(llm_prompt, model=llm_model)
+    ai_answer = simple_openai_chat_completion_request(llm_prompt, model=llm_model)
     
     return {
         "metadata": {
@@ -130,7 +149,7 @@ def vrag_llm_call(user_question, vector_index_name, num_chunks, vrag_preamble=VR
             "user_question": user_question,
             "chunk_texts": chunk_texts,
             "llm_prompt": llm_prompt,
-            "ai_answer": llm_answer
+            "ai_answer": ai_answer
         }
     }
  
@@ -237,8 +256,9 @@ def parse_chunks(chunks, simscores):
         parsed_chunks.append(parsed_chunk)
     return parsed_chunks
 
-def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict, date_range=None, routes_bounds=[0.3, 0.9], 
-                      llm_model=DEFAULT_LLM_MODEL, user_id='default', qrag_version="1.0"):
+def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict,
+                      date_range=None, routes_bounds=[0.3, 0.9],
+                      user_id='default', user_context=None, qrag_version="2.0"):
     """
     Routes a user question through a question retrieval augmented generation (QRAG) process.
 
@@ -246,10 +266,10 @@ def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict,
     :param vector_index_name: str, name of the vector index to search.
     :param num_chunks: int, number of chunks to retrieve and process.
     :param routes_dict: dict, containing routing information and templates.
-    :param date_range: optional list of two dates [start_date, end_date] in ISO format (e.g., ['2021-01-01', '2021-12-31']).
+    :param date_range: optional list of two dates [start_date, end_date] in ISO format.
     :param routes_bounds: list, lower and upper similarity bounds for routing.
-    :param llm_model: str, name of the language model to use.
     :param user_id: str, identifier for the user.
+    :param user_context: dict, optional context about the user.
     :param qrag_version: str, version of the QRAG system.
     :return response: dict, containing metadata and content of the QRAG response.
     """
@@ -293,16 +313,18 @@ def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict,
     # Determine max similarity and stars
     max_sim = max(chunk['sim'] for chunk in parsed_chunks) if parsed_chunks else 0
     max_stars = max(chunk['stars'] for chunk in parsed_chunks) if parsed_chunks else 0
-
     lower_sim_bound, upper_sim_bound = routes_bounds
 
     if max_sim >= upper_sim_bound:
         route_preamble = routes_dict['route_preamble_good_match']
+        prompt_initial = routes_dict['prompt_initial_good_match']
     elif max_sim <= lower_sim_bound:
         route_preamble = routes_dict['route_preamble_no_match']
+        prompt_initial = routes_dict['prompt_initial_no_match']
         quoted_qa = ""
     else:
         route_preamble = routes_dict['route_preamble_partial_match']
+        prompt_initial = routes_dict['prompt_initial_partial_match']
 
     # Prepare chunk metadata for the response
     chunks_metadata = []
@@ -316,13 +338,15 @@ def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict,
             "sim": "{:.3f}".format(chunk['sim'])
         })
 
-    response = {
+    # Build the final JSON response
+    qrag_routing_output_json_object = {
         "metadata": {
             "timestamp": datetime.now().isoformat(),
             "user_id": user_id,
+            # Add user_context if provided
+            **({"user_context": user_context} if user_context else {}),
             "vector_index_name": vector_index_name,
             "qrag_version": qrag_version,
-            "llm_model": llm_model,
             "routes_info": {
                 "routes_flow_name": routes_flow_name,
                 "upper_sim_bound": upper_sim_bound,
@@ -335,6 +359,7 @@ def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict,
         "content": {
             "user_question": user_question,
             "route_preamble": route_preamble,
+            "prompt_initial": prompt_initial,
             "quoted_qa": quoted_qa,
             "ai_answer": "WAITING FOR AI ANSWER...",
             "chunks": {
@@ -347,75 +372,242 @@ def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict,
 
     # Add date range if provided
     if date_range is not None:
-        response["metadata"]["date_range"] = date_range
+        qrag_routing_output_json_object["metadata"]["date_range"] = date_range
+    
+    return qrag_routing_output_json_object
 
-    return response
-
-def qrag_llm_call(json_object):
+LLM_MODEL_OPTIONS_QRAG_LLM_CALL = ["gpt-4o", "gpt-4o-mini", "o3-mini", "deepseek-reasoner"]  # sync these with aws_valid.LLM_MODEL_OPTIONS
+def qrag_llm_call(qrag_json_object, llm_model='o3-mini', large_context=None, large_context_filename=None):
     """ 
     Generates an AI answer for a given JSON object containing question and context information.
 
-    :param json_object: dictionary containing the question, context, and metadata for generating an AI answer.
+    :param qrag_json_object: dictionary containing the question, context, and metadata for generating an AI answer.
+    :param llm_model: str, name of the language model to use.
+    :param large_context: str, optional text content of the large context file.
+    :param large_context_filename: str, optional filename of the large context file.
     :return: dictionary with the updated JSON object including the AI-generated answer.
     """
+    # Check that large_context and large_context_filename are either both present or both None
+    if bool(large_context) != bool(large_context_filename):
+        raise ValueError("Both large_context and large_context_filename must be provided together or both must be None")
+    
     # Verify necessary fields exist in the JSON object
-    required_fields = ['user_question', 'route_preamble', 'quoted_qa', 'ai_answer']
-    missing_fields = [field for field in required_fields if field not in json_object['content']]
+    required_fields = ['user_question', 'prompt_initial', 'quoted_qa']
+    missing_fields = [field for field in required_fields if field not in qrag_json_object['content']]
     if missing_fields:
         raise ValueError(f"Missing required fields in JSON object: {', '.join(missing_fields)}")
 
-    # Extract necessary information from json_object
-    user_question = json_object['content']['user_question']
-    route_preamble = json_object['content']['route_preamble']
-    quoted_qa = json_object['content']['quoted_qa']
-
+    # Extract necessary information from qrag_json_object
+    user_question = qrag_json_object['content']['user_question']
+    prompt_initial = qrag_json_object['content']['prompt_initial']
+    quoted_qa = qrag_json_object['content']['quoted_qa']
+    
+    # Update metadata with LLM model
+    qrag_json_object['metadata']['llm_model'] = llm_model
+    
+    # Store large context filename if provided but not the text content
+    if large_context_filename:
+        qrag_json_object['content']['large_context_filename'] = large_context_filename
+    
     # Prepare the prompt for the LLM call
-    llm_prompt = route_preamble + "\n" + quoted_qa + "\nUSER QUESTION: " + user_question + "\n\nAI ANSWER: "
+    llm_full_prompt = (
+        f"{prompt_initial.strip()}\n\n"
+        f"<USER_QUESTION>\n{user_question}\n</USER_QUESTION>\n\n"
+        f"<QUOTED_QA>\n{quoted_qa}\n</QUOTED_QA>\n\n"
+    )
 
-    # Make the LLM call using simple_openai_chat_completion_request function
-    llm_model = json_object['metadata']['llm_model']
-    llm_answer = simple_openai_chat_completion_request(llm_prompt, model=llm_model)
+    # Only add large context section if it exists
+    if large_context:
+        llm_full_prompt += f"<LARGE_CONTEXT>\n{large_context}\n</LARGE_CONTEXT>\n\n"
 
-    # Add the AI answer to the json_object
-    json_object['content']['ai_answer'] = llm_answer
-    json_object['content']['llm_prompt'] = llm_prompt  # Optionally include the prompt
+    # Make the LLM call
+    llm_messages = [{"role": "user", "content": llm_full_prompt}]
 
-    return json_object
+    if llm_model == 'deepseek-reasoner':
+        llm_response = deepseek_chat_completion_request_sdk(llm_messages, model=llm_model)
+        qrag_json_object['content']['reasoning_steps'] = llm_response.choices[0].message.reasoning_content
+    elif llm_model in LLM_MODEL_OPTIONS_QRAG_LLM_CALL:
+        llm_response = openai_chat_completion_request_sdk(messages=llm_messages, model=llm_model)
+    else:
+        raise ValueError("Currently only the following LLM models are supported for qrag_llm_call: " + ", ".join(LLM_MODEL_OPTIONS_QRAG_LLM_CALL))
+    
+    # Store only selected parts of the response in the json object
+    qrag_json_object['content']['ai_answer'] = llm_response.choices[0].message.content
+    
+    cost_pennies_mycalc = get_call_cost_from_response(llm_response, llm_model, TOKEN_PRICE_DICT, verbose=False)
+    qrag_json_object['content']['cost_pennies_mycalc'] = cost_pennies_mycalc
 
-def print_qrag_display_text(json_object):
-    """ 
-    Prints a formatted display text for QRAG (Question Retrieval Augmented Generation) results.
+    return qrag_json_object
 
-    :param json_object: dictionary containing QRAG results with 'content' key.
-    :return: None.
-    """
-    user_question = json_object['content']['user_question']
-    route_preamble = json_object['content']['route_preamble']
-    quoted_qa = json_object['content']['quoted_qa']
-    ai_answer = json_object['content']['ai_answer']
-    display_text = 'USER QUESTION: ' + user_question + '\n\n' + 'ROUTE PREAMBLE: ' + route_preamble + '\n\n' + quoted_qa + 'AI ANSWER: ' + ai_answer
-    print(display_text)
-
-def qrag_2step(user_question, routes_dict, vector_index_name, num_chunks=2, verbose=True):
+def qrag_2step(user_question, vector_index_name, num_chunks, routes_dict, 
+               date_range=None, llm_model='o3-mini', large_context_filename=None, 
+               large_context_folder="data/large_context_files", verbose=False):
     """ 
     Performs a two-step question-answering process using QRAG (Question Retrieval Augmented Generation).
 
-    :param user_question: string of the user's input question.
-    :return: None
+    :param user_question: str, the question asked by the user.
+    :param vector_index_name: str, name of the vector index to search.
+    :param num_chunks: int, number of chunks to retrieve and process.
+    :param routes_dict: dict, containing routing information and templates.
+    :param date_range: optional list of two dates [start_date, end_date] in ISO format.
+    :param llm_model: str, name of the language model to use.
+    :param large_context_filename: str, optional filename of large context file.
+    :param large_context_folder: str, path to folder containing large context files.
+    :param verbose: bool, control debug output.
+    :return: qrag_json_object: dict, containing the QRAG response.
     """
-    from chalicelib.fileops import pretty_print_json_object
+    from chalicelib.fileops import pretty_print_json_data, get_current_datetime_filefriendly
+    from chalicelib.llm import write_json_file_from_json_data
+
+    print("Running qrag_2step...")
 
     # Create JSON object with routing information
-    routing_json_obj = qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict)
+    print(f"Calling qrag_routing_call with parameters:\n"
+          f"  user_question: {user_question}\n"
+          f"  vector_index_name: {vector_index_name}\n" 
+          f"  num_chunks: {num_chunks}\n"
+          f"  routes_dict: {routes_dict}\n"
+          f"  date_range: {date_range}")
+    
+    routing_json_obj = qrag_routing_call(
+        user_question=user_question, 
+        vector_index_name=vector_index_name, 
+        num_chunks=num_chunks, 
+        routes_dict=routes_dict,
+        date_range=date_range
+    )
 
     if verbose:
-        pretty_print_json_object(routing_json_obj, print_values=True)
+        print("******** Routing JSON object: ********")
+        pretty_print_json_data(routing_json_obj, print_values=True)
     
-    # Print the display text for the QRAG process
-    print_qrag_display_text(routing_json_obj)
+    print(f"  Finished qrag_routing_call.\nRunning qrag_llm_call with model {llm_model}...")
+    
+    # Load large context if filename provided
+    large_context = None
+    if large_context_filename:
+        large_context_path = os.path.join(large_context_folder, large_context_filename)
+        try:
+            with open(large_context_path, 'r') as file:
+                large_context = file.read()
+                print(f"Successfully loaded large context from {large_context_filename}")
+        except Exception as e:
+            print(f"Warning: Failed to load large context file: {str(e)}")
+            large_context = None
+            large_context_filename = None
+    
+    # Generate the AI answer with LLM model and large context
+    qrag_json_object = qrag_llm_call(
+        routing_json_obj,
+        llm_model=llm_model,
+        large_context=large_context,
+        large_context_filename=large_context_filename
+    )
+    
+    print("  Finished qrag_llm_call.\nPrinting display text...")
+    
+    # Then print the display text with the complete information
+    pretty_print_json_data(qrag_json_object, print_values=True)
+    
+    # Save the response to a file
+    datetime = get_current_datetime_filefriendly()
+    query = user_question
+    query_trim = query[:30] + (query[30:].split(None, 1)[0].rstrip('.,!?;:') if len(query) > 30 and not query[30].isspace() else '')
+    json_filename = f"chat_response_{datetime}_{llm_model}_{query_trim}.json"
+    json_file_path = "exchanges/response_files/" + json_filename
+    write_json_file_from_json_data(qrag_json_object, json_file_path, overwrite="yes")
+    
+    if verbose:
+        print("******** QRAG JSON object: ********")
+        pretty_print_json_data(qrag_json_object, print_values=True)
+    
+    return qrag_json_object
 
-    # Generate and print the AI answer
-    ai_answer = qrag_llm_call(routing_json_obj)['content']['ai_answer']
-    print(colored(ai_answer, 'red'))
+def print_qrag_display_text(qrag_json_object):
+    """ 
+    Prints a formatted display text for QRAG (Question Retrieval Augmented Generation) results
+    and copies it to the clipboard.
+
+    :param qrag_json_object: dictionary containing QRAG results with 'content' key.
+    :return: None.
+    """
+    user_question = qrag_json_object['content']['user_question']
+    route_preamble = qrag_json_object['content']['route_preamble']
+    quoted_qa = qrag_json_object['content']['quoted_qa']
+    ai_answer = qrag_json_object['content']['ai_answer']
+    
+    # Get optional fields with default values if they don't exist
+    reasoning_steps = qrag_json_object['content'].get('reasoning_steps', '')
+    large_context_filename = qrag_json_object['content'].get('large_context_filename', '')
+    
+    user_question_first_line = user_question.split('\n')[0]
+    user_question_rest = '\n'.join(user_question.split('\n')[1:])
+    
+    # Build display text with optional sections
+    display_text = [
+        f"# {user_question_first_line}",
+        user_question_rest,
+        "",
+        "## ROUTE PREAMBLE:",
+        route_preamble,
+        "",
+        "## QUOTED QA:",
+        quoted_qa,
+        "",
+        "## AI ANSWER:",
+        ai_answer
+    ]
+    
+    # Add reasoning steps if they exist
+    if reasoning_steps:
+        display_text.extend(["", "## REASONING STEPS:", reasoning_steps])
+    
+    # Add large context filename if it exists
+    if large_context_filename:
+        display_text.extend(["", f"## LARGE CONTEXT FILE:", large_context_filename])
+    
+    # Join all sections with newlines
+    display_text = '\n'.join(display_text)
+    print(display_text)
+    
+    # Copy to clipboard
+    pyperclip.copy(display_text)
+    return display_text
+
+def create_md_from_qrag_exchange_json(exchange_json_filepath):
+    """
+    Creates a markdown file from a qrag exchange JSON object and saves it in the same folder as the JSON.
+
+    :param exchange_json_filepath: string, path to the JSON exchange file.
+    :return: string, path to the created markdown file.
+    """
+    qrag_json_object = get_json_data_from_json_file(exchange_json_filepath)
+    display_text = print_qrag_display_text(qrag_json_object)
+    
+    # Get question
+    question = qrag_json_object['content']['user_question']
+    
+    # Truncate question to 30 chars on word boundary
+    words = question.split()
+    truncated_question = ""
+    for word in words:
+        if len(truncated_question + word) > 30:
+            break
+        truncated_question += word + " "
+    truncated_question = truncated_question.strip()
+    
+    # Get base filename without extension
+    base_filename = os.path.splitext(os.path.basename(exchange_json_filepath))[0]
+    
+    # Create markdown filepath in same folder as JSON
+    folder = os.path.dirname(exchange_json_filepath)
+    md_filename = f"{base_filename}_{truncated_question}.md"
+    exchange_md_filepath = os.path.join(folder, md_filename)
+    
+    # Write markdown file
+    with open(exchange_md_filepath, 'w') as f:
+        f.write(display_text)
+        
+    return exchange_md_filepath
 
 # ===== END OF FILE primary/rag.py =====

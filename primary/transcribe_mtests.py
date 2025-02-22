@@ -8,7 +8,7 @@ from transcribe import *
 ### YOUTUBE FUNCTIONS
 def mtest_download_mp3_from_youtube():
     pass
-if __name__ == "__main__":        
+#if __name__ == "__main__":        
     cur_url = "https://youtu.be/RNNfkIE7uYs"
     output_title = 'Youtube_download_test_Feynman'
     cur_output_dir = "data/0_gitignore"
@@ -58,11 +58,19 @@ def mtest_create_youtube_md_from_file_link():
 #if __name__ == "__main__":        
     cur_file_path = "tests/test_manual_files/jsons/2024-03-08_Test Deepgram with all features_nova2.md"
     print(create_youtube_md_from_file_link(cur_file_path))  # expected: same file_path with suffix replaced with _yt
+def mrun_create_youtube_md_from_file_link():
+    pass
+#if __name__ == "__main__":        
+    cur_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_cemanual.md"
+    print(create_youtube_md_from_file_link(cur_file_path))  # expected: same file_path with suffix replaced with _yt
 def mtest_extract_feature_from_youtube_md():
     pass
 #if __name__ == "__main__":        
-    cur_file_path = "data/p_Mervin Praison/2023-11-06_Mervin Praison - OpenAI Assistants plus Python_yt.md"
-    print(extract_feature_from_youtube_md(cur_file_path, "chapters"))  # expected: same file_path with suffix replaced with _yt
+    #cur_file_path = "tests/test_manual_files/youtube_tests/2023-11-14_Mervin Praison - OpenAI Assistants plus Curl_yt.md"
+    cur_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_yt.md"
+    chapters = extract_feature_from_youtube_md(cur_file_path, "chapters")
+    print(chapters)
+
 
 ### JSON AND TRANSCRIPT SUPPORT
 def mtest_get_media_length():
@@ -94,6 +102,17 @@ def mtest_set_various_transcript_headings_ffop():  # NOT TESTED AFTER REMOVING F
     #set_various_transcript_headings_ffop(cur_file_path, "chapters", "youtube")
     #set_various_transcript_headings_ffop(cur_file_path, "summaries", "deepgram")
     # expected: UserWarning when feature not present
+def mtest_get_transcript_speaker_lines():
+    pass
+#if __name__ == "__main__":        
+    cur_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_section-titles.md"
+    transcript_text = get_heading(cur_file_path, '### transcript')
+    print(get_transcript_speaker_lines(transcript_text))
+def mrun_apply_youtube_chapters_as_section_titles():
+    pass
+#if __name__ == "__main__":        
+    cur_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_section-titles.md"
+    apply_youtube_chapters_as_section_titles(cur_file_path)
 
 ### DEEPGRAM ALTERNATIVES
 def mtest_test_deepgram_client():
@@ -217,14 +236,18 @@ def mtest_process_deepgram_transcription_callback():
 def mrun_process_deepgram_transcription_callback():
     pass
 #if __name__ == "__main__":
-    cur_title = "2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child"
-    cur_link = "https://youtu.be/2bZSzObqAjE"
-    cur_audio_file_path = "data/0_gitignore/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child.mp3"
+    # cur_title = "2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child"
+    # cur_link = "https://youtu.be/2bZSzObqAjE"
+    # cur_audio_file_path = "data/0_gitignore/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child.mp3"
+
+    cur_title = "2025-01-13_OurKarlPopper Zoom - Logan Chipkin and Aaron Stupple on Sovereign Child"
+    cur_link = "NO LINK"
+    cur_audio_file_path = "data/audio_inbox/2025-01-13_OurKarlPopper Zoom - Logan Chipkin and Aaron Stupple on Sovereign Child.mp3"
     #process_deepgram_transcription_callback_presigneds3(cur_title, cur_link, model='nova-2-general', audio_file_path=cur_audio_file_path)
     process_deepgram_transcription_callback_presigneds3(cur_title, cur_link, model='whisper-medium', audio_file_path=cur_audio_file_path)
 def mrun_download_deepgram_callback_waiting():
     pass
-#if __name__ == "__main__":
+if __name__ == "__main__":
     print("RUNNING DOWNLOAD DEEPGRAM CALLBACK WAITING")
     download_deepgram_callback_waiting()
 def mtest_process_multiple_videos():

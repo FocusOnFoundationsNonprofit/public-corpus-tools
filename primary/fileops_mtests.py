@@ -4,7 +4,7 @@
 from fileops import *
 from transcribe import *
 
-""" do_ffop Overwrite Logic Table:
+""" Overwrite Logic Table:
 Overwrite   Prompt
 Argument    Response    Output Files	    Case Description
 no          NA	        _orig + _orig_new	Keep both
@@ -19,10 +19,6 @@ prompt	    x/anyother  re-prompt
 x/anyother  ValueError
 *note - if desired, could add 2 other replace cases to prompt
 """
-if True:
-    pass
-if __name__ == "__main__":        
-    cur_file_path = ""
 
            
 ### INITIAL
@@ -106,7 +102,7 @@ def mtest_convert_timezone_to_utc():
     print(convert_timezone_to_utc("ABC"))  # Expected output: ValueError: Time zone not recognized: ABC
 def mtest_get_current_datetime():
     pass
-#if __name__ == "__main__":        
+if __name__ == "__main__":        
     print(get_current_datetime_humanfriendly(include_timezone=False))  # expected see below
     print(get_current_datetime_humanfriendly())  # expected see below
     print(get_current_datetime_filefriendly())  # expected see below
@@ -143,7 +139,8 @@ def mtest_read_complete_text():
 def mtest_read_metadata_and_content():
     pass
 #if __name__ == "__main__":        
-    cur_file_path = "tests/test_manual_files/misc/2099-01-01_Test file with one speaker seg.md"
+    #cur_file_path = "tests/test_manual_files/misc/2099-01-01_Test file with one speaker seg.md"
+    cur_file_path = "data/misc_books/Sovereign Child/The Sovereign Child_sections.md"
     print(read_metadata_and_content(cur_file_path))
 
 ### WRITE
@@ -215,7 +212,7 @@ def mtest_check_if_duplicate_filename():
     print(f"Diff suffix result with exclude_suffix=True: {result}")  # Expected: False
 def mtest_find_and_replace_in_filenames_in_folder():
     pass
-if __name__ == "__main__":        
+#if __name__ == "__main__":        
     cur_folder = "data/floodlamp/reg/fda-townhalls/dev-qa-extract"
     find_and_replace_in_filenames_in_folder(cur_folder, "zz-", "z1B-")
 
@@ -280,7 +277,11 @@ def mtest_get_heading():
     pass
 #if __name__ == "__main__":
     cur_file_path = "tests/test_manual_files/misc/3099-01-01_Test file with headings.md"
+    print(f"Manual test get_heading for format 1 on file {cur_file_path}")
     print(get_heading(cur_file_path, "### transcript"))
+    print(f"\n\nManual test get_heading for format 2 on file {cur_file_path}")
+    cur_file_path = "tests/test_manual_files/misc/4099-01-01_Test file with format 2 - METADATA and CONTENT.md"
+    print(get_heading(cur_file_path, "CONTENT", strip_heading_line=True))
 def mtest_set_heading():
     pass
 #if __name__ == "__main__":
@@ -315,12 +316,22 @@ def mtest_create_new_file_from_heading():
 
 ### METADATA
 def mtest_set_metadata_field():
+    pass
+#if __name__ == "__main__":        
     cur_header = "## metadata\nlast updated: 11-19-2023 by Randy\nlink: https://www.youtube.com/dummylink\n\n## content\n\n"
     #cur_header = "## metadata\n## content"  # edge case identified in unittest
     #print(set_metadata_field(cur_header, "last updated", "NOW"))  # WORKS
-    print(repr(cur_header))
-    print(repr(set_metadata_field(cur_header, "last updated", "11-19-2023 by Susan"))) # WORKS - same newlines
-    # print(set_metadata_field(cur_header, "length", "4:30"))  # WORKS   
+    # print(repr(cur_header))
+    # print(repr(set_metadata_field(cur_header, "last updated", "11-19-2023 by Susan"))) # WORKS - same newlines
+    # print(set_metadata_field(cur_header, "length", "4:30"))  # WORKS  
+    # ALTERNATE METADATA FORMAT
+    cur_file_path = "data/misc_books/Sovereign Child/The Sovereign Child_sections.md"
+    #cur_file_path = "data/floodlamp/reg/fda-townhalls/dev-qa-extract/test_transcript_just2/VTH 36 just2_trans.md"
+    metadata, content = read_metadata_and_content(cur_file_path)
+    print(f"original metadata:\n{metadata}")
+    print(f"original content:\n{content[:50]}")
+    metadata = set_metadata_field(metadata, "source file", cur_file_path)
+    print(f"\n\nupdated metadata:\n{metadata}")
 def mtest_remove_metadata_field():
     cur_header = "## metadata\nlast updated: 11-19-2023 by Randy\nlink: https://www.youtube.com/dummylink\n\n## content\n\n"
     cur_header = "## metadata\n## content"  # edge case identified in unittest
@@ -357,6 +368,7 @@ def mtest_pretty_print_json_structure():
 #if __name__ == "__main__":
     cur_json_file_path = "tests/test_manual_files/jsons/2024-03-08_Test Deepgram with all features_nova2.json"
     print(pretty_print_json_structure(cur_json_file_path, level_limit=None))
+
 
 
 # ===== END OF FILE primary/fileops_mtests.py =====

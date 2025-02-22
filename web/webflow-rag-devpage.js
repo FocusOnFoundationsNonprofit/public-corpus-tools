@@ -4,7 +4,7 @@
 //           API calls to AWS Lambda endpoints, dynamic UI updates, 
 //           markdown processing, and sharing features (download/email)
 
-var fileInfoPageBody = 'webflow-rag-devpage.js  1-23 0335 add user_id as webflow userEmailHmacHash back along with user context to qrag-routing'
+var fileInfoPageBody = 'webflow-rag-devpage.js  2-19 1024 implement retry for qragLlm';
 const showEmailListSignup = true;  // Set this to true to enable the email list signup option
 
 // Add near the top after existing constants
@@ -17,29 +17,41 @@ const buttonParamsMapping = {
     'submitButton_deutsch-demo_qrag': {  // Bot container id=container_deutsch-demo_qrag
         displayType: 'quoted-qa-then-ai-answer',
         ragFunction: 'qragRouting, qragLLM', 
-        vector_index_name: 'deutsch-transcript-qrag-78f-20240926', 
-        route_dict_name: 'ROUTES_DICT_DEUTSCH_V4',
+        vector_index_name: 'deutsch-transcript-qrag-83f-20250202', 
+        route_dict_name: 'ROUTES_DICT_DEUTSCH_M1',
+        large_context_filename: 'deutsch_large_context_v1.md',
         botTitle: 'QRAG demo over David Deutsch Interview Corpus'
     },
     'submitButton_deutsch-demo_vrag': { 
         displayType: 'ai-answer-only',
         ragFunction: 'vragLLM', 
         vector_index_name: 'dd-transcripts-vrag-80f-20240727',
+        large_context_filename: 'deutsch_large_context_v1.md',
         botTitle: 'VRAG demo over David Deutsch Interview Corpus'
     },
     'submitButton_pv-evac-demo_qrag': {  // Bot container id=container_pv-evac-demo_qrag
         displayType: 'quoted-qa-then-ai-answer',
         ragFunction: 'qragRouting, qragLLM', 
-        vector_index_name: 'pv-evac-qrag-3f-20241106', 
-        route_dict_name: 'ROUTES_DICT_PV_EVAC_V1',
+        vector_index_name: 'pv-evac-qrag-3f-20250202', 
+        route_dict_name: 'ROUTES_DICT_PV_EVAC_M1',
+        large_context_filename: null,  // Explicitly set to null
         botTitle: 'QRAG demo over PVSD Evacuation Preparedness Meeting'
     },
     'submitButton_fda-townhalls-demo_qrag': {  // Bot container id=container_fda-townhalls-demo_qrag
         displayType: 'quoted-qa-then-ai-answer',
         ragFunction: 'qragRouting, qragLLM', 
         vector_index_name: 'fda-townhalls-qrag-100f-20250114', 
-        route_dict_name: 'ROUTES_DICT_FDA_TOWNHALLS_V1',
+        route_dict_name: 'ROUTES_DICT_FDA_TOWNHALLS_M1',
+        large_context_filename: null,  // Explicitly set to null
         botTitle: 'QRAG demo over 100 FDA COVID-19 Diagnostics Virtual Town Halls'
+    },
+    'submitButton_sovereign-child-demo_qrag': {  // Bot container id=container_sovereign-child-demo_qrag
+        displayType: 'quoted-qa-then-ai-answer',
+        ragFunction: 'qragRouting, qragLLM', 
+        vector_index_name: 'sovereign-child-qrag-2f-20250208', 
+        route_dict_name: 'ROUTES_DICT_SOVEREIGN_CHILD_M1',
+        large_context_filename: '2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple.md',
+        botTitle: 'QRAG demo over The Sovereign Child book'
     }
 };
 
@@ -314,7 +326,17 @@ function submitInputRag(event) {
     const userInputField = document.getElementById(userInputId);
     const rawUserQuestion = userInputField.value;
     let questionCheck = validateAndSanitizeInput(rawUserQuestion, maxQuestionLength, 'Question', 'INPUT_TYPE_PARAGRAPH');
-    if (!questionCheck.success) {
+    
+    // If validation succeeded but characters were removed, show info message but continue
+    if (questionCheck.success && questionCheck.messages.length > 0) {
+        try {
+            displayTempMessage(questionCheck.messages.join(' '), 'info', 3000, document.getElementById(submitButtonId));
+        } catch (error) {
+            console.warn('Failed to display message about removed characters:', error);
+            // Continue with submission even if message display fails
+        }
+    } else if (!questionCheck.success) {
+        // Only stop submission if validation actually failed
         if (errorElement) {
             errorElement.style.display = 'block';
             errorElement.innerHTML = questionCheck.messages.join(' ');
@@ -324,6 +346,9 @@ function submitInputRag(event) {
         userInputField.value = rawUserQuestion;
         return;
     }
+
+    // Continue with the rest of the submission...
+    const sanitizedQuestion = questionCheck.value;
 
     // Get num_chunks value using the global function
     const numChunksValue = window.getSelectedNumChunksValue ? window.getSelectedNumChunksValue() : undefined;
@@ -336,9 +361,6 @@ function submitInputRag(event) {
     var submitButton = document.getElementById(submitButtonId);
     var submitIcon = document.getElementById(submitIconId);
     setButtonToStopState(submitButton, submitIcon);
-
-    // Use the sanitized values
-    const sanitizedQuestion = questionCheck.value;
 
     // Show info messages if any transformations were applied to question only
     if (questionCheck.messages.length > 0) {
@@ -365,10 +387,9 @@ function submitInputRag(event) {
         if (params.displayType === 'quoted-qa-then-ai-answer') {
             createAccordionItem(firstJsonData, submitButtonId);
         }
-
         if (numberOfRagFunctions === 2) {
             const secondRagFunction = ragFunctions[1];
-            return window[secondRagFunction](firstJsonData);
+            return window[secondRagFunction](firstJsonData, params.large_context_filename);
         } else {
             return firstJsonData; // For VRAG, we only have one function call
         }
@@ -385,10 +406,17 @@ function submitInputRag(event) {
         console.error('submitInputRag - Fetch error:', error);
         logErrorToMonitoring(error, 'qrag-routing API call');
 
-        // Show error message to user
+        // Show appropriate error message to user
         if (errorElement) {
+            let errorMessage;
+            if (error.message.includes('Both models timed out')) {
+                errorMessage = 'Both AI models timed out. Please try again with a simpler question, or email contact@focusonfoundations.org if you would like to be notified when performance is improved.';
+            } else {
+                errorMessage = 'Apologies - an error occurred. We have been notified and will look into it. Please try again later or email contact@focusonfoundations.org if you would like to be notified when it is fixed.';
+            }
+            
             errorElement.style.display = 'block';
-            errorElement.innerHTML = 'Apologies - an error occurred. We have been notified and will look into it. Please try again later or email contact@focusonfoundations.org if you would like to be notified when it is fixed.';
+            errorElement.innerHTML = errorMessage;
             
             // Hide error message after 10 seconds
             setTimeout(() => {
@@ -396,7 +424,7 @@ function submitInputRag(event) {
             }, 10000);
         }
 
-        // Preserve the user's input instead of clearing it
+        // Preserve the user's input
         const userInputField = document.getElementById(userInputId);
         if (userInputField) {
             userInputField.value = rawUserQuestion;
@@ -421,6 +449,20 @@ function submitInputRag(event) {
 // returns the routing json data if api call returns success
 // processing start_date/end_date inside function instead of passing as parameters
 function qragRouting(userInput, vector_index_name, route_dict_name, numChunksValue, userEmailHmacHash, userContext) {
+    const errorElement = document.querySelector('.botsubmit-error');
+    
+    // Early return with error display if input is empty
+    if (!userInput || userInput.trim() === '') {
+        if (errorElement) {
+            errorElement.textContent = 'Please enter a question before submitting.';
+            errorElement.style.display = 'block';
+            setTimeout(() => { errorElement.style.display = 'none'; }, 3000);
+        }
+        console.error('Empty input submitted');
+        return;
+    }
+
+    // Continue with normal function flow...
     console.log("qrag-routing - Calling Lambda function with userInput:", userInput);
     console.log("   route_dict_name:", route_dict_name, "vector_index_name:", vector_index_name, "numChunksValue:", numChunksValue);
     console.log("   userEmailHmacHash as user_id:", userEmailHmacHash);
@@ -449,14 +491,14 @@ function qragRouting(userInput, vector_index_name, route_dict_name, numChunksVal
         ...userContext  // Spread the user context object into the request body
     };
 
-    console.log("qrag-routing - Full request body:", requestBody);  // Add this line
-
     // Only add start_date/end_date if both dates are present
     if (startDate && endDate) {
         requestBody.start_date = startDate;
         requestBody.end_date = endDate;
     }
-    
+
+    console.log("qrag-routing - Full request body:", requestBody);
+
     return fetch(QRAG_ROUTING_API_URL, {
         method: 'POST',
         headers: getAuthHeaders(),
@@ -480,26 +522,72 @@ function qragRouting(userInput, vector_index_name, route_dict_name, numChunksVal
 }
 
 // returns the complete json data if api call returns success
-function qragLLM(routingJsonData) {
+const MAX_QRAG_LLM_RETRIES = 1;
+function qragLLM(routingJsonData, large_context_filename) {
     console.log("qrag-llm - Calling Lambda function with routing JSON data:", routingJsonData);
+    console.log("qrag-llm - Using large context filename:", large_context_filename);
+
+    // Initialize metadata if it doesn't exist
+    if (!routingJsonData.metadata) {
+        routingJsonData.metadata = {};
+    }
+
+    // Initialize retry count if not set
+    if (routingJsonData.metadata.retry_count === undefined) {
+        routingJsonData.metadata.retry_count = 0;
+    }
+
+    // Set is_retry based on retry count
+    routingJsonData.metadata.is_retry = routingJsonData.metadata.retry_count > 0;
+
+    // Check if we've exceeded max retries (should only happen after a retry attempt)
+    if (routingJsonData.metadata.retry_count > MAX_QRAG_LLM_RETRIES) {
+        console.log(`qrag-llm - Both models timed out after ${MAX_QRAG_LLM_RETRIES + 1} attempts`);
+        return Promise.resolve({
+            status: 'Error',
+            message: 'Both models timed out. Please try again with a simpler question.',
+            response: routingJsonData
+        });
+    }
+
+    // Add large_context_filename to metadata if provided
+    if (large_context_filename) {
+        routingJsonData.metadata.large_context_filename = large_context_filename;
+    }
+
     return fetch(QRAG_LLM_API_URL, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(routingJsonData)
     })
     .then(httpResponse => {
-        console.log("qrag-llm - HTTP response status:", httpResponse.status); // Log HTTP response status
+        console.log("qrag-llm - HTTP response status:", httpResponse.status);
         if (!httpResponse.ok) {
-            throw new Error(`qrag-llm - HTTP error! status: ${httpResponse.status}`);
+            return httpResponse.json().then(errorData => {
+                if (errorData.error_type === 'LargeContextLoadError') {
+                    throw new Error(`Failed to load context data: ${errorData.error}`);
+                }
+                throw new Error(`HTTP error! status: ${httpResponse.status}, message: ${errorData.error}`);
+            });
         }
-        return httpResponse.json();  // Parse JSON from the HTTP response
+        return httpResponse.json();
     })
     .then(apiResponse => {
-        console.log("qrag-llm - Received API Response:", apiResponse); // Log the full API response
+        console.log("qrag-llm - Received API Response:", apiResponse);
         if (!apiResponse.response) {
             throw new Error('qrag-llm - No data in API Response');
         }
-        return apiResponse.response;  // Return the json data in the response field of apiResponse
+        
+        // Check if this is a retry response
+        if (apiResponse.status === 'Retry') {
+            console.log("qrag-llm - Received retry response, initiating retry with fallback model");
+            
+            // Increment retry count and make new request
+            routingJsonData.metadata.retry_count += 1;
+            return qragLLM(routingJsonData, large_context_filename);
+        }
+        
+        return apiResponse.response;
     });
 }
 

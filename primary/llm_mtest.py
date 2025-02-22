@@ -39,7 +39,47 @@ def mtest_cost_llm_on_file():
 #if __name__ == "__main__":
     cur_file_path = 'data/floodlamp/reg/fda-townhalls/dev/2020-12-09_Virtual Town Hall 36_cemanual.md'
     print(cost_llm_on_file(cur_file_path, "this is an arbitrary prompt", 'gpt-4o', TOKEN_COST_DICT, verbose=True,output_tokens_ratio=0)) 
-
+def mrun_cost_llm_input_only():
+    pass
+#if __name__ == "__main__":
+    cur_file_path = "data/misc_books/Sovereign Child/2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple_sections-nodelims.md"
+    IS_CACHED_INPUT = True
+    #IS_CACHED_INPUT = False
+    cost_llm_input_only(cur_file_path, TOKEN_PRICE_DICT, IS_CACHED_INPUT)
+    cur_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_section-titles.md"
+    cost_llm_input_only(cur_file_path, TOKEN_PRICE_DICT, IS_CACHED_INPUT)
+    cur_file_path = "data/deutsch/books/boi.md"
+    cost_llm_input_only(cur_file_path, TOKEN_PRICE_DICT, IS_CACHED_INPUT)
+    cur_file_path = "data/deutsch/books/for.md"
+    cost_llm_input_only(cur_file_path, TOKEN_PRICE_DICT, IS_CACHED_INPUT)
+TEST_REASONING_RESPONSE = {
+        "usage": {
+            "prompt_tokens": 1234,
+            "completion_tokens": 789,
+            "total_tokens": 2479,  # sum of all tokens
+            "completion_tokens_details": {
+                "reasoning_tokens": 456,
+                "accepted_prediction_tokens": 0,
+                "rejected_prediction_tokens": 0
+            }
+        }
+    }
+def mtest_get_reasoning_model_cost_table_from_response():
+    pass
+#if __name__ == "__main__":
+    reasoning_model="o3-mini"
+    #reasoning_model="o1"
+    #reasoning_model="deepseek-reasoner
+    cost = get_reasoning_model_cost_table_from_response(TEST_REASONING_RESPONSE, reasoning_model=reasoning_model, verbose=True)
+def mtest_compare_reasoning_model_cost_table_from_response():
+    pass
+#if __name__ == "__main__":
+    #reasoning_response_json = TEST_REASONING_RESPONSE
+    pickle_file_path = "exchanges/response_files/chat_response_2025-02-11_191321_deepseek-reasoner_What is a thorough response to.pkl"
+    reasoning_response = get_object_from_pickle_file(pickle_file_path, verbose=False, print_object=False)
+    reasoning_response_json = convert_data_object_to_json_data(reasoning_response, default_handler=None, verbose=False, print_analysis=False, print_values=False)
+    compare_reasoning_model_cost_table_from_response(reasoning_response_json)
+ 
 ### SPLIT FILES
 def mtest_get_line_numbers_with_match():
     pass
@@ -83,6 +123,16 @@ def mtest_split_file_token_cap():
     print(line_numbers == [14, 26, 41, 59, 81, 105, 141])
     
 ### OPENAI LLM
+def mrun_get_openai_models():
+    pass
+#if __name__ == "__main__":
+    api_key = OPENAI_API_KEY_T5
+    get_openai_models(api_key)
+def mrun_test_openai_connection():
+    pass
+#if __name__ == "__main__":
+    test_openai_connection()
+
 def mtest_test_openai_chat():
     pass
 #if __name__ == "__main__":
@@ -98,29 +148,13 @@ def mtest_openai_chat_completion_request():
 def mtest_openai_chat_completion_request_sdk():
     pass
 #if __name__ == "__main__":
-    user_prompt = "Give me a silly knock knock joke?"
-    messages = [{"role": "user", "content": user_prompt}]
-    response = openai_chat_completion_request_sdk(messages=messages)
+    query = "Give me a silly math joke"
+    model = "gpt-4o"
+    messages = [{"role": "user", "content": query}]
+    response = openai_chat_completion_request_sdk(messages=messages, model=model)
+    datetime = get_current_datetime_filefriendly()
+    save_llm_response_files(response, datetime, model, query)
     print("Response:", response.choices[0].message.content)
-def mrun_openai_chat_completion_request_sdk_o1():
-    pass
-#if __name__ == "__main__":
-    user_prompt = "Create a project plan for converting markdown files to html and display them in flexible ways on websites."
-    model="o1"
-    reasoning_effort='medium'  # 'low', 'medium', 'high' default is 'medium'
-    max_completion_tokens=50000
-    messages = [{"role": "user", "content": user_prompt}]
-    response = openai_chat_completion_request_sdk(messages=messages, model=model, max_completion_tokens=max_completion_tokens, reasoning_effort=reasoning_effort)    
-    if isinstance(response, Exception):
-        print(colored("*** ERROR ***", "red"))
-        print(f"Error type: {type(response)}")
-        print(f"Error message: {str(response)}")
-    else:
-        print(colored("Full response object:", "green"))
-        print(response)
-        print(colored("\nResponse content:", "green"))
-        print(response.choices[0].message.content)
-    get_o1_cost_from_response(response, verbose=True)
 def mtest_simple_openai_chat_completion_request():
     pass
 #if __name__ == "__main__":
@@ -154,6 +188,104 @@ def mtest_anthropic_function_call():
     cur_file_path = "tests/test_manual_files/llm_test_files/fcall_test_files/1900-01-01_fcall test file.md"
     content = read_complete_text(cur_file_path)
     print(anthropic_function_call("turn the text into 2 lines that rhyme", content, tools=TOOLS_ANT_FCALL_TEST_JOKE))
+
+### DEEPSEEK
+def mtest_test_deepseek_connection():
+    pass
+#if __name__ == "__main__":
+    test_deepseek_connection()
+def mtest_test_deepseek_chat():
+    pass
+#if __name__ == "__main__":
+    test_deepseek_chat()
+def mtest_deepseek_chat_completion_request_sdk():
+    pass
+if __name__ == "__main__":
+    prompt = """
+Explain this quote:
+'It is usually thought that consent can be determined by looking at the state of mind of the affirming party alone. If someone gave explicit affirmation, so it is said, he consented. But now that we have established the need for the regard for consent by the other party, we can see that that is not necessarily the case. To distinguish between actual consent and the mere sanctioning of force, one must consider the mental states and intentions of everyone involved. It is the offenders who turn their victim's consent on its head, not the victims themselves. So at most, the affirming party can invite the other party to make the intention consensual. Accordingly, people can be mistaken about whether they are consenting or being coerced. That's because they have strictly limited visibility into other people's minds and even their own. They can also be mistaken in thinking they have regard for consent when it comes to others.'
+Give some examples.
+"""
+    messages = [{"role": "user", "content": prompt}]
+    response = deepseek_chat_completion_request_sdk(messages=messages)
+    print("Response:", response)
+def mtest_simple_deepseek_chat():
+    pass
+#if __name__ == "__main__":
+    prompt = "What is politics so screwed up?"
+    print(simple_deepseek_chat(prompt))
+
+### REASONING
+def mrun_openai_chat_completion_request_sdk_reasoning():
+    pass
+#if __name__ == "__main__":
+    #reasoning_model="o3-mini"
+    reasoning_model="deepseek-reasoner"
+    user_prompt = "Create a surefire project plan for teaching a 6 year old logic."
+    reasoning_effort='medium'  # 'low', 'medium', 'high' default is 'medium'
+    max_completion_tokens=50000
+    messages = [{"role": "user", "content": user_prompt}]
+    response = openai_chat_completion_request_sdk(messages=messages, model=reasoning_model, max_completion_tokens=max_completion_tokens, reasoning_effort=reasoning_effort)    
+    if isinstance(response, Exception):
+        print(colored("*** ERROR ***", "red"))
+        print(f"Error type: {type(response)}")
+        print(f"Error message: {str(response)}")
+    else:
+        print(colored("Full response object:", "green"))
+        print(response)
+        print(colored("\nResponse content:", "green"))
+        print(response.choices[0].message.content)
+        
+        reasoning_response_json = convert_data_object_to_json_data(response, default_handler=None, verbose=True, print_analysis=True, print_values=True)
+        compare_reasoning_model_cost_table_from_response(reasoning_response_json)
+def mtest_reasoning_response_to_md_multipart():
+    pass
+#if __name__ == "__main__":
+    choose = "deepseek"
+    #choose = "openai"
+    if choose == "deepseek":
+        pickle_file_path = "exchanges/response_files/chat_response_2025-02-11_191321_deepseek-reasoner_What is a thorough response to.pkl"
+    elif choose == "openai":
+        pickle_file_path = "exchanges/response_files/chat_response_2025-02-11_190841_o3-mini_What is a thorough response to.pkl"
+    else:
+        ValueError("Invalid choice of choose :)")
+    response = get_object_from_pickle_file(pickle_file_path, verbose=True, print_object=True)
+    prompt_parts = {
+        'prompt_initial': "dummy prompt_initial",
+        'query': "dummy query - " + choose,
+        'query_context': "dummy query_context",
+        'rag_context': "dummy rag_context",
+        'large_context': "dummy large_context",
+        'large_context_file_path': "dummy large_context_file_path"
+    }
+    md_file_path = "exchanges/response_files/test_reasoning_response_to_md_multipart.md"
+    datetime_now = get_current_datetime_filefriendly()
+
+    # json_file_path = pickle_file_path.replace(".pkl", ".json")
+    # json_data = convert_data_object_to_json_data(response, default_handler=None, verbose=True, print_analysis=True, print_values=True)
+    # print(f"json_data:\n{json_data}")
+    # write_json_file_from_json_data(json_data, json_file_path, overwrite="yes")
+
+    if choose == "deepseek":
+        reasoning_response_to_md_multipart_deepseek(prompt_parts, response, "deepseek-reasoner-pickle", md_file_path, datetime_now)
+    else:
+        reasoning_response_to_md_multipart_openai(prompt_parts, response, "o3-mini-pickle", md_file_path, datetime_now)
+def mtest_get_call_cost_from_response():
+    pass
+#if __name__ == "__main__":
+    #choose = "deepseek"
+    choose = "openai"
+    if choose == "deepseek":
+        pickle_file_path = "exchanges/response_files/chat_response_2025-02-11_191321_deepseek-reasoner_What is a thorough response to.pkl"
+        model = "deepseek-reasoner"
+    elif choose == "openai":
+        pickle_file_path = "exchanges/response_files/chat_response_2025-02-11_190841_o3-mini_What is a thorough response to.pkl"
+        model = "o3-mini"
+    else:
+        ValueError("Invalid choice of choose :)")
+    response = get_object_from_pickle_file(pickle_file_path, verbose=False, print_object=False)
+    cost = get_call_cost_from_response(response, model, TOKEN_PRICE_DICT, verbose=True)
+    print(f"get_call_cost_from_response: {cost}")
 
 ### LLM PROCESSING
 def mtest_scall_replace():

@@ -1,5 +1,5 @@
 ## metadata
-last updated: 01-23-2025 Created
+last updated: 02-22-2025 Created
 link: https://youtu.be/bOnBPGkxUuw
 transcript source: deepgram 2-general-nova
 

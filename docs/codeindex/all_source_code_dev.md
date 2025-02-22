@@ -1,6 +1,6 @@
-all_source_code (197,046 tokens)
+all_source_code (239,088 tokens)
 
-## primary/fileops.py (21,656 tokens)
+## primary/fileops.py (24,925 tokens)
 #START OF FILE primary/fileops.py
 #Library of functions and execution code to do support tasks on files
 
@@ -9,7 +9,7 @@ import glob
 import csv
 import re
 import inspect
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 import time
 import shutil
@@ -18,6 +18,7 @@ import inspect
 from termcolor import colored
 import warnings
 from collections import defaultdict
+import pickle
 
 #Naming Conventions - see Coding Log - 2024 gdoc for WIP version
 #https://docs.google.com/document/d/1y2zuy5L15b_9KCleT1Fcw31q6yyWz-F7czJLVC0h678/edit?usp=sharing
@@ -73,7 +74,7 @@ def warn_file_overwrite(file_path):
         return True
     return False
 
-### SUFFIX (1,932 tokens)
+### SUFFIX (2,146 tokens)
 def get_suffix(file_str, delimiter='_'):
     """
     Extracts the suffix from a given file string based on a specified delimiter.
@@ -210,6 +211,28 @@ def copy_file_and_append_suffix(file_path, suffix_new):
     shutil.copy(file_path, new_file_path)
 
     return new_file_path
+def copy_file_and_replace_suffix(file_path, suffix_new):
+    """
+    Copies the file with a new suffix replacing any existing suffix before the file extension.
+
+    :param file_path: string of the path to the original file.
+    :param suffix_new: string of the suffix to replace any existing suffix in the filename.
+    :return: string of the path to the newly created file with the replaced suffix.
+    """
+    if not os.path.isfile(file_path):
+        raise ValueError(f"The file path does not exist or is invalid for {file_path}.")
+
+    # Split the file path into directory and base name
+    file_dir, file_base = os.path.split(file_path)
+
+    # Create the new file path using sub_suffix_in_str to handle the suffix replacement
+    new_file_base = sub_suffix_in_str(file_base, suffix_new)
+    new_file_path = os.path.join(file_dir, new_file_base)
+
+    # Copy the original file to the new file path
+    shutil.copy(file_path, new_file_path)
+
+    return new_file_path
 def sub_suffix_in_file(file_path, suffix_new):
     """
     Renames the actual file - substitutes the suffix in the file name of the given file path with a new suffix.
@@ -340,7 +363,7 @@ def apply_to_folder(worker_function, folder_path, *args, suffixpat_include=None,
 
     return results
 
-### READ WRITE (2,359 tokens)
+### READ WRITE (2,464 tokens)
 def read_complete_text(file_path):  # UPDATED 11-18-24 to use UTF-8 encoding
     """
     Reads the entire text from a file using UTF-8 encoding.
@@ -384,7 +407,8 @@ def read_metadata_and_content(file_path):
         content_start = complete_text.find('CONTENT')
         
         if metadata_start != -1 and content_start != -1:
-            metadata = complete_text[metadata_start + len('METADATA'):content_start].strip()
+            # Changed to include the METADATA and CONTENT markers
+            metadata = complete_text[metadata_start:content_start].strip()
             content = complete_text[content_start:].strip()
         else:
             raise ValueError(f"File does not contain both metadata and content sections in the required format.\n{file_path}")
@@ -529,6 +553,7 @@ def write_metadata_and_content(file_path, metadata, content, suffix_new='_temp',
     """
     Writes the metadata and content text to a new file with a specified suffix and handles overwrite logic.
     Insert 2 blank lines between the metadata and content sections if metadata is present or empty string.
+    Preserves the format style (Format 1: ## metadata/## content or Format 2: METADATA/CONTENT) based on metadata.
 
     :param file_path: string, the path to the original file.
     :param metadata: string or None, the metadata section to be written to the new file, inclusive of '## metadata' or 'METADATA'.
@@ -539,6 +564,11 @@ def write_metadata_and_content(file_path, metadata, content, suffix_new='_temp',
     :return: string, the path to the final file after applying overwrite logic.
     """
     if metadata is not None:
+        # Check if using Format 2 (all caps METADATA/CONTENT)
+        if metadata.lstrip().startswith('METADATA'):
+            # If content starts with '## content', replace it with 'CONTENT'
+            if content.lstrip().startswith('## content'):
+                content = 'CONTENT' + content[len('## content'):]
         # If metadata is present (even if it's an empty string), include it with two blank lines between metadata and content
         complete_text = metadata.rstrip('\n') + '\n\n\n' + content.rstrip('\n') + '\n'
     else:
@@ -547,12 +577,12 @@ def write_metadata_and_content(file_path, metadata, content, suffix_new='_temp',
 
     return write_complete_text(file_path, complete_text, suffix_new, overwrite, verbose)
 
-### JSON (985 tokens)
-def pretty_print_json_object(json_obj, level_limit=None, print_values=False):
+### JSON - NO UNIT TESTS (2,438 tokens)
+def pretty_print_json_data(json_data, level_limit=None, print_values=True):
     """
-    Prints the structure of a JSON object with colored output for different levels.
+    Prints the structure of JSON data with colored output for different levels.
 
-    :param json_obj: dict or list, the JSON object to print.
+    :param json_data: dict or list, the JSON data to print.
     :param level_limit: int, the maximum level of nesting to print. None means no limit.
     :param print_values: bool, whether to print values at leaf nodes.
     :return: list, the output lines generated (without color).
@@ -595,7 +625,7 @@ def pretty_print_json_object(json_obj, level_limit=None, print_values=False):
             if data:
                 print_json_structure(data[0], indent, parent_key, level)
 
-    print_json_structure(json_obj)
+    print_json_structure(json_data)
     return output_lines
 def pretty_print_json_file(json_file_path, level_limit=None, save_to_file=False):
     """
@@ -613,7 +643,7 @@ def pretty_print_json_file(json_file_path, level_limit=None, save_to_file=False)
     with open(json_file_path, 'r') as file:
         data = json.load(file)
     
-    output_lines = pretty_print_json_object(data, level_limit)
+    output_lines = pretty_print_json_data(data, level_limit)
 
     if save_to_file:
         output_file_path = json_file_path + '.pretty'
@@ -621,11 +651,12 @@ def pretty_print_json_file(json_file_path, level_limit=None, save_to_file=False)
             for line in output_lines:
                 output_file.write(line + '\n')
         print(f"Saved pretty printed JSON structure to {output_file_path}")
-def write_json_file_from_object(json_object, file_path, overwrite="no"):
+def write_json_file_from_json_data(json_data, file_path, overwrite="no"):
     """ 
     Writes a JSON object to a file at the specified path.
+    Strictly speaking in JSON “object” means the key–value mapping, here the functions allow lists too.
 
-    :param json_object: dictionary or list to be written as JSON.
+    :param json_data: dictionary or list to be written as JSON.
     :param file_path: string of the path where the JSON file will be written.
     :param overwrite: string of either "yes" or "no" to determine if existing files should be overwritten. default is "no".
     :return: None.
@@ -638,17 +669,159 @@ def write_json_file_from_object(json_object, file_path, overwrite="no"):
 
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, 'w') as json_file:
-        json.dump(json_object, json_file, indent=4)
-def read_json_object_from_file(file_path):  # consider moving to fileops
+        json.dump(json_data, json_file, indent=4)
+def get_json_data_from_json_file(json_file_path): 
     """ 
     Reads a JSON object from a file at the specified path.
 
-    :param file_path: string of the path to the JSON file to be read.
-    :return: dictionary or list representing the JSON object read from the file.
+    :param json_file_path: string of the path to the JSON file to be read.
+    :return: dictionary or list representing the JSON data read from the file.
     """
-    with open(file_path, 'r') as json_file:
-        json_object = json.load(json_file)
-    return json_object
+    with open(json_file_path, 'r') as json_file:
+        json_data = json.load(json_file)
+    return json_data
+
+def count_non_json_compatible(data):
+    """
+    Recursively counts the number of non-JSON-compatible items in the data.
+    JSON-compatible types are: dict (with string keys), list, str, int, float, bool, and None.
+    
+    :param data: any Python data structure.
+    :return: int, the number of non-JSON-compatible items found.
+    """
+    if isinstance(data, dict):
+        count = 0
+        for key, value in data.items():
+            if not isinstance(key, str):
+                count += 1  # key is not a JSON string key
+            count += count_non_json_compatible(value)
+        return count
+    elif isinstance(data, list):
+        return sum(count_non_json_compatible(item) for item in data)
+    elif isinstance(data, (str, int, float, bool)) or data is None:
+        return 0
+    else:
+        return 1
+def convert_data_object_to_json_data(data_object, default_handler=None, verbose=False, print_analysis=False, print_values=False):
+    """
+    Recursively converts a Python data object to a JSON-compatible Python structure.
+    
+    JSON-compatible data includes dicts (with string keys), lists, strings, numbers, booleans, and None.
+    For non-compatible types, attempts to convert to dict first, then falls back to default_handler.
+    
+    :param data_object: The Python object to convert.
+    :param default_handler: Optional function to convert non-JSON-compatible objects.
+    :param verbose: bool, if True prints diagnostic messages.
+    :param print_analysis: bool, if True, prints the analyzed structure.
+    :param print_values: bool, passed to pretty_print_json_data to control leaf value printing.
+    :return: A JSON-compatible Python object (e.g. dict or list).
+    """
+    if default_handler is None:
+        default_handler = lambda o: str(o)
+    
+    if isinstance(data_object, dict):
+        new_dict = {}
+        non_compatible_count = 0
+        for key, value in data_object.items():
+            new_key = key if isinstance(key, str) else str(key)
+            if not isinstance(key, str):
+                non_compatible_count += 1
+            new_dict[new_key] = convert_data_object_to_json_data(value, default_handler, verbose, print_analysis=False, print_values=print_values)
+        if verbose and non_compatible_count > 0:
+            print(f"Converted {non_compatible_count} non-string key(s) to strings in a dict.")
+        result = new_dict
+    elif isinstance(data_object, list):
+        result = [convert_data_object_to_json_data(item, default_handler, verbose, print_analysis=False, print_values=print_values)
+                  for item in data_object]
+    elif isinstance(data_object, (str, int, float, bool)) or data_object is None:
+        result = data_object
+    else:
+        # Try to convert to dictionary first
+        if hasattr(data_object, 'model_dump'):
+            if verbose:
+                print(f"Converting {type(data_object)} using model_dump().")
+            result = convert_data_object_to_json_data(data_object.model_dump(), default_handler, verbose, print_analysis=False, print_values=print_values)
+        elif hasattr(data_object, 'dict'):
+            if verbose:
+                print(f"Converting {type(data_object)} using dict().")
+            result = convert_data_object_to_json_data(data_object.dict(), default_handler, verbose, print_analysis=False, print_values=print_values)
+        elif hasattr(data_object, '__dict__'):
+            if verbose:
+                print(f"Converting {type(data_object)} using __dict__.")
+            result = convert_data_object_to_json_data(data_object.__dict__, default_handler, verbose, print_analysis=False, print_values=print_values)
+        else:
+            if verbose:
+                print(f"Converting non-JSON-compatible type {type(data_object)} using default handler.")
+            result = default_handler(data_object)
+    
+    # Only do print_analysis at the top level to avoid recursive printing
+    if print_analysis and not isinstance(data_object, (dict, list)):
+        if verbose:
+            print("\nAnalyzing data object structure:")
+        pretty_print_json_data(result, print_values=print_values)
+    
+    return result
+def check_json_compatibility(data_object):
+    """
+    Checks whether the provided data_object is fully JSON compatible.
+    
+    :param data_object: any Python object.
+    :return: Boolean, True if fully JSON-compatible; False otherwise.
+    """
+    return count_non_json_compatible(data_object) == 0
+
+def save_object_to_pickle_file(data_object, pickle_file_path, verbose=False, print_object=False):
+    """
+    Save an object to a pickle file.
+
+    :param data_object: object, the object to save to pickle file
+    :param pickle_file_path: str, path to the file where the object will be saved
+    :param verbose: bool, whether to print verbose saving info
+    :param print_object: bool, whether to print the full object being saved
+    :return: None
+    """
+    try:
+        with open(pickle_file_path, 'wb') as f:  # Note: 'wb' for binary write
+            pickle.dump(data_object, f)
+            if verbose:
+                print(f"\nSuccessfully pickled - saved object to: {pickle_file_path}")
+                print(f"Type of object: {type(data_object)}")
+            if print_object:
+                print("\nDirect print of object being saved:")
+                print(data_object)
+            
+    except Exception as e:
+        print(f"\nError saving object: {str(e)}")
+        raise
+def get_object_from_pickle_file(pickle_file_path, verbose=False, print_object=False):
+    """
+    Load any Python object from a pickle file.
+    
+    :param pickle_file_path: str, path to the pickle file.
+    :param verbose: bool, if True prints verbose loading info.
+    :param print_object: bool, if True, analyzes and prints the object's structure.
+    :return: The raw object that was pickled.
+    """
+    try:
+        with open(pickle_file_path, 'rb') as f:
+            data_object = pickle.load(f)
+        if verbose:
+            print(f"\nSuccessfully loaded object from pickle file: {pickle_file_path}")
+            print(f"Type of object: {type(data_object)}")
+        
+        if print_object:
+            print("\nConverting data object to JSON data:")
+            convert_data_object_to_json_data(data_object, verbose=verbose, print_analysis=True, print_values=True)
+            print("\nFull object contents:")
+            print(data_object)
+            
+        return data_object
+    except FileNotFoundError:
+        print(f"\nError: File not found at {pickle_file_path}")
+        raise
+    except Exception as e:
+        print(f"\nError loading or processing object: {str(e)}")
+        raise
 
 ### MISC FILE (3,455 tokens)
 def rename_file(file_path, new_filebase):
@@ -1328,7 +1501,7 @@ def track_progress(current_count, total_count, start_time, last_percentage=0, it
     
     return last_percentage
 
-### TIMESTAMP LINKS (1,311 tokens)
+### TIMESTAMP LINKS (1,327 tokens)
 def remove_timestamp_links_from_content(content):
     """
     Removes markdown timestamp links from the content and returns the modified content.
@@ -1368,7 +1541,7 @@ def generate_timestamp_link(base_link, timestamp):
     domain_timestamp_formats = {
         "youtube.com": "&t={}",
         "youtu.be": "&t={}",
-        "spotify.com": "&t={}",
+        "spotify.com": "?t={}",  # changed from &t= on 1-20-25 RT
         "vimeo.com": "?ts={}"
     }
 
@@ -1465,7 +1638,7 @@ def redo_timestamp_links_with_delta_seconds(file_path, delta_seconds):  # no uni
     
     write_metadata_and_content(file_path, metadata, new_content, suffix_new='_temp', overwrite='yes')
 
-### FIND AND REPLACE (1,376 tokens)
+### FIND AND REPLACE (1,718 tokens)
 def count_num_instances(file_path, find_str):
     """
     Counts the number of instances of a specific string in the text of the file.
@@ -1479,26 +1652,52 @@ def count_num_instances(file_path, find_str):
     count = complete_text.count(find_str)
     print(f"Number instances: {count} of {find_str} found in {file_path}")
     return count
-def find_and_replace_pairs(file_path, find_replace_pairs, use_regex=False):
+def find_and_replace_pairs(file_path, find_replace_pairs, debug=False, use_regex=False, include_metadata=False):
     """
     Finds and replaces multiple specified strings or regex patterns in the file and overwrites the original file.
     Usage - cur_find_replace_pairs = [("Mervin Praison", "John Smith"), ("Summary", "Tamagotchi")]
 
     :param file_path: string, the path to the file where the find and replace operations will be performed.
     :param find_replace_pairs: list of tuples, each containing a string or regex pattern to be found and a string to replace it with.
+    :param debug: boolean, whether to print debug information.
     :param use_regex: boolean for whether to use regex patterns for finding. Default is False (use exact string matching).
+    :param include_metadata: boolean for whether to search and replace in metadata section. Default is True.
     :return: int, the total number of replacements made.
     """
     metadata, content = read_file_flex(file_path)
+    verbose_print(debug, f"\nProcessing file: {file_path}")
 
     total_replacements = 0
     for find_str, replace_str in find_replace_pairs:
+        verbose_print(debug, f"  Looking for: '{find_str}'")
+        verbose_print(debug, f"  Replace with: '{replace_str}'")
+        
         if use_regex:
             regex = re.compile(find_str, re.DOTALL)
+            if include_metadata and metadata is not None:
+                metadata, meta_count = regex.subn(replace_str, metadata)
+                total_replacements += meta_count
+                verbose_print(debug, f"  Metadata replacements made: {meta_count}")
             content, count = regex.subn(replace_str, content)
+            total_replacements += count
+            verbose_print(debug, f"  Content replacements made: {count}")
         else:
-            content, count = re.subn(re.escape(find_str), replace_str, content, flags=re.DOTALL)
-        total_replacements += count
+            # First escape all regex special characters
+            safe_find_str = re.escape(find_str)
+            
+            # Then unescape the URL-safe characters we want to match literally
+            url_safe_chars = '/: .'
+            for char in url_safe_chars:
+                safe_find_str = safe_find_str.replace('\\' + char, char)
+            verbose_print(debug, f"  Search pattern after escaping: '{safe_find_str}'")
+            
+            if include_metadata and metadata is not None:
+                metadata, meta_count = re.subn(safe_find_str, replace_str.replace('\\', '\\\\'), metadata, flags=re.DOTALL)
+                total_replacements += meta_count
+                verbose_print(debug, f"  Metadata replacements made: {meta_count}")
+            content, count = re.subn(safe_find_str, replace_str.replace('\\', '\\\\'), content, flags=re.DOTALL)
+            total_replacements += count
+            verbose_print(debug, f"  Content replacements made: {count}")
 
     if metadata is None:
         write_complete_text(file_path, content, overwrite='yes')
@@ -1558,7 +1757,7 @@ def process_find_replace_pair(find_str, replace_str):
         # Strip all leading/trailing spaces for unquoted strings
         return (find_str.strip(), replace_str.strip())
 #TODO needs unittest
-def find_and_replace_from_csv(folder_path, find_replace_csv, suffixpat_include=None, include_subfolders=False, verbose=False):
+def find_and_replace_from_csv(folder_path, find_replace_csv, suffixpat_include=None, include_subfolders=False, include_metadata=False, verbose=False):
     """
     Applies find and replace operations on all files in a specified folder based on pairs defined in a CSV file.
     Overwrite is fixed at 'yes' so you have to copy the files before running.
@@ -1576,7 +1775,7 @@ def find_and_replace_from_csv(folder_path, find_replace_csv, suffixpat_include=N
     #print(f"find_replace_pairs: {find_replace_pairs}")
     
     # Apply find and replace operations to all files in the folder
-    results = apply_to_folder(find_and_replace_pairs, folder_path, find_replace_pairs, suffixpat_include=suffixpat_include, include_subfolders=include_subfolders, verbose=verbose)
+    results = apply_to_folder(find_and_replace_pairs, folder_path, find_replace_pairs, suffixpat_include=suffixpat_include, include_subfolders=include_subfolders, include_metadata=include_metadata, verbose=verbose)
 
     # Print the total number of replacements in all files
     total_replacements = sum(results.values())
@@ -1587,7 +1786,8 @@ def find_and_replace_from_csv(folder_path, find_replace_csv, suffixpat_include=N
         for file_path, num_replacements in results.items():
             print(f"{num_replacements} replacements in file: {file_path}  {num_replacements} replacements")
 
-### HEADINGS (2,196 tokens)
+### HEADINGS (3,481 tokens)
+#TODO consider consistency of using read_complete_text vs read_metadata_and_content
 def get_heading_level(heading):
     """
     Determines the level of a markdown heading.
@@ -1626,6 +1826,21 @@ def find_heading_text(full_text, heading):
     :param heading: string, the markdown heading to find.
     :return: tuple (start_index, end_index) or None if not found.
     """
+    # Special handling for Format 2 (METADATA and CONTENT)
+    if heading in ['METADATA', 'CONTENT']:
+        start = full_text.find(heading)
+        if start != -1:
+            if heading == 'METADATA':
+                # Find end at CONTENT marker
+                content_start = full_text.find('CONTENT')
+                if content_start != -1:
+                    return start, content_start
+            else:  # heading == 'CONTENT'
+                # Return from CONTENT to end of file
+                return start, len(full_text)
+        return None
+    
+    # Handling for standard markdown headings
     pattern = get_heading_pattern(heading)
     if pattern is None:
         return None
@@ -1633,20 +1848,29 @@ def find_heading_text(full_text, heading):
     if match:
         return match.start(), match.end()
     return None
-def get_heading(file_path, heading):
+def get_heading(file_path, heading, strip_heading_line=False):
     """
     Extracts the markdown heading and its associated text from a file, including any subheadings of equal or lower order.
     Uses the complete text and does not parse the metadata and content sections.
 
     :param file_path: string, the path to the file to be read.
     :param heading: string, the markdown heading to be extracted, including the '#' characters and the following space.
+    :param strip_heading_line: bool, if True strips the heading line and any blank lines after it from the result.
     :return: string, the markdown heading and its associated text, including any subheadings of equal or lower order.
     """
     complete_text = read_complete_text(file_path)
     result = find_heading_text(complete_text, heading)
     if result:
         start, end = result
-        return complete_text[start:end]
+        text = complete_text[start:end]
+        if strip_heading_line:
+            lines = text.splitlines()
+            # Skip first line and any blank lines after it
+            i = 1
+            while i < len(lines) and not lines[i].strip():
+                i += 1
+            text = '\n'.join(lines[i:])
+        return text
     return None
 def set_heading(file_path, new_text, heading):
     """
@@ -1799,51 +2023,151 @@ def delete_all_heading_instances(file_path, heading):
         write_complete_text(file_path, new_text, suffix_new='_temp', overwrite='yes')
     else:
         warnings.warn("in delete_all_heading_instances: trying to delete heading that does not exist - no action")
+def create_list_of_strings_from_md_file(md_file_path, heading_level, verbose=True):
+    """
+    Creates a list of strings from a markdown file, where each string contains the text between headings of the specified level.
 
-### METADATA (2,742 tokens)
+    :param md_file_path: string, path to the markdown file to process.
+    :param heading_level: int, the heading level to split on (e.g., 2 for '## ' headings).
+    :return: list of strings, where each string contains the text between headings of the specified level.
+    """
+    # Read the complete text from the file
+    complete_text = read_complete_text(md_file_path)
+    
+    # Create the heading pattern to match (e.g., '## ' for level 2)
+    heading_pattern = '#' * heading_level + ' '
+    
+    # Split the text into sections based on the heading pattern
+    sections = []
+    current_section = []
+    lines = complete_text.splitlines()
+    
+    for line in lines:
+        # Check if this line is a heading of our target level
+        if line.startswith(heading_pattern):
+            # If we have accumulated text in current_section, join it and add to sections
+            if current_section:
+                sections.append('\n'.join(current_section))
+            # Start a new section with this heading
+            current_section = [line]
+        # Check if this line is a heading of a lower level (more #'s)
+        elif line.startswith('#') and len(line) - len(line.lstrip('#')) < heading_level:
+            # Skip headings of lower levels (e.g., skip '# ' when looking for '## ')
+            continue
+        # If we're inside a section, add the line
+        elif current_section:
+            current_section.append(line)
+    
+    # Add the last section if it exists
+    if current_section:
+        sections.append('\n'.join(current_section))
+
+    if verbose:
+      total_chars = 0
+      for string in sections:
+          first_line = string.split('\n')[0]
+          char_count = len(string)
+          total_chars += char_count
+          print(f"{first_line}   {char_count//1000} K characters")
+      print(f"Total: {total_chars//1000} K characters\n")
+    
+    return sections
+def get_heading_above(file_path, search_text):
+    """
+    Find the markdown heading immediately above the first instance of the search text in the file.
+
+    :param file_path: string, path to the file to search in
+    :param search_text: string, the text to find the heading above
+    :return heading: string, the heading found (including the ### markers) or None if not found
+    """
+    # Get complete text from file
+    complete_text = read_complete_text(file_path)
+    
+    # Find the position of the search text
+    text_pos = complete_text.find(search_text)
+    if text_pos == -1:
+        return None
+        
+    # Get the text up to the search position
+    text_above = complete_text[:text_pos]
+    
+    # Search backwards through lines for heading
+    lines = text_above.split('\n')
+    for line in reversed(lines):
+        stripped = line.strip()
+        if stripped.startswith('#'):
+            # Verify it's a valid markdown heading (# followed by space)
+            if ' ' in stripped and stripped.index(' ') == stripped.count('#'):
+                return stripped
+    
+    return None
+def scale_headings(full_text, scale_factor):
+    """
+    Scales the level of all headings in the text by a specified amount.
+
+    :param full_text: string, the text containing the headings to be scaled.
+    :param scale_factor: int, the amount to scale the heading levels by (positive to increase level, negative to decrease).
+    :return: string, the text with scaled heading levels.
+    :raises ValueError: if scaling would result in invalid heading levels (< 1 or > 6).
+    """
+    if not full_text:
+        return full_text
+
+    lines = full_text.splitlines()
+    scaled_lines = []
+    
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith('#'):
+            # Verify it's a valid markdown heading (# followed by space)
+            if ' ' in stripped and stripped.index(' ') == stripped.count('#'):
+                current_level = get_heading_level(stripped)
+                new_level = current_level + scale_factor
+                
+                # Check if new level would be valid
+                if new_level > 6:
+                    raise ValueError(f"Scaling heading '{stripped}' by {scale_factor} would exceed maximum level of 6")
+                if new_level < 1:
+                    raise ValueError(f"Scaling heading '{stripped}' by {scale_factor} would result in level below 1")
+                
+                # Replace the heading markers while preserving the heading text
+                heading_text = stripped[current_level:].lstrip()
+                scaled_line = '#' * new_level + ' ' + heading_text
+                scaled_lines.append(scaled_line)
+            else:
+                scaled_lines.append(line)
+        else:
+            scaled_lines.append(line)
+    
+    return '\n'.join(scaled_lines)
+
+### METADATA (2,591 tokens)
 def set_metadata_field(metadata, field, value):
     """
     Sets or updates a metadata field with a given value.
 
-    :param metadata: string, the metadata from which a metadata field is to be set or updated.
+    :param metadata: string, the metadata section already extracted from the file.
     :param field: string, the metadata field to be set or updated without the : and space.
     :param value: string, the value to be set for the metadata field.
     :return: string, the updated metadata with the set or updated metadata field.
     """
-    # Split the metadata text into lines
     lines = metadata.split('\n')
-    field_line = None
     field_exists = False
-    insert_index = -1  # Default insert index to the end of the metadata
 
-    # Check if the field already exists and find the insert index after '## metadata'
-    metadata_start_found = False
+    # Check if the field already exists
     for i, line in enumerate(lines):
-        if '## metadata' in line:
-            metadata_start_found = True
-            metadata_index = i
-        elif metadata_start_found and line.strip() == '':
-            insert_index = i  # Set insert index to the first blank line after '## metadata'
-            break
         if line.startswith(f"{field}:"):
+            lines[i] = f"{field}: {value}"
             field_exists = True
-            field_line = i
             break
 
-    # If the field exists, update it
-    if field_exists:
-        lines[field_line] = f"{field}: {value}"
-    else:
-        # If the field does not exist, add it at the insert index
-        if insert_index == -1:  # If no blank line was found, append it after the metadata heading
-            lines.insert(metadata_index + 1, f"{field}: {value}")
-        else:
-            lines.insert(insert_index, f"{field}: {value}")
+    # If the field doesn't exist, add it after any existing fields
+    if not field_exists:
+        # Find the first blank line or end of metadata
+        insert_index = next((i for i, line in enumerate(lines) if line.strip() == ''), len(lines))
+        lines.insert(insert_index, f"{field}: {value}")
 
-    # Reassemble the metadata text
-    updated_metadata = '\n'.join(lines)
-
-    return updated_metadata
+    return '\n'.join(lines)
 def remove_metadata_field(metadata, field):
     """
     Removes a specified metadata field from the metadata.
@@ -2064,7 +2388,7 @@ def create_csv_matrix_from_triples(triples_text, target_file_path):
 
 
 
-## primary/transcribe.py (21,158 tokens)
+## primary/transcribe.py (22,295 tokens)
 #START OF FILE primary/transcribe.py
 #Library of functions and execution code to transcribe audio files
 
@@ -2124,7 +2448,7 @@ sys.path.append(parent_dir) # Add the parent directory to sys.path
 #Get the top 3000 English words
 common_english_vocab = set(top_n_list('en', 3000))
 
-### YOUTUBE (4,624 tokens)
+### YOUTUBE (4,767 tokens)
 def get_authenticated_service():
     """
     Creates an authenticated YouTube service with OAuth2.
@@ -2583,7 +2907,7 @@ def create_youtube_md_from_file_link(md_file_path):
     yt_file_path = create_youtube_md(link, yt_file_path)  # creates and returns the same file_path so the assignment is not needed but do it in case there is a bug and a different file_path is returned
     #print(f"DEBUG: after create call {yt_file_path}")
     return yt_file_path
-def extract_feature_from_youtube_md(yt_md_file_path, feature):
+def extract_feature_from_youtube_md(yt_md_file_path, feature):  # updated 1-28-25 RT to use get_heading
     """
     Extracts a specified feature from a YouTube markdown file and returns it as a string.
 
@@ -2592,29 +2916,47 @@ def extract_feature_from_youtube_md(yt_md_file_path, feature):
     :return: string of the extracted text under the specified feature
     """
     try:
-        with open(yt_md_file_path, 'r', encoding='utf-8') as file:
-            lines = file.readlines()
+        # Try both heading formats
+        heading1 = f"### youtube {feature}"
+        heading2 = f"### {feature} (youtube)"
+        
+        text = get_heading(yt_md_file_path, heading1, strip_heading_line=True)
+        if text is None:
+            text = get_heading(yt_md_file_path, heading2, strip_heading_line=True)
 
-        feature_section_found = False
-        extracted_feature = ""
-        feature_heading_pattern = re.compile(r'^#+\s*' + re.escape(feature), re.IGNORECASE)  # Pattern to match any level of markdown heading for the feature
+        # Special handling for chapters if not found
+        if feature == 'chapters' and text is None:
+            # Try both description heading formats
+            desc_text = get_heading(yt_md_file_path, "### youtube description", strip_heading_line=True)
+            if desc_text is None:
+                desc_text = get_heading(yt_md_file_path, "### description (youtube)", strip_heading_line=True)
+            
+            if desc_text:
+                timestamp_block = []
+                in_timestamp_block = False
+                
+                for line in desc_text.splitlines():
+                    if re.search(r'\[\d{1,2}:\d{2}(?::\d{2})?\]', line):
+                        if not in_timestamp_block:
+                            in_timestamp_block = True
+                        timestamp_block.append(line.strip())
+                    elif in_timestamp_block:
+                        break
+                
+                if timestamp_block:
+                    print("No chapters section found. Extracted chapter timestamp links from description field.")
+                    return '\n'.join(timestamp_block) + '\n\n'
 
-        for line in lines:
-            if feature_heading_pattern.match(line) or feature_section_found:
-                if line.strip().startswith('#') and feature_section_found:
-                    break
-                feature_section_found = True
-                if not feature_heading_pattern.match(line):  # Do not include the heading line in the extracted feature
-                    extracted_feature += line
-        if not feature_section_found or extracted_feature == "":
+        if text is None:
             warnings.warn(f"Feature '{feature}' not found in YouTube markdown file.")
             return None
-        else:
-            return extracted_feature.strip() + '\n\n'
+            
+        return text.strip() + '\n\n'
+        
     except Exception as e:
         raise ValueError(f"Error extracting {feature} from {yt_md_file_path}: {e}")
 
-### JSON AND TRANSCRIPT SUPPORT (2,575 tokens)
+### JSON AND TRANSCRIPT SUPPORT (3,424 tokens)
 def get_media_length(file_path_or_url):
     """
     Retrieves the length (duration) of a media file or a YouTube video.
@@ -2861,6 +3203,104 @@ def set_various_transcript_headings(file_path, feature, source):
         return
 
     set_heading(file_path, extracted_feature_text, "### " + feature)
+def get_transcript_speaker_lines(transcript_text):
+    """
+    Extracts speaker lines with timestamps from transcript text.
+
+    :param transcript_text: string, the full transcript text to process.
+    :return result: list of tuples, each containing (line_number, speaker_line_text).
+    """
+    from primary.fileops import get_timestamp
+
+    speaker_lines = []
+    lines = transcript_text.split('\n')
+    
+    for i, line in enumerate(lines):
+        timestamp, index = get_timestamp(line)
+        if index is not None:
+            speaker_lines.append((i, line.strip()))
+    
+    return speaker_lines
+def apply_youtube_chapters_as_section_titles(transcript_file_path):
+    """
+    Applies the YouTube chapters timestamps and titles as section headings in the transcript file.
+
+    :param transcript_file_path: string, path to the transcript markdown file
+    :return: None
+    """
+    # Get paths and content
+    yt_file_path = sub_suffix_in_str(transcript_file_path, '_yt')
+    chapters = extract_feature_from_youtube_md(yt_file_path, 'chapters').rstrip()
+    if not chapters:
+        print(f"Aborting apply_youtube_chapters_as_section_titles - No chapters found in YouTube file: {yt_file_path}")
+        return
+    chapters_lines = chapters.split('\n')
+    print(f"Extracted {len(chapters_lines)} chapters from YouTube file: {yt_file_path}")
+    
+    transcript_text = get_heading(transcript_file_path, '### transcript')
+    if not transcript_text:
+        print(f"Aborting apply_youtube_chapters_as_section_titles - No transcript found in transcript file: {transcript_file_path}")
+        return
+
+    # Get all speaker lines with their line numbers
+    speaker_lines = get_transcript_speaker_lines(transcript_text)
+    
+    # Convert speaker lines timestamps to seconds for comparison
+    speaker_times = []
+    for line_num, speaker_line in speaker_lines:
+        timestamp_match = re.search(r'\[(\d+:\d+(?::\d+)?)\]', speaker_line)
+        if timestamp_match:
+            timestamp = timestamp_match.group(1)
+            seconds = sum(int(x) * 60**i for i, x in enumerate(reversed(timestamp.split(':'))))
+            speaker_times.append((seconds, line_num, speaker_line))
+    
+    # Build list of section titles and their positions
+    section_titles = []
+    section_num = 1
+    
+    # Process each chapter line
+    for chapter_line in chapters.split('\n'):
+        # Skip empty lines
+        if not chapter_line.strip():
+            continue
+            
+        # Extract timestamp and title from chapter line
+        timestamp_match = re.match(r'\[(\d+:\d+(?::\d+)?)\]', chapter_line)
+        if not timestamp_match:
+            continue
+            
+        timestamp = timestamp_match.group(1)
+        title = chapter_line[chapter_line.find(')') + 1:].strip()
+        if not title:
+            continue
+            
+        # Convert chapter timestamp to seconds
+        chapter_seconds = sum(int(x) * 60**i for i, x in enumerate(reversed(timestamp.split(':'))))
+        
+        # Find the first speaker line that occurs after this chapter timestamp
+        for speaker_seconds, line_num, speaker_line in speaker_times:
+            if speaker_seconds >= chapter_seconds:
+                section_heading = f"#### {section_num}. {title}"
+                section_titles.append((line_num, section_heading))
+                section_num += 1
+                break
+    
+    # Insert all section titles
+    if section_titles:
+        # Split transcript into lines for modification
+        transcript_lines = transcript_text.split('\n')
+        
+        # Insert sections in reverse order to maintain line numbers
+        for line_num, heading in sorted(section_titles, reverse=True):
+            transcript_lines.insert(line_num, heading)
+        
+        # Join lines back together
+        new_transcript = '\n'.join(transcript_lines)
+        
+        # Update the transcript section in the file
+        set_heading(transcript_file_path, new_transcript, '### transcript')
+        
+        print(f"Added {len(section_titles)} section titles to transcript")
 
 ### DEEPGRAM ALTERNATIVES (3,312 tokens)
 def test_deepgram_client():  # omit unittests
@@ -3685,7 +4125,7 @@ def assign_speaker_names(md_file_path):
         # Write the updated speaker_names back to the JSON file
         write_speaker_names_to_json(json_file_path, updated_speaker_names)
 
-### TRANSCRIBE WRAPPER (4,306 tokens)
+### TRANSCRIBE WRAPPER (4,451 tokens)
 def create_transcript_md_from_json(json_file_path, combine_segs=True):
     """
     Creates a markdown transcript from a JSON file containing Deepgram transcription data.
@@ -3912,25 +4352,34 @@ def process_deepgram_transcription_callback_presigneds3(title, link, model, outp
     :param audio_file_path: If provided, skip YouTube download and use this local file.
     :return: The path to the created waiting file.
     """
+    print(f"\nStarting process_deepgram_transcription_callback_presigneds3 for title: {title}")
+    
     waiting_prefix = "WAITING-CALLBACK_"
     suffix = DG_MODEL_SUFFIX_MAP[model]
+    print(f"Using model: {model} with suffix: {suffix}")
     
     # 1) Possibly download from YouTube
     if audio_file_path is None:
+        print("No audio file provided - downloading from YouTube...")
         audio_file_path = download_mp3_from_youtube(link, title, output_dir)
         downloaded_from_youtube = True
     else:
+        print(f"Using provided audio file: {audio_file_path}")
         downloaded_from_youtube = False
 
     # 2) Transcribe with presigned S3 callback
+    print("Starting Deepgram transcription with presigned S3 callback...")
     (callback_request_id, transcript_s3_key, base_audio_file_name, s3_bucket) = transcribe_deepgram_callback_presigneds3(
         audio_file_path,
         model
     )
+    print(f"Transcription initiated - request ID: {callback_request_id}")
 
     # 3) Create a local "waiting" file with all info needed to retrieve final transcript
     waiting_file_name = f"{waiting_prefix}{title}{suffix}.txt"
     waiting_file_path = os.path.join(output_dir, waiting_file_name)
+    print(f"Creating waiting file at: {waiting_file_path}")
+    
     with open(waiting_file_path, 'w') as f:
         f.write(f"request_id: {callback_request_id}\n")
         f.write(f"bucket: {s3_bucket}\n")
@@ -3944,9 +4393,11 @@ def process_deepgram_transcription_callback_presigneds3(title, link, model, outp
 
     # 4) If we downloaded the audio from YouTube, remove it locally
     if downloaded_from_youtube and os.path.exists(audio_file_path):
+        print(f"Cleaning up - removing downloaded audio file: {audio_file_path}")
         os.remove(audio_file_path)
         print(f"Removed downloaded audio file: {audio_file_path}")
     
+    print(f"Process completed successfully. Waiting file created at: {waiting_file_path}")
     return waiting_file_path
 def download_deepgram_callback_waiting(local_folder="data/audio_inbox", prefix="WAITING-CALLBACK_"):
     from primary.aws import download_file_from_s3
@@ -4118,7 +4569,7 @@ def schedule_recurring_task(interval_minutes, check_function, work_function, max
 
 
 
-## primary/llm.py (65,309 tokens)
+## primary/llm.py (14,753 tokens)
 #===== START OF FILE primary/llm.py =====
 #Library of functions and execution code to do LLM tasks
 
@@ -4142,17 +4593,21 @@ from primary.fileops import *
 from dotenv import load_dotenv
 load_dotenv(override=True)  # Load environment variables from .env file
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY_LOCAL"]
-#OPENAI_API_KEY_T5 = os.environ["OPENAI_API_KEY_T5"]
+OPENAI_API_KEY_T5 = os.environ["OPENAI_API_KEY_T5"]
 ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY_LOCAL"]
 #ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY_LOCAL_AUTO"]
+DEEPSEEK_API_KEY = os.environ["DEEPSEEK_API_KEY_LOCAL"]
 
 #---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
 
 #OpenAI model name - comment one out
-#OPENAI_MODEL = "gpt-4o-mini"  # cost $0.15/$0.60, use instead of gpt3.5
-#OPENAI_MODEL = "o1"  # cost $0.15/$0.60, use instead of gpt3.5
-OPENAI_MODEL = "gpt-4o-2024-11-20" # cost $5/$15, use for all gpt4
+OPENAI_MODEL = "gpt-4o-mini"
+#OPENAI_MODEL = "o1"
+#OPENAI_MODEL = "gpt-4o-2024-11-20"
+#OPENAI_MODEL = "o3-mini"
+
 ANTHROPIC_MODEL = "claude-3-5-sonnet-20241022"
+
 
 #Set the warnings to use a custom format
 warnings.formatwarning = custom_formatwarning
@@ -4162,16 +4617,9 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir) # Add the parent directory to sys.path
 
-TOKEN_COST_DICT = {  # last updated 12-22-24 RT
-    'gpt-4o':{'input_token_cost':2.5, 'output_token_cost':10},  # costs in $/million tokens
-    'gpt-4o-mini':{'input_token_cost':.15, 'output_token_cost':.6},
-    'o1':{'input_token_cost':15, 'output_token_cost':60},
-    'o1-mini':{'input_token_cost':3, 'output_token_cost':12},
-    'claude-3-5-sonnet-20241022':{'input_token_cost':3, 'output_token_cost':15}
-    }
 BLOCK_DELIMITER = '\n---\n'
 
-### PRINT AND TOKENS (3,374 tokens)
+### PRINT AND TOKENS (6,169 tokens)
 def pretty_print_function(messages, tools, print_prompts=False, print_input=True, verbose=False):
     """
     Prints messages with role-specific colors and separates function details for clarity.
@@ -4276,14 +4724,23 @@ def count_tokens(input_string):  # no unittests
     encoding = tiktoken.get_encoding('cl100k_base')
     token_count = len(encoding.encode(input_string))
     return token_count
-def cost_llm_on_file(file_path, prompt, model, token_cost_dict, verbose=False, chunking_function=None, chunking_function_args=(), output_tokens_ratio=1, output_tokens_fixed=0):  # no unittests
+TOKEN_PRICE_DICT = {  # last updated 02-13-25 RT
+    'gpt-4o':{'input_token_price':2.50, 'output_token_price':10.00, 'cached_input_token_price': 1.25},  # costs in $/million tokens
+    'gpt-4o-mini':{'input_token_price':.15, 'output_token_price':.60, 'cached_input_token_price': 0.075},
+    'o1':{'input_token_price':15.00, 'output_token_price':60.00, 'cached_input_token_price': 7.50},
+    'o3-mini':{'input_token_price':1.10, 'output_token_price':4.40, 'cached_input_token_price': 0.55},
+    'claude-3-5-sonnet-20241022':{'input_token_price':3.00, 'output_token_price':15.00, 'cached_input_token_price': 0.30},  # but Anthropic requires upfront explicit prompt caching and is not automatic
+    'deepseek-reasoner':{'input_token_price':0.55, 'output_token_price':2.19, 'cached_input_token_price': 0.14},
+    'deepseek-chat':{'input_token_price':0.27, 'output_token_price':1.10, 'cached_input_token_price': 0.07}
+    }
+def cost_llm_on_file(file_path, prompt, model, token_price_dict, is_cached_input=False, verbose=False, chunking_function=None, chunking_function_args=(), output_tokens_ratio=1, output_tokens_fixed=0):  # no unittests
     """
     Calculates the cost of processing a file using a language model, based on the number of input and output tokens.
 
     :param file_path: string of the path to the file to be processed.
     :param prompt: string of the prompt to be used for the language model.
     :param model: string of the name of the language model to be used.
-    :param token_cost_dict: dictionary containing the cost per token for the input and output of the model.
+    :param token_price_dict: dictionary containing the cost per token for the input and output of the model.
     :param chunking_function: function to be used for chunking the file, defaults to None.
     :param chunking_function_args: tuple of arguments to be passed to the chunking function, defaults to an empty tuple.
     :param output_tokens_ratio: ratio of input tokens to output tokens, defaults to 1.
@@ -4305,8 +4762,15 @@ def cost_llm_on_file(file_path, prompt, model, token_cost_dict, verbose=False, c
     total_input_tokens = 0
     total_output_tokens = 0
     total_cost = 0
-    input_token_cost = token_cost_dict[model]['input_token_cost']
-    output_token_cost = token_cost_dict[model]['output_token_cost']
+    input_token_price = token_price_dict[model]['input_token_price']
+    cached_input_token_price = token_price_dict[model].get('cached_input_token_price')  # Returns None if not present
+    if is_cached_input:
+        if cached_input_token_price is None:
+            raise ValueError(f"Cached input token price is not present for model {model}")
+        actual_input_token_price = cached_input_token_price
+    else:
+        actual_input_token_price = input_token_price
+    output_token_price = token_price_dict[model]['output_token_price']
     prompt_tokens = count_tokens(prompt)
     
     # Main loop
@@ -4321,25 +4785,65 @@ def cost_llm_on_file(file_path, prompt, model, token_cost_dict, verbose=False, c
         total_input_tokens += input_tokens
         total_output_tokens += output_tokens
 
-    total_input_cost = (total_input_tokens / 1000000) * input_token_cost
-    total_output_cost = (total_output_tokens / 1000000) * output_token_cost
+    total_input_cost = (total_input_tokens / 1000000) * actual_input_token_price
+    total_output_cost = (total_output_tokens / 1000000) * output_token_price
     total_cost = total_input_cost + total_output_cost
 
     if verbose:
         print(file_path)
-        print(f"File input tokens: {total_input_tokens:,} (Cost: ${input_token_cost:.4f}/1M tokens, Input token cost: ${total_input_cost:.2f})")
-        print(f"File output tokens: {total_output_tokens:,} (Cost: ${output_token_cost:.4f}/1M tokens, Output token cost: ${total_output_cost:.2f})")
+        print(f"File input tokens: {total_input_tokens:,} (Cost: ${actual_input_token_price:.4f}/1M tokens, Input token cost: ${total_input_cost:.2f}), Cached input={is_cached_input}")
+        print(f"File output tokens: {total_output_tokens:,} (Cost: ${output_token_price:.4f}/1M tokens, Output token cost: ${total_output_cost:.2f})")
         print(f"File cost: ${total_cost:.2f}\n\n")
 
     return total_input_cost, total_output_cost, total_cost, total_input_tokens
-def cost_llm_on_corpus(corpus_path, prompt, model, token_cost_dict, verbose=False, suffix_include=None, suffix_exclude=None, include_subfolders=False, chunking_function=None, chunking_function_args=(), output_tokens_ratio=1, output_tokens_fixed=0):
+def cost_llm_input_only(file_path, token_price_dict, is_cached_input=False):
+    """
+    Calculate and display input token costs for a file across all models in the token cost dictionary.
+
+    :param file_path: string, path to the file to analyze
+    :param token_price_dict: dictionary containing token cost information for different models
+    :param is_cached_input: boolean, whether to use cached input token price if available
+    :return: None
+    """
+    # Read file and count tokens
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+    total_tokens = count_tokens(content)
+    
+    # Print header with total tokens
+    print(colored(f"\nFile: {file_path}", "yellow"))
+    print(f"Total tokens: {total_tokens:,}")
+    print(f"Cached input: {is_cached_input}\n")
+    
+    # Print table header
+    print(f"{'Model':<27} {'$/1M':>12} {'Cost':>10}")
+    print("-" * 51)
+    
+    # Calculate and print costs for each model
+    for model, costs in token_price_dict.items():
+        input_token_price = costs['input_token_price']
+        cached_input_token_price = costs.get('cached_input_token_price')  # Returns None if not present
+        
+        if is_cached_input:
+            if cached_input_token_price is None:
+                print(f"Warning: Cached input token price not available for {model}, using standard price")
+                actual_input_token_price = input_token_price
+            else:
+                actual_input_token_price = cached_input_token_price
+        else:
+            actual_input_token_price = input_token_price
+            
+        total_cost = (total_tokens / 1000000) * actual_input_token_price
+        print(f"{model:<27} {actual_input_token_price:>12.2f} {total_cost:>10.3f}")
+def cost_llm_on_corpus(corpus_path, prompt, model, token_price_dict, is_cached_input=False, verbose=False, suffix_include=None, suffix_exclude=None, include_subfolders=False, chunking_function=None, chunking_function_args=(), output_tokens_ratio=1, output_tokens_fixed=0):
     """
     Calculates the cost of processing a corpus using a language model, based on the number of input and output tokens.
 
     :param corpus_path: string of the path to the corpus to be processed.
     :param prompt: string of the prompt to be used for the language model.
     :param model: string of the name of the language model to be used.
-    :param token_cost_dict: dictionary containing the cost per token for the input and output of the model.
+    :param token_price_dict: dictionary containing the cost per token for the input and output of the model.
+    :param is_cached_input: boolean indicating whether to use cached input token price, defaults to False.
     :param chunking_function: function to be used for chunking the file, defaults to None.
     :param chunking_function_args: tuple of arguments to be passed to the chunking function, defaults to an empty tuple.
     :param output_tokens_ratio: ratio of input tokens to output tokens, defaults to 1.
@@ -4354,10 +4858,23 @@ def cost_llm_on_corpus(corpus_path, prompt, model, token_cost_dict, verbose=Fals
     total_cost = 0
     total_input_tokens = 0
     
+    # Get input token prices based on caching setting
+    input_token_price = token_price_dict[model]['input_token_price']
+    cached_input_token_price = token_price_dict[model].get('cached_input_token_price')
+    
+    if is_cached_input:
+        if cached_input_token_price is None:
+            print(f"Warning: Cached input token price not available for {model}, using standard price")
+            actual_input_token_price = input_token_price
+        else:
+            actual_input_token_price = cached_input_token_price
+    else:
+        actual_input_token_price = input_token_price
+    
     file_paths = get_files_in_folder(corpus_path, suffix_include=suffix_include, suffix_exclude=suffix_exclude, include_subfolders=include_subfolders)
     
     for file_path in file_paths:
-        file_input_cost, file_output_cost, file_cost, input_tokens = cost_llm_on_file(file_path, prompt, model, token_cost_dict, verbose, chunking_function, chunking_function_args, output_tokens_ratio, output_tokens_fixed)
+        file_input_cost, file_output_cost, file_cost, input_tokens = cost_llm_on_file(file_path, prompt, model, token_price_dict, is_cached_input, verbose, chunking_function, chunking_function_args, output_tokens_ratio, output_tokens_fixed)
         total_input_cost += file_input_cost
         total_output_cost += file_output_cost
         total_cost += file_cost
@@ -4401,70 +4918,257 @@ def add_token_counts_to_headings(text):
     first_line, *rest = result.split('\n', 1)
     result = f"{first_line} ({total_tokens:,} tokens)\n" + (rest[0] if rest else "")
     return result
-def get_o1_cost_from_response(response, verbose=True):
-    """
-    Get the cost of an o1 response from the response object.
 
-    :param response: dict, the response object from an o1 API call containing usage information
+#NOT UPDATED FOR CACHED INPUTS
+def print_cost_table(table_data, title=None):
+    """
+    Print a formatted cost table from CSV-style data.
+
+    :param table_data: list of lists, where first row contains headers and subsequent rows contain data
+    :param title: string, optional title to print before the table
+    :return: None
+    """
+    if not table_data or not table_data[0]:
+        print("No data to display")
+        return
+
+    if title:
+        print(f"{title}")
+        print()
+    
+    # Find the maximum number of columns in any row
+    max_cols = max(len(row) for row in table_data)
+    
+    # Pad rows that are too short with empty strings
+    padded_data = []
+    for row in table_data:
+        padded_row = row + [''] * (max_cols - len(row))
+        padded_data.append(padded_row)
+    
+    # Get column widths based on maximum content length in each column
+    col_widths = []
+    for col_idx in range(max_cols):
+        col_width = max(len(str(row[col_idx])) for row in padded_data)
+        # Add extra padding between number columns
+        if col_idx > 0:  # For $/1M and ¢ columns
+            col_width += 2  # Add 2 more spaces (3 total with the default space)
+        col_widths.append(max(col_width, 1))  # Ensure minimum width of 1
+    
+    # Print headers with proper alignment
+    headers = padded_data[0]
+    header_row = ""
+    for header, width in zip(headers, col_widths):
+        if header in ['Tokens', '$/1M', '¢']:
+            header_row += f"{header:>{width}} "  # Right align numbers
+        else:
+            header_row += f"{header:<{width}} "  # Left align text
+    print(header_row.rstrip())
+    
+    # Print separator line
+    separator = "-" * (sum(col_widths) + len(col_widths) - 1)
+    print(separator)
+    
+    # Print data rows
+    for i, row in enumerate(padded_data[1:]):
+        # Print equals separator before the last row
+        if i == len(padded_data[1:]) - 1:
+            print("=" * (sum(col_widths) + len(col_widths) - 1))
+            
+        data_row = ""
+        for value, width in zip(row, col_widths):
+            if isinstance(value, (int, float)) or (isinstance(value, str) and value.replace(',', '').replace('.', '').isdigit()):
+                data_row += f"{value:>{width}} "  # Right align numbers
+            else:
+                data_row += f"{value:<{width}} "  # Left align text
+        print(data_row.rstrip())
+def get_reasoning_model_cost_table_from_response(response, reasoning_model, verbose=True):
+    """
+    Get the cost of a reasoning model response from the response object.
+
+    :param response: dict, the response object from an API call containing usage information
+    :param reasoning_model: string, the model name to use for cost calculations (default: "o3-mini")
     :param verbose: boolean, whether to print detailed cost breakdown
-    :return: float, total cost of the API call in dollars
+    :return: list of lists, the table data or None if error
     """
     try:
         usage = response['usage']
-        model = 'o1'  # Using o1 costs from TOKEN_COST_DICT
         
         # Extract token counts
         input_tokens = usage['prompt_tokens']
         output_tokens = usage['completion_tokens']
         reasoning_tokens = usage['completion_tokens_details']['reasoning_tokens']
         
-        # Get costs per million tokens
-        input_cost_per_million = TOKEN_COST_DICT[model]['input_token_cost']
-        output_cost_per_million = TOKEN_COST_DICT[model]['output_token_cost']
+        # Get costs per million tokens in dollars
+        input_price_per_million = TOKEN_PRICE_DICT[reasoning_model]['input_token_price']
+        output_price_per_million = TOKEN_PRICE_DICT[reasoning_model]['output_token_price']
         
-        # Calculate costs
-        input_cost = (input_tokens / 1000000) * input_cost_per_million
-        reasoning_cost = (reasoning_tokens / 1000000) * input_cost_per_million
-        output_cost = (output_tokens / 1000000) * output_cost_per_million
+        # Calculate costs in cents
+        input_cost = (input_tokens / 1000000) * (input_price_per_million * 100)
+        reasoning_cost = (reasoning_tokens / 1000000) * (input_price_per_million * 100)
+        output_cost = (output_tokens / 1000000) * (output_price_per_million * 100)
         total_cost = input_cost + reasoning_cost + output_cost
         
-        if verbose:
-            print("\nO1 API Call Cost Breakdown:")
-            # Format strings for aligned columns
-            print(f"{'Type':<12} {'Tokens':>12} {'$/1M tokens':>12} {'Cost':>10}")
-            print("-" * 50)
-            print(f"{'Input':<12} {input_tokens:>12,} {input_cost_per_million:>12.2f} {input_cost:>10.4f}")
-            print(f"{'Reasoning':<12} {reasoning_tokens:>12,} {input_cost_per_million:>12.2f} {reasoning_cost:>10.4f}")
-            print(f"{'Output':<12} {output_tokens:>12,} {output_cost_per_million:>12.2f} {output_cost:>10.4f}")
-            print("-" * 50)
-            total_tokens = input_tokens + reasoning_tokens + output_tokens
-            print(f"{'Total':<12} {total_tokens:>12,} {'':<12} {total_cost:>10.4f}\n")
+        # Prepare table data regardless of verbose setting
+        table_data = [
+            ['Token Type', '$/1M', '¢'],
+            ['Input', f"{input_price_per_million:.2f}", f"{input_cost:.1f}"],
+            ['Reasoning', f"{input_price_per_million:.2f}", f"{reasoning_cost:.1f}"],
+            ['Output', f"{output_price_per_million:.2f}", f"{output_cost:.1f}"],
+            ['Total', "", f"{total_cost:.1f}"]
+        ]
         
-        return total_cost
+        if verbose:
+            print(f"API Call Cost Breakdown:")
+            print(f"reasoning_model: {reasoning_model}\n")
+            print_cost_table(table_data)
+            print()
+        
+        return table_data
         
     except (KeyError, TypeError) as e:
         print(f"Error parsing response object: {str(e)}")
         return None
-def mtest_get_o1_cost_from_response():
-    pass
-#if __name__ == "__main__":
-    test_response = {
-        "usage": {
-            "prompt_tokens": 1234,
-            "completion_tokens": 789,
-            "total_tokens": 2479,  # sum of all tokens
-            "completion_tokens_details": {
-                "reasoning_tokens": 456,
-                "accepted_prediction_tokens": 0,
-                "rejected_prediction_tokens": 0
-            }
-        }
-    }
+def compare_reasoning_model_cost_table_from_response(response, reasoning_models=["o1", "o3-mini", "deepseek-reasoner"], verbose=True):
+    """
+    Compare the cost of two reasoning models based on the response object.
+
+    :param response: dict, the response object from an API call containing usage information
+    :param reasoning_models: list of strings, the models to compare
+    :param verbose: boolean, whether to print detailed cost breakdown
+    :return: list of lists, the table data
+    """
+    # Get table data for each model
+    model_tables = {}
+    for model in reasoning_models:
+        table_data = get_reasoning_model_cost_table_from_response(response, model, verbose=False)
+        if table_data:
+            model_tables[model] = table_data
+
+    if not model_tables:
+        print("No valid table data generated for any model")
+        return None
+
+    # Create combined table starting with headers from first model
+    first_model = reasoning_models[0]
+    if first_model not in model_tables:
+        return None
     
-    # Call the function with our test response
-    cost = get_o1_cost_from_response(test_response, verbose=True)
-    print(f"Returned total cost: ${cost:.4f}")
+    # Get the base headers (Type, $/1M, ¢)
+    base_headers = model_tables[first_model][0]
     
+    # Create the combined table headers
+    header_row = [base_headers[0]]  # Start with 'Type'
+    for model in reasoning_models:
+        if model in model_tables:
+            header_row.extend([base_headers[1], base_headers[2], ''])  # Add $/1M and ¢ columns plus spacing
+    header_row.pop()  # Remove last spacing
+    
+    # Create the combined table
+    combined_table = [header_row]
+    
+    # Process each row type
+    row_types = ['Input', 'Reasoning', 'Output', 'Total']
+    for row_type in row_types:
+        new_row = [row_type]
+        for model in reasoning_models:
+            if model in model_tables:
+                model_data = model_tables[model]
+                for row in model_data[1:]:
+                    if row[0] == row_type:
+                        new_row.extend([row[1], row[2], ''])  # Add data columns plus spacing
+                        break
+        new_row.pop()  # Remove last spacing
+        combined_table.append(new_row)
+
+    if verbose:
+        print("Model Cost Comparison:\n")
+        
+        # Create the model header line with fixed positions
+        model_line = "Model"
+        positions = [24, 40, 56]  # Fixed positions for model names
+        
+        for i, model in enumerate(reasoning_models):
+            if model in model_tables:
+                # Replace deepseek-reasoner with deepseek-r1
+                display_model = "deepseek-r1" if model == "deepseek-reasoner" else model
+                # Calculate padding to align model name to end at position
+                padding = positions[i] - len(model_line) - len(display_model) + 1
+                model_line += " " * padding + display_model
+        
+        print(model_line)
+        
+        # Print the rest of the table
+        print_cost_table(combined_table)
+        print()
+
+    return combined_table
+
+def get_call_cost_from_response(response, model, token_price_dict, verbose=True):
+    """
+    Get the cost of a reasoning model response from the response object.
+
+    :param response: dict or ChatCompletion object from an API call containing usage information
+    :param model: string, the model name to use for cost calculations (e.g. "o3-mini")
+    :param token_price_dict: dictionary containing the cost per token for the input and output of the model.
+    :param verbose: bool, if True, prints detailed cost breakdown.
+    :return: total call cost in pennies (integer or float, depending on the cost calculation)
+    """
+    # Handle both dict and ChatCompletion object responses
+    if hasattr(response, 'usage'):
+        usage = response.usage
+    elif isinstance(response, dict):
+        usage = response.get('usage')
+        if usage is None:
+            raise ValueError("Usage information is missing from the response.")
+    else:
+        raise ValueError(f"Unsupported response type: {type(response)}")
+
+    # Determine input token breakdown
+    # Case 1: DeepSeek-style response provides explicit cache hit/miss tokens
+    if hasattr(usage, 'prompt_cache_hit_tokens') and hasattr(usage, 'prompt_cache_miss_tokens'):
+        cached_input_tokens = usage.prompt_cache_hit_tokens
+        non_cached_input_tokens = usage.prompt_cache_miss_tokens
+    elif hasattr(usage, 'prompt_tokens_details') and hasattr(usage.prompt_tokens_details, 'cached_tokens'):
+        cached_input_tokens = usage.prompt_tokens_details.cached_tokens
+        total_prompt_tokens = getattr(usage, 'prompt_tokens', 0)
+        non_cached_input_tokens = total_prompt_tokens - cached_input_tokens
+    else:
+        # Fallback: assume no cached tokens if not explicitly provided
+        cached_input_tokens = 0
+        non_cached_input_tokens = getattr(usage, 'prompt_tokens', 0)
+
+    # Output tokens (usually the completion tokens)
+    output_tokens = getattr(usage, 'completion_tokens', 0)
+
+    # Get pricing info for the selected model
+    if model not in token_price_dict:
+        raise ValueError(f"Model {model} not found in token price dictionary.")
+    model_prices = token_price_dict[model]
+    input_token_price = model_prices['input_token_price']          # in $ per million tokens
+    cached_input_token_price = model_prices.get('cached_input_token_price', input_token_price)
+    output_token_price = model_prices['output_token_price']
+
+    # Compute costs in dollars (prices are per million tokens)
+    cost_non_cached_input = (non_cached_input_tokens / 1_000_000) * input_token_price
+    cost_cached_input = (cached_input_tokens / 1_000_000) * cached_input_token_price
+    cost_output = (output_tokens / 1_000_000) * output_token_price
+    total_cost_dollars = cost_non_cached_input + cost_cached_input + cost_output
+
+    # Convert dollars to pennies
+    total_cost_pennies = round(total_cost_dollars * 100, 3)
+
+    if verbose:
+        print("Token Usage Breakdown:")
+        print(f"  Non-cached input tokens: {non_cached_input_tokens:,}")
+        print(f"  Cached input tokens:     {cached_input_tokens:,}")
+        print(f"  Output tokens:           {output_tokens:,}")
+        print("\nCost Breakdown:")
+        print(f"  Non-cached input cost:   {cost_non_cached_input * 100:.1f}¢")
+        print(f"  Cached input cost:       {cost_cached_input * 100:.1f}¢")
+        print(f"  Output cost:             {cost_output * 100:.1f}¢")
+        print(f"  Total cost:              {total_cost_pennies:.1f}¢")
+
+    return total_cost_pennies
 
 ### SPLIT FILES (2,381 tokens)
 def get_line_numbers_with_match(file_path, match_str):
@@ -4693,8 +5397,50 @@ def split_file_token_cap(file_path, token_cap, skip_string='SKIPQA', suffix_new=
     new_content = "## content\n\n" + BLOCK_DELIMITER.join(grouped_segments)  # Using the global variable BLOCK_DELIMITER  
     return write_metadata_and_content(file_path, metadata, new_content, suffix_new, overwrite='no')
 
+### LLM PROCESSING (505 tokens)
+def save_llm_response_files(response, datetime, model, query, base_dir="exchanges/response_files/", verbose=True):
+    """
+    Save LLM response as both JSON and pickle files.
 
-### OPENAI LLM (2,108 tokens)
+    :param response: object, the LLM response to save
+    :param datetime: str, datetime string to use in filename
+    :param model: str, model name used for the response
+    :param query: str, query text to include in filename
+    :param base_dir: str, base directory for saving files
+    :param verbose: bool, whether to print status messages
+    :return: tuple of (json_file_path, pickle_file_path) or None if save failed
+    """
+    try:
+        if response and not isinstance(response, Exception):
+            # Trim query for filename
+            query_trim = query[:30] + (query[30:].split(None, 1)[0].rstrip('.,!?;:') if len(query) > 30 and not query[30].isspace() else '')
+            
+            # Generate filenames
+            json_filename = f"chat_response_{datetime}_{model}_{query_trim}.json"
+            json_file_path = base_dir + json_filename
+            pickle_file_path = json_file_path.replace(".json", ".pkl")
+            
+            # Save JSON file
+            json_data = convert_data_object_to_json_data(response, default_handler=None, verbose=False, print_analysis=False, print_values=False)
+            cost_pennies_mycalc = get_call_cost_from_response(response, model, TOKEN_PRICE_DICT, verbose=False)
+            verbose_print(verbose, f"Cost pennies mycalc: {cost_pennies_mycalc}")
+            
+            # Add cost to json_data at root level
+            json_data['cost_pennies_mycalc'] = cost_pennies_mycalc
+            
+            write_json_file_from_json_data(json_data, json_file_path, overwrite="yes")
+            verbose_print(verbose, colored(f"Response saved to JSON file: {json_file_path}", "green"))
+            
+            # Save pickle file
+            save_object_to_pickle_file(response, pickle_file_path, verbose=False, print_object=False)   
+            verbose_print(verbose, colored(f"Response saved to pickle file: {pickle_file_path}", "green"))
+            
+            return json_file_path, pickle_file_path
+    except Exception as e:
+        print(f"Error saving response files: {str(e)}")
+    return None
+
+### OPENAI LLM (2,168 tokens)
 def generate_openai_testcurl_command():
     """
     Generates a single-line curl command for testing the OpenAI API connection.
@@ -4720,12 +5466,13 @@ def get_openai_models(api_key):
             print(model.id)
     except Exception as e:
         print(f"Error retrieving models: {str(e)}")
-def mrun_get_openai_models():
-    pass
-#if __name__ == "__main__":
-    api_key = OPENAI_API_KEY_T5
-    get_openai_models(api_key)
-
+def test_openai_connection():
+    try:
+        response = requests.get("https://api.openai.com")
+        print(f"Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    except Exception as e:
+        print(f"Connection error: {e}")
 def test_openai_chat(model=OPENAI_MODEL):
     try:
         messages = [{"role": "user", "content": "Tell me a knock knock joke about science."}]
@@ -4768,20 +5515,23 @@ def openai_chat_completion_request(messages, tools=None, tool_choice=None, model
         print(f"Exception: {e}")
         return e
 @retry(wait=wait_random_exponential(multiplier=1, max=40), stop=stop_after_attempt(3))
-def openai_chat_completion_request_sdk(messages, model=OPENAI_MODEL, tools=None, tool_choice=None, reasoning_effort=None, temperature=None, max_completion_tokens=None):
+def openai_chat_completion_request_sdk(messages, model, tools=None, tool_choice=None, reasoning_effort=None, temperature=None, max_completion_tokens=None):
     """
     Send a chat completion request using the OpenAI SDK.
 
     :param messages: list of message dictionaries
+    :param model: the model to use
     :param tools: optional list of tools
     :param tool_choice: optional tool choice
-    :param model: the model to use
     :param reasoning_effort: optional float to control model reasoning effort
     :param temperature: optional float to control randomness
     :param max_completion_tokens: optional int to limit response length
     :return: the response object from the OpenAI API
     """
-    client = OpenAI(api_key=OPENAI_API_KEY)
+    if model.startswith("deepseek"):
+        client = OpenAI(api_key=DEEPSEEK_API_KEY, base_url="https://api.deepseek.com")
+    else:
+        client = OpenAI(api_key=OPENAI_API_KEY)
     
     request_params = {
         "model": model,
@@ -4797,7 +5547,7 @@ def openai_chat_completion_request_sdk(messages, model=OPENAI_MODEL, tools=None,
         request_params["temperature"] = temperature
     if max_completion_tokens is not None:
         # Use appropriate parameter based on model
-        if model.startswith("o1"):
+        if model.startswith("o") or model.startswith("deepseek"):
             request_params["max_completion_tokens"] = max_completion_tokens
         else:
             request_params["max_tokens"] = max_completion_tokens
@@ -5121,7 +5871,373 @@ def simple_anthropic_chat_rawapi(prompt, model=ANTHROPIC_MODEL):  # Not currentl
         print(f"Exception: {e}")
         return str(e)
 
-### LLM PROCESSING (1,756 tokens)
+
+### DEEPSEEK (900 tokens)
+def test_deepseek_connection():
+    try:
+        response = requests.get("https://api.deepseek.com")
+        print(f"Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    except Exception as e:
+        print(f"Connection error: {e}")
+def test_deepseek_chat():
+    """
+    Tests DeepSeek-v3 API connection by requesting a dad joke.
+    """
+    try:
+        messages = [{"role": "user", "content": "Tell me a dad joke about programming."}]
+        response = openai_chat_completion_request_sdk(
+            messages=messages,
+            model="deepseek-chat",
+            max_completion_tokens=1000
+        )
+        
+        if isinstance(response, Exception):
+            print(colored("*** ERROR ***", "red"))
+            print(f"Error type: {type(response)}")
+            print(f"Error message: {str(response)}")
+        else:
+            print(colored("Dad joke response:", "green"))
+            print(response.choices[0].message.content)
+                        
+    except Exception as e:
+        print(f"Test failed: {str(e)}")
+def deepseek_chat_completion_request_sdk(messages, model="deepseek-reasoner", max_completion_tokens=None):
+    """
+    Send a chat completion request using the OpenAI SDK configured for DeepSeek's API.
+
+    :param messages: list of message dictionaries
+    :param model: the model to use (default is "deepseek-reasoner")
+    :param max_completion_tokens: optional int to limit response length
+    :return: the response object from the DeepSeek API
+    """
+    client = OpenAI(api_key=DEEPSEEK_API_KEY, base_url="https://api.deepseek.com")
+    
+    request_params = {
+        "model": model,
+        "messages": messages,
+    }
+    
+    # Add max_completion_tokens if specified
+    if max_completion_tokens is not None:
+        request_params["max_tokens"] = max_completion_tokens
+
+    try:
+        response = client.chat.completions.create(**request_params)
+        return response
+    except Exception as e:
+        print("Unable to generate DeepSeek Chat Completion response")
+        print(f"Exception: {e}")
+        return e
+def simple_deepseek_chat(prompt, model="deepseek-reasoner"):
+    """
+    Simplified version of chat completion that takes a single prompt string.
+
+    :param prompt: str, the prompt to send to the model
+    :param model: str, the model to use
+    :return: str, the generated response content
+    """
+    messages = [{"role": "user", "content": prompt}]
+    response = deepseek_chat_completion_request_sdk(messages=messages, model=model)
+    
+    # Access the content through choices[0].message.content
+    return response.choices[0].message.content
+def deepseek_structured_output(prompt, content, output_schema, model="deepseek-reasoner", verbose=False):
+    """
+    Get structured output from DeepSeek using their JSON Output feature.
+    
+    :param prompt: str, system prompt to guide the model's behavior
+    :param content: str, the content to process
+    :param output_schema: dict, the expected JSON schema structure
+    :param model: str, the model to use
+    :param verbose: bool, whether to print detailed information
+    :return: dict containing the structured response or None if error
+    """
+    try:
+        # Add JSON formatting instruction to prompt
+        json_prompt = f"{prompt}\nPlease provide the response in the following JSON format:\n{json.dumps(output_schema, indent=2)}"
+        
+        messages = [
+            {"role": "system", "content": json_prompt},
+            {"role": "user", "content": content}
+        ]
+        
+        request_params = {
+            "messages": messages,
+            "model": model,
+            "response_format": {"type": "json_object"}
+        }
+        
+        if verbose:
+            print("Messages:", messages)
+            
+        response = deepseek_chat_completion_request_sdk(**request_params)
+        
+        if response and response.choices[0].message.content:
+            return json.loads(response.choices[0].message.content)
+                    
+        return None
+            
+    except Exception as e:
+        if verbose:
+            print(f"Error in structured output: {str(e)}")
+        return None
+
+
+### REASONING (582 tokens)
+def reasoning_response_to_md_multipart_deepseek(prompt_parts, response, model, md_file_path, datetime, heading_level=1):
+    """
+    Process a Deepseek reasoningresponse with multipart prompts and write/append it to a markdown file.
+
+    :param prompt_parts: dict, containing prompt components (query, rag_context, etc.)
+    :param response: object, the Deepseek chat completion response object
+    :param md_file_path: str, path to the markdown file
+    :param heading_level: int, base heading level for the question
+    :return: None
+    """
+    # Create heading markers
+    q_level = '#' * heading_level
+    sub_level = '#' * (heading_level + 1)
+    
+    # Get the first choice
+    choice = response.choices[0]
+    message = choice.message
+    usage = response.usage
+
+    cost_pennies_mycalc = get_call_cost_from_response(response, model, TOKEN_PRICE_DICT, verbose=False)
+    print(f"Cost Pennies Mycalc: {cost_pennies_mycalc}")
+
+    markdown_content = f"""{q_level} {prompt_parts.get('query', 'No Query Provided')}
+model: {model}
+date: {datetime}
+
+{sub_level} Answer
+{message.content}
+
+{sub_level} Reasoning Content
+{message.reasoning_content}
+
+{sub_level} Response Fields
+- ID: {response.id}
+- Model: {response.model}
+- Object: {response.object}
+- Created: {response.created}
+- Service Tier: {response.service_tier}
+- System Fingerprint: {response.system_fingerprint}
+- Cost Pennies Mycalc: {cost_pennies_mycalc}
+
+Choice Details:
+- Finish Reason: {choice.finish_reason}
+- Index: {choice.index}
+- Log Probs: {choice.logprobs}
+
+Message Details:
+- Role: {message.role}
+- Refusal: {message.refusal}
+- Audio: {message.audio}
+- Function Call: {message.function_call}
+- Tool Calls: {message.tool_calls}
+
+Usage Statistics:
+- Total Tokens: {usage.total_tokens}
+- Completion Tokens: {usage.completion_tokens}
+- Reasoning Tokens: {usage.completion_tokens_details.reasoning_tokens}
+- Prompt Tokens: {usage.prompt_tokens}
+
+Completion Tokens Details:
+- Accepted Prediction Tokens: {usage.completion_tokens_details.accepted_prediction_tokens}
+- Audio Tokens: {usage.completion_tokens_details.audio_tokens}
+- Rejected Prediction Tokens: {usage.completion_tokens_details.rejected_prediction_tokens}
+
+Prompt Tokens Details:
+- Audio Tokens: {usage.prompt_tokens_details.audio_tokens}
+- Cached Tokens: {usage.prompt_tokens_details.cached_tokens}
+
+Cache Statistics:
+- Prompt Cache Hit Tokens: {usage.prompt_cache_hit_tokens}
+- Prompt Cache Miss Tokens: {usage.prompt_cache_miss_tokens}
+
+## Prompts (789 tokens)
+### Prompt Initial (16 tokens)
+{prompt_parts.get('prompt_initial', '').strip()}
+
+### Query Context (16 tokens)
+{prompt_parts.get('query_context', '').strip()}
+
+### RAG Context (17 tokens)
+{prompt_parts.get('rag_context', '').strip()}
+
+### Large Context (FILE PATH ONLY) (736 tokens)
+from file: {prompt_parts.get('large_context_file_path', 'No file path provided')}"""
+
+    # Read existing content if file exists
+    existing_content = ''
+    if os.path.exists(md_file_path):
+        with open(md_file_path, 'r') as f:
+            existing_content = f.read()
+    
+    # Write new content at the top, followed by existing content
+    with open(md_file_path, 'w') as f:
+        f.write(markdown_content)
+        if existing_content:
+            f.write('\n\n\n' + existing_content)
+    
+    print(f"Reasoning response from deepseek saved to markdown file: {md_file_path}")
+def reasoning_response_to_md_multipart_openai(prompt_parts, response, model, md_file_path, datetime, heading_level=1):
+    """
+    Process an OpenAI reasoning response with multipart prompts and write/append it to a markdown file.
+    This function is tailored to the OpenAI response object structure.
+
+    :param prompt_parts: dict, containing prompt components (query, rag_context, etc.)
+    :param response: object, the OpenAI chat completion response object
+    :param model: str, the model used (e.g. "o3-mini-2025-01-31")
+    :param md_file_path: str, path to the markdown file
+    :param datetime: str, a file-friendly datetime string
+    :param heading_level: int, base heading level for the question
+    :return: None
+    """
+    # Create heading markers based on the specified level
+    q_level = '#' * heading_level
+    sub_level = '#' * (heading_level + 1)
+    
+    # Get the first choice and its associated message and usage
+    choice = response.choices[0]
+    message = choice.message
+    usage = response.usage
+
+    # No reasoning content in OpenAI response - skip section
+
+    cost_pennies_mycalc = get_call_cost_from_response(response, model, TOKEN_PRICE_DICT, verbose=False)
+  
+    markdown_content = f"""{q_level} {prompt_parts.get('query', 'No Query Provided')}
+model: {model}
+date: {datetime}
+
+{sub_level} Answer
+{message.content}
+
+{sub_level} Response Fields
+- ID: {response.id}
+- Model: {response.model}
+- Object: {response.object}
+- Created: {response.created}
+- Service Tier: {response.service_tier}
+- System Fingerprint: {response.system_fingerprint}
+- Cost Pennies Mycalc: {cost_pennies_mycalc}
+Choice Details:
+- Finish Reason: {choice.finish_reason}
+- Index: {choice.index}
+- Log Probs: {choice.logprobs}
+
+Message Details:
+- Role: {message.role}
+- Refusal: {message.refusal}
+- Audio: {message.audio}
+- Function Call: {message.function_call}
+- Tool Calls: {message.tool_calls}
+
+Usage Statistics:
+- Total Tokens: {usage.total_tokens}
+- Completion Tokens: {usage.completion_tokens}
+- Prompt Tokens: {usage.prompt_tokens}
+
+Completion Tokens Details:
+- Accepted Prediction Tokens: {usage.completion_tokens_details.accepted_prediction_tokens}
+- Audio Tokens: {usage.completion_tokens_details.audio_tokens}
+- Rejected Prediction Tokens: {usage.completion_tokens_details.rejected_prediction_tokens}
+- Reasoning Tokens: {usage.completion_tokens_details.reasoning_tokens}
+
+Prompt Tokens Details:
+- Audio Tokens: {usage.prompt_tokens_details.audio_tokens}
+- Cached Tokens: {usage.prompt_tokens_details.cached_tokens}
+
+## Prompts (789 tokens)
+### Prompt Initial (16 tokens)
+{prompt_parts.get('prompt_initial', '').strip()}
+
+### Query Context (16 tokens)
+{prompt_parts.get('query_context', '').strip()}
+
+### RAG Context (17 tokens)
+{prompt_parts.get('rag_context', '').strip()}
+
+### Large Context (FILE PATH ONLY) (736 tokens)
+from file: {prompt_parts.get('large_context_file_path', 'No file path provided')}"""
+
+    # Prepend the new markdown content to the existing file (if any)
+    existing_content = ""
+    if os.path.exists(md_file_path):
+        with open(md_file_path, 'r') as f:
+            existing_content = f.read()
+    
+    with open(md_file_path, 'w') as f:
+        f.write(markdown_content)
+        if existing_content:
+            f.write('\n\n\n' + existing_content)
+    print(f"Reasoning response from openai saved to markdown file: {md_file_path}")
+def reasoning_prompt_to_md_multipart(prompt_parts, model, md_file_path, heading_level=1, save_files=True):
+    """
+    Process a multipart reasoning prompt and write/append it to a markdown file.
+    Only writes to the file if the response is successful.
+    Returns the raw response from the model which can be saved or ignored.
+
+    :param prompt_parts: dict, containing prompt components:
+        - prompt_initial: str, initial prompt text
+        - query: str, the main query
+        - query_context: str, formatted query context
+        - rag_context: str, RAG context to include in markdown
+        - large_context: str, additional context (not included in markdown)
+    :param md_file_path: str, path to the markdown file
+    :param heading_level: int, base heading level for the question
+    :return: None
+    """
+    # Combine all parts for the full prompt
+    full_prompt = (
+        prompt_parts.get('prompt_initial', '').strip() + '\n\n' +
+        prompt_parts.get('query_context', '').strip() + '\n\n' +
+        prompt_parts.get('rag_context', '').strip() + '\n\n' +
+        prompt_parts.get('large_context', '').strip()
+    ).strip()
+
+    messages = [{"role": "user", "content": full_prompt}]
+    if model.startswith("deepseek"):
+        response = deepseek_chat_completion_request_sdk(messages=messages)
+    elif model.startswith("o1") or model.startswith("o3"):
+        response = openai_chat_completion_request_sdk(messages=messages, model=model)
+    else:
+        raise ValueError(f"Model '{model}' is not supported. Must start with 'deepseek' or 'o1' or 'o3'.")
+
+    # print(colored("Full response object:", "green"))
+    # print(response)
+
+    # DEBUG START - load the response from a file ##########################
+    # REMEMBER TO COMMENT OUT THE response = deepseek_chat_completion_request_sdk line above
+    # response_json_file = f""  # have this here so can comment out the different DEBUG parts below
+    # response = get_response_from_json_file(response_json_file)
+    # print(f"Loaded response from file: {response_json_file}")
+    # DEBUG END  #########################################################
+    
+    # Format the response
+    datetime = get_current_datetime_filefriendly()
+
+    # Save the response to a JSON file
+    if save_files:
+        save_llm_response_files(response, datetime, model, prompt_parts.get('query', '').strip())
+    
+    # Only proceed if response is successful (not an Exception)
+    if isinstance(response, Exception):
+        print(f"Error generating response: {str(response)}")
+        return None
+
+    if model.startswith("deepseek"):
+        reasoning_response_to_md_multipart_deepseek(prompt_parts, response, model, md_file_path, datetime, heading_level=heading_level)
+    elif model.startswith("o1") or model.startswith("o3"):
+        reasoning_response_to_md_multipart_openai(prompt_parts, response, model, md_file_path, datetime, heading_level=heading_level)
+    else:
+        raise ValueError(f"Model '{model}' is not supported. Must start with 'deepseek' or 'o1' or 'o3'.")
+
+
+### LLM PROCESSING (505 tokens)
 #TODO clean up 'prompt' terminology so system prompt is properly distinguished
 def llm_process_block(block, prompt, provider="openai"):
     """
@@ -6597,7 +7713,7 @@ def fcall_qa_incremental_OLD(transcript, next_tokens, fcall_prompt, start_positi
             yield None, current_position
 
 
-### QA BY SECTIONS - FULL BLOCKS (5,437 tokens)
+### QA BY SECTIONS - FULL BLOCKS (5,363 tokens)
 FCALL_SYSTEM_PROMPT_QA_SECTIONS_TRANSCRIPT_FDA_TOWNHALLS_1A = """
 You are an expert text analyzer trained in identifying questions and answers in transcript sections of dialogue, specifically for FDA Town Hall meetings on COVID-19 diagnostics.
 
@@ -6890,7 +8006,7 @@ def fcall_qa_section(transcript_section, fcall_prompt, provider="openai", debug=
                 continue
             yield None, None
             return
-def create_qa_file_from_transcript_sections(file_path, fcall_prompt, provider="openai", delimiter='---'):
+def create_qa_file_from_transcript_sections(file_path, fcall_prompt, provider="openai", heading="### transcript", delimiter='---'):
     """
     Extract QA blocks from a transcript file by processing sections delimited by a separator.
     
@@ -6992,11 +8108,9 @@ def create_qa_file_from_transcript_sections(file_path, fcall_prompt, provider="o
     print("QA written to " + qa_file_path)
     return qa_file_path
 
-#CUR_TRANSCRIPT_FILE_PATH = "data/floodlamp/reg/fda-townhalls/f5_fixnames/2020-12-09_Virtual Town Hall 36_fixnames.md"
-#CUR_TRANSCRIPT_FILE_PATH = "data/floodlamp/reg/fda-townhalls/f5_fixnames/2020-10-14_Virtual Town Hall 30_fixnames.md"
-#CUR_TRANSCRIPT_FILE_PATH = "data/floodlamp/reg/fda-townhalls/f5_fixnames/2020-08-05_Virtual Town Hall 20_fixnames.md"
+#CUR_SOURCE_FILE_PATH = "data/floodlamp/reg/fda-townhalls/f5_fixnames/2020-12-09_Virtual Town Hall 36_fixnames.md"
 
-### Q SIMILARITY (6,136 tokens)
+### Q SIMILARITY (6,132 tokens)
 def get_questions_from_qa_file(qa_file_path, heading):
     """
     Gets questions and their section numbers from a QA file, handling different heading formats.
@@ -7182,7 +8296,7 @@ def mrun_get_questions_from_qa_file():
     pass
 #if __name__ == "__main__":
     #qa_file_path = "data/floodlamp/reg/fda-townhalls/f5_fixnames/2020-12-09_Virtual Town Hall 36_qa-qonly_found.md"
-    qa_file_path = sub_suffix_in_str(CUR_TRANSCRIPT_FILE_PATH, '_qa-qonly')
+    qa_file_path = sub_suffix_in_str(CUR_SOURCE_FILE_PATH, '_qa-qonly')
     # cur_heading = "##### Implicit Questions Extraction"
     # questions = get_questions_from_qa_file(cur_file_path, cur_heading)
     # print(f"Number of questions in {cur_heading}: {len(questions)}")
@@ -7246,7 +8360,7 @@ def generate_and_save_question_embeddings(qa_file_path, questions, verbose=True)
 def mrun_generate_and_save_question_embeddings():
     pass
 #if __name__ == "__main__":
-    qa_file_path = sub_suffix_in_str(CUR_TRANSCRIPT_FILE_PATH, '_qa-qonly')
+    qa_file_path = sub_suffix_in_str(CUR_SOURCE_FILE_PATH, '_qa-qonly')
     questions = get_questions_from_extract_log(qa_file_path)
     embeddings_file = generate_and_save_question_embeddings(qa_file_path, questions)
     print(f"Embeddings file saved to: {embeddings_file}")
@@ -7342,7 +8456,7 @@ def calc_question_list_similarities(embeddings_file, similarity_threshold=0.781)
 def mrun_calc_question_list_similarities():
     pass
 #if __name__ == "__main__":
-    qa_file_path = sub_suffix_in_str(CUR_TRANSCRIPT_FILE_PATH, '_qa-qonly')
+    qa_file_path = sub_suffix_in_str(CUR_SOURCE_FILE_PATH, '_qa-qonly')
     embeddings_file_path = qa_file_path.replace(".md", "_q-vectors.npz")
     similarities, questions_to_remove, output_text = calc_question_list_similarities(embeddings_file_path)
     print(f"\n\noutput_text:\n{output_text}")
@@ -7634,13 +8748,14 @@ def mrun_visualize_question_similarities():
     pass
 #if __name__ == "__main__":
     #qa_file_path = "data/floodlamp/reg/fda-townhalls/f5_fixnames/2020-12-09_Virtual Town Hall 36_qa-qonly.md"
-    qa_file_path = sub_suffix_in_str(CUR_TRANSCRIPT_FILE_PATH, '_qa-qonly')
+    qa_file_path = sub_suffix_in_str(CUR_SOURCE_FILE_PATH, '_qa-qonly')
     vectors_file_path = qa_file_path.replace(".md", "_q-vectors.npz")
     html_viz_file, png_viz_file = visualize_question_similarities(vectors_file_path, min_similarity=0.7)
     print(f"\n\nVisualization HTML saved to: {html_viz_file}")
     print(f"Visualization PNG saved to: {png_viz_file}")
 
-### QA BY SECTIONS - Q ONLY (14,690 tokens)
+### ************************** START OF CODE BEING REFACTORED ************************** (13 tokens)
+### QA BY SECTIONS - Q ONLY (14,242 tokens)
 def create_extract_log_header(fcall_prompt, provider, model, round_num, round_name):
     """
     Create the extract log header information for a specific round.
@@ -7661,7 +8776,8 @@ def create_extract_log_header(fcall_prompt, provider, model, round_num, round_na
         log_lines.append("### extract log")
         log_lines.append("#### extract log header")
         log_lines.append(f"datetime: {datetime}")
-        log_lines.append("source file prep: primary.llm.add_transcript_section_delimiters for non-FDA speakers")
+        #log_lines.append("source file prep: primary.llm.add_transcript_section_delimiters for non-FDA speakers")
+        log_lines.append(f"source file prep: sections before all sub chapters md level 3")
     
     log_lines.append(f"ROUND {round_num} NAME: {round_name}")
     prompt_name = next((var_name for var_name, var_value in globals().items() 
@@ -7673,28 +8789,67 @@ def create_extract_log_header(fcall_prompt, provider, model, round_num, round_na
     log_lines.append("")
     
     return log_lines
-def get_transcript_metadata_and_sections(transcript_file_path, delimiter='---'):
+def get_file_metadata_and_sections(file_path, heading='### transcript', delimiter='---', auto_detect_section_titles=True):
     """
-    Read a transcript file and extract metadata, content and transcript sections.
+    Read metadata and content from a file, splitting sections by delimiter or next-level headings.
 
-    :param transcript_file_path: string, path to the transcript file
-    :param delimiter: string, used to separate transcript sections
-    :return metadata: dict, metadata from file
-    :return sections: list, transcript sections split by delimiter
-    :return total_sections: int, total number of sections
+    :param file_path: string, path to the file to read
+    :param heading: string, heading to extract content from, or None to use full content
+    :param delimiter: string, delimiter used to split content into sections, or None to skip delimiter check
+    :param auto_detect_section_titles: bool, if True and no delimiters found, split by next heading level
+    :return metadata: dict, metadata from the file
+    :return sections: list, sections split by delimiter or headings
+    :return total_sections: int, number of sections found
     """
-    # Read metadata and content
-    metadata, content = read_metadata_and_content(transcript_file_path)
-    
-    # Get transcript content
-    transcript = get_heading(transcript_file_path, "### transcript")
-    transcript = transcript.lstrip('### transcript').rstrip('\n').lstrip('\n*')
-    
-    # Split into sections
-    sections = transcript.split(delimiter)
+    metadata, full_content = read_metadata_and_content(file_path)
+
+    # if heading is present, extract that portion
+    # otherwise, you can skip or use the entire file
+    if heading:
+        text = get_heading(file_path, heading, strip_heading_line=True)
+    else:
+        # fallback if user set heading=None
+        text = full_content
+
+    # First try splitting by delimiter if it's provided and exists in text
+    if delimiter and delimiter in text:
+        sections = text.split(delimiter)
+    # If no delimiter found or delimiter is None, try auto-detecting sections by headings
+    elif auto_detect_section_titles and heading:
+        # Get the heading level of the main heading
+        heading_level = get_heading_level(heading)
+        # Look for headings one level deeper
+        next_level_pattern = r'^#{' + str(heading_level + 1) + r'}\s.*$'
+        
+        # Split the text at these headings
+        sections = []
+        current_section = []
+        
+        for line in text.splitlines():
+            if re.match(next_level_pattern, line):
+                if current_section:
+                    sections.append('\n'.join(current_section))
+                current_section = [line]
+            else:
+                current_section.append(line)
+                
+        if current_section:
+            sections.append('\n'.join(current_section))
+    else:
+        # If no splitting method works, treat the entire text as one section
+        sections = [text]
+
     total_sections = len(sections)
-    
     return metadata, sections, total_sections
+def mtest_get_file_metadata_and_sections():
+    pass
+#if __name__ == "__main__":
+    cur_source_file_path = "data/misc_books/Sovereign Child/The Sovereign Child_sections.md"
+    metadata, sections, total_sections = get_file_metadata_and_sections(cur_source_file_path, heading='CONTENT', delimiter='---', auto_detect_section_titles=True)
+    print(f"Total Sections: {total_sections} for file: {cur_source_file_path}")
+    cur_source_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_section-titles.md"
+    metadata, sections, total_sections = get_file_metadata_and_sections(cur_source_file_path, heading='### transcript', delimiter='---', auto_detect_section_titles=True)
+    print(f"Total Sections: {total_sections} for file: {cur_source_file_path}")
 def log_section_items(log_lines, section_num, items, round_name, prefix):
     """
     Add items to the log under the appropriate section heading,
@@ -7775,7 +8930,7 @@ def mtest_log_section_items():
 #if __name__ == "__main__":
     # Test Case 1: Starting from blank -> Adding Explicit Questions
     initial_log_text_1 = """### extract log
-#### extract log header (1,146 tokens)
+#### extract log header (1,645 tokens)
 datetime: 2024
 
 #### Section 1 of 2 (8 tokens)
@@ -7783,7 +8938,7 @@ datetime: 2024
 #### Section 2 of 2""" (19 tokens)
 
     expected_output_1 = """### extract log
-#### extract log header (1,146 tokens)
+#### extract log header (1,645 tokens)
 datetime: 2024
 
 #### Section 1 of 2 (8 tokens)
@@ -7797,20 +8952,20 @@ QE 2-1: What is the process for LAMP testing validation?"""
     initial_log_text_2 = expected_output_1
 
     expected_output_2 = """### extract log
-#### extract log header (1,146 tokens)
+#### extract log header (1,645 tokens)
 datetime: 2024
 
 #### Section 1 of 2 (8 tokens)
 ##### Explicit Questions Extraction (5 tokens)
 
-##### Implicit Questions Extraction (4,262 tokens)
+##### Implicit Questions Extraction (4,259 tokens)
 QI 1-1: What are the FDA's requirements for pooling tests?
 
 #### Section 2 of 2 (19 tokens)
 ##### Explicit Questions Extraction (5 tokens)
 QE 2-1: What is the process for LAMP testing validation?
 
-##### Implicit Questions Extraction (4,262 tokens)
+##### Implicit Questions Extraction (4,259 tokens)
 QI 2-1: What validation is needed for test modifications?"""
 
     # Test Case 1: Adding Explicit Questions
@@ -7873,7 +9028,7 @@ def mrun_log_section_items():
     new_log_lines = log_section_items(log_lines, 2, ["First fake implicit question?", "Second implicit question?"], "Implicit Questions Extraction", prefix="QI")
     print("\n".join(new_log_lines))
 
-FCALL_SYSTEM_PROMPT_QA_QONLY_EXPLICIT_1D = """
+FCALL_SYSTEM_PROMPT_QA_QONLY_EXPLICIT_FDA_1D = """
 You are an expert text analyzer trained to extract explicitly asked questions from FDA Town Hall transcripts on COVID-19 diagnostics. 
 
 Your Task (Round 1 - Explicit Questions Only):
@@ -7925,11 +9080,19 @@ def tools_qa_qonly_explicit():
             }
         }
     }]
-def fcall_qa_qonly_explicit(transcript_section, fcall_prompt, provider="openai", debug=False):
+def deepseek_qa_output_schema():
+    return {
+        "questions": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "List of clarified questions. Each should be concise and clear, without speaker names."
+        }
+    }
+def fcall_qa_qonly_explicit(section_text, fcall_prompt, provider="openai", debug=False):
     """
-    Process a single transcript section to extract explicit questions.
+    Process a single section of text to extract explicit questions.
     
-    :param transcript_section: string containing a section of the transcript to process
+    :param section_text: string containing a section of the text to process
     :param fcall_prompt: string containing the prompt for function calling
     :param provider: string indicating which provider to use ("openai" or "anthropic")
     :param debug: boolean to enable debug printing
@@ -7938,7 +9101,7 @@ def fcall_qa_qonly_explicit(transcript_section, fcall_prompt, provider="openai",
     max_retries = 2  # Maximum attempts to get questions from a section
     
     # Add debug print for initial inputs
-    verbose_print(debug, f"\nProcessing section of length: {len(transcript_section)} chars")
+    verbose_print(debug, f"\nProcessing section of length: {len(section_text)} chars")
     
     # Get appropriate tools format for the provider
     tools = tools_qa_qonly_explicit()
@@ -7950,9 +9113,13 @@ def fcall_qa_qonly_explicit(transcript_section, fcall_prompt, provider="openai",
             verbose_print(debug, f"Attempting function call with {provider}")
             # Make the appropriate function call based on provider
             if provider == "openai":
-                response = openai_function_call(fcall_prompt, transcript_section, tools)
+                response = openai_function_call(fcall_prompt, section_text, tools)
             elif provider == "anthropic":
-                response = anthropic_function_call(fcall_prompt, transcript_section, tools)
+                response = anthropic_function_call(fcall_prompt, section_text, tools)
+            elif provider == "deepseek":
+                response = deepseek_structured_output(fcall_prompt, section_text, 
+                                        deepseek_qa_output_schema())
+                return response.get('questions', []) if response else None
             else:
                 raise ValueError("Provider must be either 'openai' or 'anthropic'")
             
@@ -7980,15 +9147,15 @@ def fcall_qa_qonly_explicit(transcript_section, fcall_prompt, provider="openai",
             return None
     
     return None
-def do_qonly_round_1_explicit(transcript_file_path, fcall_prompt, provider="openai", delimiter='---', suffix_new='_qa-qonly'):
+def do_qonly_round_1_explicit(source_file_path, fcall_prompt, provider="openai", heading="### transcript", delimiter='---', suffix_new='_qa-qonly'):
     """
-    Extract explicit questions from a transcript file by processing sections delimited by a separator.
+    Extract explicit questions from a text file by processing sections delimited by a separator.
     Creates a new file with extraction log but no QA blocks yet.
 
-    :param transcript_file_path: string path to the transcript file
+    :param ile_path: string path to the file
     :param fcall_prompt: string prompt for function calling
     :param provider: string indicating which provider to use ("openai" or "anthropic")
-    :param delimiter: string used to separate transcript sections
+    :param delimiter: string used to separate sections
     :param suffix_new: string suffix for the new file name
     :return qa_file_path: string path to the created file
     """
@@ -8009,17 +9176,17 @@ def do_qonly_round_1_explicit(transcript_file_path, fcall_prompt, provider="open
     print("\n".join(log_lines))  # Print header information
 
     # Get transcript sections and metadata
-    metadata, sections, total_sections = get_transcript_metadata_and_sections(transcript_file_path, delimiter)
+    metadata, sections, total_sections = get_file_metadata_and_sections(source_file_path, heading=heading, delimiter=delimiter)
 
     # Get current datetime string to update metadata for new qa file
     current_datetime = get_current_datetime_humanfriendly()
     date = current_datetime.split(' ')[0]
     metadata = set_metadata_field(metadata, "last updated", f"{date} Created QA Sections")
-    metadata = set_metadata_field(metadata, "source file", transcript_file_path)
+    metadata = set_metadata_field(metadata, "source file", source_file_path)
 
     # Create output file with initial content
     initial_content = "## content\n"  # Note: ### qa section will be added later
-    qa_file_path = write_metadata_and_content(transcript_file_path, metadata, initial_content, overwrite='no-sub', suffix_new=suffix_new)
+    qa_file_path = write_metadata_and_content(source_file_path, metadata, initial_content, overwrite='no-sub', suffix_new=suffix_new)
 
     # First pass: Create section heading lines
     for section_num, section in enumerate(sections, 1):
@@ -8060,11 +9227,11 @@ def mrun_do_qonly_round_1_explicit():
     pass
 #if __name__ == "__main__":
     #cur_file_path = "data/floodlamp/reg/fda-townhalls/dev-qa-extract/VTH 36_cemanual-sections.md"
-    cur_file_path = CUR_TRANSCRIPT_FILE_PATH
+    cur_file_path = CUR_SOURCE_FILE_PATH
     #cur_file_path = "data/floodlamp/reg/fda-townhalls/dev-qa-extract/VTH 36 just2_trans.md"
     qa_file_path = do_qonly_round_1_explicit(cur_file_path, FCALL_SYSTEM_PROMPT_QA_QONLY_EXPLICIT_1D)
     print(f"QA file created at: {qa_file_path}")   
-FCALL_SYSTEM_PROMPT_QA_QONLY_IMPLICIT_1A = """
+FCALL_SYSTEM_PROMPT_QA_QONLY_IMPLICIT_FDA_1A = """
 You are an expert text analyzer trained to identify implied (unspoken) questions from FDA Town Hall transcripts on COVID-19 diagnostics. 
 
 Context:
@@ -8134,11 +9301,11 @@ def tools_qa_qonly_implicit():
             }
         }
     }]
-def fcall_qa_qonly_implicit(transcript_section, fcall_prompt, prev_questions, provider="openai", debug=False, abort_on_error=True):
+def fcall_qa_qonly_implicit(section_text, fcall_prompt, prev_questions, provider="openai", debug=False, abort_on_error=True):
     """
-    Process a single transcript section to extract implicit questions.
+    Process a single section of text to extract implicit questions.
     
-    :param transcript_section: string containing a section of the transcript to process
+    :param section_text: string containing a section of text to process
     :param fcall_prompt: string containing the prompt for function calling
     :param prev_questions: list of previously extracted explicit questions
     :param provider: string indicating which provider to use ("openai" or "anthropic")
@@ -8168,7 +9335,7 @@ def fcall_qa_qonly_implicit(transcript_section, fcall_prompt, prev_questions, pr
         f"{fcall_prompt}\n\n"
         f"{prev_questions_context}\n\n"
         f"Please identify any implied questions in the following transcript section:\n\n"
-        f"{transcript_section}"
+        f"{section_text}"
     )
     verbose_print(debug, f"Full prompt:\n{full_prompt}")
     
@@ -8177,9 +9344,9 @@ def fcall_qa_qonly_implicit(transcript_section, fcall_prompt, prev_questions, pr
             verbose_print(debug, f"Attempting function call with {provider}")
             # Make the appropriate function call based on provider
             if provider == "openai":
-                response = openai_function_call(full_prompt, transcript_section, tools)
+                response = openai_function_call(full_prompt, section_text, tools)
             elif provider == "anthropic":
-                response = anthropic_function_call(full_prompt, transcript_section, tools)
+                response = anthropic_function_call(full_prompt, section_text, tools)
             else:
                 raise ValueError("Provider must be either 'openai' or 'anthropic'")
             
@@ -8214,15 +9381,15 @@ def fcall_qa_qonly_implicit(transcript_section, fcall_prompt, prev_questions, pr
             return None
     
     return None
-def do_qonly_round_2_implicit(transcript_file_path, fcall_prompt, provider="openai", delimiter='---', suffix_new='_qa-qonly'):
+def do_qonly_round_2_implicit(source_file_path, fcall_prompt, provider="openai", heading="### transcript", delimiter='---', suffix_new='_qa-qonly'):
     """
-    Extract implicit questions from a transcript file by processing sections delimited by a separator.
+    Extract implicit questions from a source file by processing sections delimited by a separator.
     Modifies an existing QA file by appending implicit questions to the extract log.
 
-    :param transcript_file_path: string, path to the transcript file
+    :param source_file_path: string, path to the source file
     :param fcall_prompt: string, prompt for function calling
     :param provider: string, indicating which provider to use ("openai" or "anthropic")
-    :param delimiter: string, used to separate transcript sections
+    :param delimiter: string, used to separate sections
     :param suffix_new: string, suffix for the existing QA file
     :return qa_file_path: string, path to the modified file
     """
@@ -8231,7 +9398,7 @@ def do_qonly_round_2_implicit(transcript_file_path, fcall_prompt, provider="open
     start_time = time.time()
 
     # Verify QA file exists
-    qa_file_path = sub_suffix_in_str(transcript_file_path, suffix_new)
+    qa_file_path = sub_suffix_in_str(source_file_path, suffix_new)
     if not os.path.exists(qa_file_path):
         raise ValueError(f"QA file not found: {qa_file_path}")
 
@@ -8252,7 +9419,7 @@ def do_qonly_round_2_implicit(transcript_file_path, fcall_prompt, provider="open
     #print("\n".join(log_lines))  # Print header information
 
     # Get transcript sections and metadata
-    _, sections, total_sections = get_transcript_metadata_and_sections(transcript_file_path, delimiter)
+    _, sections, total_sections = get_file_metadata_and_sections(source_file_path, heading=heading, delimiter=delimiter)
 
     # Process each section
     for section_num, section in enumerate(sections, 1):
@@ -8286,21 +9453,21 @@ def do_qonly_round_2_implicit(transcript_file_path, fcall_prompt, provider="open
 def mrun_do_qonly_round_2_implicit():
     pass
 #if __name__ == "__main__":
-    #cur_transcript_file_path = "data/floodlamp/reg/fda-townhalls/dev-qa-extract/VTH 36_cemanual-sections.md"
-    cur_transcript_file_path = CUR_TRANSCRIPT_FILE_PATH
-    #cur_transcript_file_path = "data/floodlamp/reg/fda-townhalls/dev-qa-extract/VTH 36 just2_trans.md"
+    #cur_source_file_path = "data/floodlamp/reg/fda-townhalls/dev-qa-extract/VTH 36_cemanual-sections.md"
+    cur_source_file_path = CUR_SOURCE_FILE_PATH
+    #cur_source_file_path = "data/floodlamp/reg/fda-townhalls/dev-qa-extract/VTH 36 just2_trans.md"
 
     # ONLY USE THIS AFTER copying the _qa-qonly file as a different name
     # qa_file_path = CUR_FILE_PATH
     # qa_file_path = sub_suffix_in_str(qa_file_path, '_qa-qonly')
     # delete_all_heading_instances(qa_file_path, "##### Implicit Questions Extraction")
 
-    qa_file_path = do_qonly_round_2_implicit(cur_transcript_file_path, FCALL_SYSTEM_PROMPT_QA_QONLY_IMPLICIT_1A)
+    qa_file_path = do_qonly_round_2_implicit(cur_source_file_path, FCALL_SYSTEM_PROMPT_QA_QONLY_IMPLICIT_1A)
     print(f"Implicit Round 2 - QA file updated: {qa_file_path}")
     get_questions_from_extract_log(qa_file_path, verbose=True)
-def single_section_qonly_round_2_implicit(transcript_file_path, fcall_prompt, section_num, provider="openai", delimiter='---', suffix_new='_qa-qonly'):
+def single_section_qonly_round_2_implicit(source_file_path, fcall_prompt, section_num, provider="openai", heading="### transcript", delimiter='---', suffix_new='_qa-qonly'):
     # Verify QA file exists
-    qa_file_path = sub_suffix_in_str(transcript_file_path, suffix_new)
+    qa_file_path = sub_suffix_in_str(source_file_path, suffix_new)
     if not os.path.exists(qa_file_path):
         raise ValueError(f"QA file not found: {qa_file_path}")
 
@@ -8316,7 +9483,7 @@ def single_section_qonly_round_2_implicit(transcript_file_path, fcall_prompt, se
         raise ValueError("Provider must be either 'openai' or 'anthropic'")
 
     # Get transcript sections and metadata
-    _, sections, total_sections = get_transcript_metadata_and_sections(transcript_file_path, delimiter)
+    _, sections, total_sections = get_file_metadata_and_sections(source_file_path, heading='### transcript', delimiter=delimiter)
 
     # Process only the requested section
     section = sections[section_num - 1].strip()
@@ -8343,13 +9510,13 @@ def single_section_qonly_round_2_implicit(transcript_file_path, fcall_prompt, se
 def mrun_single_section_qonly_round_2_implicit():
     pass
 #if __name__ == "__main__":
-    cur_file_path = CUR_TRANSCRIPT_FILE_PATH
+    cur_file_path = CUR_SOURCE_FILE_PATH
     section_num = 1
     questions = single_section_qonly_round_2_implicit(cur_file_path, FCALL_SYSTEM_PROMPT_QA_QONLY_IMPLICIT_1A, section_num)
     print("Implicit Questions:")
     for question in questions:
         print(question)
-FCALL_SYSTEM_PROMPT_QA_QONLY_BLOCKS_1A = """
+FCALL_SYSTEM_PROMPT_QA_QONLY_BLOCKS_FDA_1A = """
 You are an expert text analyzer trained in extracting full Q&A blocks for FDA Town Hall transcripts on COVID-19 diagnostics.
 
 Your Role:
@@ -8448,11 +9615,11 @@ def tools_qa_qonly_blocks():
             }
         }
     }]
-def fcall_qa_qonly_block(transcript_section, fcall_prompt, question, provider="openai", debug=False):
+def fcall_qa_qonly_block(section_text, fcall_prompt, question, provider="openai", debug=False):
     """
-    Process a single transcript section to extract a QA block for a given question.
+    Process a single section of text to extract a QA block for a given question.
     
-    :param transcript_section: string containing a section of the transcript to process
+    :param section_text: string containing a section of text to process
     :param fcall_prompt: string containing the prompt for function calling
     :param question: string containing the already clarified question
     :param provider: string indicating which provider to use ("openai" or "anthropic")
@@ -8470,7 +9637,7 @@ def fcall_qa_qonly_block(transcript_section, fcall_prompt, question, provider="o
     full_prompt = (
         f"{fcall_prompt}\n\n"
         f"<PROVIDED QUESTION>\n{question}\n</PROVIDED QUESTION>\n\n"    
-        f"<TRANSCRIPT SECTION>\n{transcript_section}\n</TRANSCRIPT SECTION>\n\n"
+        f"<TRANSCRIPT SECTION>\n{section_text}\n</TRANSCRIPT SECTION>\n\n"
         f"Return only a single JSON object, nothing else."
     )
     verbose_print(debug, f"full_prompt: {full_prompt}")
@@ -8479,9 +9646,9 @@ def fcall_qa_qonly_block(transcript_section, fcall_prompt, question, provider="o
         try:
             # Make the appropriate function call based on provider
             if provider == "openai":
-                qa_response = openai_function_call(full_prompt, transcript_section, tools)
+                qa_response = openai_function_call(full_prompt, section_text, tools)
             elif provider == "anthropic":
-                qa_response = anthropic_function_call(full_prompt, transcript_section, tools)
+                qa_response = anthropic_function_call(full_prompt, section_text, tools)
             else:
                 raise ValueError("Provider must be either 'openai' or 'anthropic'")
             
@@ -8550,12 +9717,12 @@ def mtest_get_last_qa_block_identifier():
     qa_file_path = "data/floodlamp/reg/fda-townhalls/f5_fixnames/run_auto/2021-12-15_Virtual Town Hall 75_qa-qonly.md"
     section_num, question_num = get_last_qa_block_identifier(qa_file_path)
     print(f"Last QA Block: Section {section_num}, Question {question_num}")
-def do_qonly_round_3_blocks(transcript_file_path, fcall_prompt, provider="openai", delimiter='---', suffix_new='_qa-qonly'):
+def do_qonly_round_3_blocks(file_path, fcall_prompt, provider="openai", heading="### transcript", delimiter='---', suffix_new='_qa-qonly'):
     """
-    Extract QA blocks for previously identified questions from a transcript file.
+    Extract QA blocks for previously identified questions from a textfile.
     Can resume processing from the last completed QA block in a partially processed file.
     
-    :param transcript_file_path: string path to the transcript file
+    :param file_path: string path to the text file
     :param fcall_prompt: string prompt for function calling
     :param provider: string indicating which provider to use ("openai" or "anthropic")
     :param delimiter: string used to separate transcript sections
@@ -8567,7 +9734,7 @@ def do_qonly_round_3_blocks(transcript_file_path, fcall_prompt, provider="openai
     start_time = time.time()
 
     # Verify QA file exists
-    qa_file_path = sub_suffix_in_str(transcript_file_path, suffix_new)
+    qa_file_path = sub_suffix_in_str(file_path, suffix_new)
     if not os.path.exists(qa_file_path):
         raise ValueError(f"QA file not found: {qa_file_path}")
 
@@ -8583,7 +9750,7 @@ def do_qonly_round_3_blocks(transcript_file_path, fcall_prompt, provider="openai
         raise ValueError("Provider must be either 'openai' or 'anthropic'")
     
     # Get transcript sections and metadata
-    _, sections, total_sections = get_transcript_metadata_and_sections(transcript_file_path, delimiter)
+    _, sections, total_sections = get_file_metadata_and_sections(file_path, heading=heading, delimiter=delimiter)
 
     # Get the last processed block (if any)
     last_block = get_last_qa_block_identifier(qa_file_path)
@@ -8638,25 +9805,24 @@ def do_qonly_round_3_blocks(transcript_file_path, fcall_prompt, provider="openai
                 print(colored(error_msg, "red"))
             raise  # Re-raise to abort processing
 
-    print(f"\n{round_name} completed in {(time.time() - start_time) / 60:.1f} minutes.")
+    time_now = datetime.now().strftime('%Y-%m-%d %I:%M:%S %p')
+    print(f"\n{round_name} completed in {(time.time() - start_time) / 60:.1f} minutes at {time_now}.")
     print(f"{round_name} - QA blocks written to {qa_file_path}")
     return qa_file_path
-
 def mrun_do_qonly_round_3_blocks():
     pass
 #if __name__ == "__main__":
-    #cur_transcript_file_path = "data/floodlamp/reg/fda-townhalls/f5_fixnames/2020-08-05_Virtual Town Hall 20_fixnames.md"
-    cur_transcript_file_path = CUR_TRANSCRIPT_FILE_PATH
-    qa_file_path = do_qonly_round_3_blocks(cur_transcript_file_path, FCALL_SYSTEM_PROMPT_QA_QONLY_BLOCKS_1A)
+    #cur_source_file_path = "data/floodlamp/reg/fda-townhalls/f5_fixnames/2020-08-05_Virtual Town Hall 20_fixnames.md"
+    cur_source_file_path = CUR_SOURCE_FILE_PATH
+    qa_file_path = do_qonly_round_3_blocks(cur_source_file_path, FCALL_SYSTEM_PROMPT_QA_QONLY_BLOCKS_FDA_1A)
     
     print(f"Implicit Round 3 - QA file updated: {qa_file_path}")
-
-def move_removed_qa_blocks(qa_file_path, removed_questions, new_section_name="### removed qa blocks"):
+def move_removed_qa_blocks(qa_file_path, block_ids_to_remove, new_section_name="### removed qa blocks"):
     """
     Moves specified QA blocks from the qa section to a new section.
 
     :param qa_file_path: string, path to the QA file.
-    :param removed_questions: list, question identifiers to move (e.g., ['16-4', '16-5']).
+    :param block_ids_to_remove: list, block identifiers to move (e.g., ['16-4', '16-5']).
     :param new_section_name: string, name of the section to move blocks to.
     :return: None
     """
@@ -8673,10 +9839,10 @@ def move_removed_qa_blocks(qa_file_path, removed_questions, new_section_name="##
     remaining_blocks = []
     
     for block in all_blocks:
-        # Check if block matches any of the removed question patterns
+        # Check if block matches any of the block IDs to remove
         is_removed = False
-        for question_id in removed_questions:
-            if block.startswith(f"QA Block {question_id}"):
+        for block_id in block_ids_to_remove:
+            if block.startswith(f"QA Block {block_id}"):
                 removed_blocks.append(block)
                 is_removed = True
                 break
@@ -8695,13 +9861,12 @@ def move_removed_qa_blocks(qa_file_path, removed_questions, new_section_name="##
 def mrun_move_removed_qa_blocks():
     pass
 #if __name__ == "__main__":
-    qa_file_path = sub_suffix_in_str(CUR_TRANSCRIPT_FILE_PATH, '_qa-qonly')
+    qa_file_path = sub_suffix_in_str(CUR_SOURCE_FILE_PATH, '_qa-qonly')
     removed_questions = ['16-4', '16-5']
     move_removed_qa_blocks(qa_file_path, removed_questions)
-
-def rerun_qa_block_fcall(transcript_file_path, fcall_prompt, first_2_qa_block_lines, provider="openai", delimiter='---', suffix_new='_qa-qonly'):
+def rerun_qa_block_fcall(source_file_path, fcall_prompt, first_2_qa_block_lines, provider="openai", heading="### transcript", delimiter='---', suffix_new='_qa-qonly'):
     # Verify QA file exists
-    qa_file_path = sub_suffix_in_str(transcript_file_path, suffix_new)
+    qa_file_path = sub_suffix_in_str(source_file_path, suffix_new)
     if not os.path.exists(qa_file_path):
         raise ValueError(f"QA file not found: {qa_file_path}")
 
@@ -8731,7 +9896,7 @@ def rerun_qa_block_fcall(transcript_file_path, fcall_prompt, first_2_qa_block_li
     question = question_match.group(1)
 
     # Get transcript sections
-    _, sections, _ = get_transcript_metadata_and_sections(transcript_file_path, delimiter)
+    _, sections, _ = get_file_metadata_and_sections(source_file_path, heading='### transcript', delimiter=delimiter)
     
     # Verify section number is valid
     if section_num < 1 or section_num > len(sections):
@@ -8761,19 +9926,19 @@ def rerun_qa_block_fcall(transcript_file_path, fcall_prompt, first_2_qa_block_li
 def mrun_rerun_qa_block_fcall():
     pass
 #if __name__ == "__main__":
-    transcript_file_path = CUR_TRANSCRIPT_FILE_PATH
+    source_file_path = CUR_SOURCE_FILE_PATH
     first_2_qa_block_lines = """
 QA Block 4-1
 CLARIFIED QUESTION: How high should the CT values be for low positives in retrospective studies of a rapid antigen test?"""
-    rerun_qa_block_fcall(transcript_file_path, FCALL_SYSTEM_PROMPT_QA_QONLY_BLOCKS_1A, first_2_qa_block_lines)
-
+    rerun_qa_block_fcall(source_file_path, FCALL_SYSTEM_PROMPT_QA_QONLY_BLOCKS_FDA_1A, first_2_qa_block_lines)
 #NOTE Can also manually search for 'ANSWER: NO'
-def search_for_no_answers_in_qa_blocks(qa_file_path):
+def search_for_no_answers_in_qa_blocks(qa_file_path, verbose=False):
     """
     Search for patterns indicating missing or no answers in QA sections.
 
     :param qa_file_path: str, path to the QA file to analyze.
-    :return matches: list, found matches with their pattern, matching line and full QA block.
+    :param verbose: bool, whether to print detailed match information.
+    :return block_ids: list, block identifiers (e.g. ['28-3', '28-5']) for blocks with no answers.
     """
     from primary.structured import get_blocks_from_file
     
@@ -8788,8 +9953,9 @@ def search_for_no_answers_in_qa_blocks(qa_file_path):
     if not qa_content:
         return []
     
-    # Store matches with full blocks
+    # Store matches with full blocks and block IDs
     matches = []
+    block_ids = []
     
     # Split content into QA blocks
     qa_blocks = get_blocks_from_file(qa_file_path, heading="### qa")
@@ -8798,6 +9964,13 @@ def search_for_no_answers_in_qa_blocks(qa_file_path):
     for block in qa_blocks:
         block_lines = block.split('\n')
         block_matched = False
+        
+        # Extract block ID if block starts with "QA Block X-Y"
+        qa_block_match = re.match(r"QA Block (\d+-\d+)", block_lines[0].strip())
+        if not qa_block_match:
+            continue
+        block_id = qa_block_match.group(1)
+        
         for pattern in NO_ANSWER_PATTERNS:
             if block_matched:
                 break
@@ -8806,26 +9979,47 @@ def search_for_no_answers_in_qa_blocks(qa_file_path):
                     matches.append({
                         'pattern': pattern,
                         'line': line.strip(),
-                        'block': block.strip()
+                        'block': block.strip(),
+                        'block_id': block_id
                     })
+                    block_ids.append(block_id)
                     block_matched = True
                     break
     
-    # Print results
-    if not matches:
-        print(colored("***** No 'NO ANSWER' matches found *****", "green"))
-    else:
-        print(colored("***** Found 'NO ANSWER' matches *****", "red"))
-        for match in matches:
-            print(f"Pattern: {match['pattern']}")
-            print(colored(f"Matching line: {match['line']}", "yellow"))
-            print(f"{match['block']}")
-            print()  # Blank line between matches
-        print(f"Total 'NO ANSWER' matches found: {len(matches)}")
-        print(colored("*****************************************", "red"))
-    return matches
-def auto_process_qa_qonly(transcript_file_path):
-    qa_file_path = sub_suffix_in_str(transcript_file_path, '_qa-qonly')  # can remove this
+    # Print results if verbose
+    if verbose:
+        if not matches:
+            print(colored("***** No 'NO ANSWER' matches found *****", "green"))
+        else:
+            print(colored("***** Found 'NO ANSWER' matches *****", "red"))
+            for match in matches:
+                print(f"Pattern: {match['pattern']}")
+                print(colored(f"Matching line: {match['line']}", "yellow"))
+                print(f"Block ID: {match['block_id']}")
+                print(f"{match['block']}")
+                print()  # Blank line between matches
+            print(f"Total 'NO ANSWER' matches found: {len(matches)}")
+            print(colored("*****************************************", "red"))
+    
+    return block_ids
+def mrun_search_for_no_answers_in_qa_blocks():
+    pass
+#if __name__ == "__main__":
+    qa_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_qa-qonly.md"
+    #qa_file_path = "data/misc_books/Sovereign Child/The Sovereign Child_qa-qonly.md"
+    block_ids = search_for_no_answers_in_qa_blocks(qa_file_path)
+    print(f"Number of blocks with no answers: {len(block_ids)}")
+    print(f"block_ids: {block_ids}")
+def mrun_search_and_move_no_answers():
+    pass
+#if __name__ == "__main__":
+    qa_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_qa-qonly.md"
+    block_ids = search_for_no_answers_in_qa_blocks(qa_file_path)
+    print(f"Number of blocks with no answers: {len(block_ids)}")
+    print(f"block_ids: {block_ids}")
+    move_removed_qa_blocks(qa_file_path, block_ids)
+def auto_process_qa_qonly(source_file_path, heading):
+    qa_file_path = sub_suffix_in_str(source_file_path, '_qa-qonly')  # can remove this
     
     # Check if QA file exists and has QA section
     qa_content = None
@@ -8834,13 +10028,13 @@ def auto_process_qa_qonly(transcript_file_path):
         
     # Run all rounds if no QA file or no QA content
     if not os.path.exists(qa_file_path) or not qa_content:
-        qa_file_path = do_qonly_round_1_explicit(transcript_file_path, FCALL_SYSTEM_PROMPT_QA_QONLY_EXPLICIT_1D)
-        qa_file_path = do_qonly_round_2_implicit(transcript_file_path, FCALL_SYSTEM_PROMPT_QA_QONLY_IMPLICIT_1A)
-        qa_file_path = do_qonly_round_3_blocks(transcript_file_path, FCALL_SYSTEM_PROMPT_QA_QONLY_BLOCKS_1A)
+        qa_file_path = do_qonly_round_1_explicit(source_file_path, FCALL_SYSTEM_PROMPT_QA_QONLY_EXPLICIT_FDA_1D, heading=heading)
+        qa_file_path = do_qonly_round_2_implicit(source_file_path, FCALL_SYSTEM_PROMPT_QA_QONLY_IMPLICIT_FDA_1A, heading=heading)
+        qa_file_path = do_qonly_round_3_blocks(source_file_path, FCALL_SYSTEM_PROMPT_QA_QONLY_BLOCKS_FDA_1A, heading=heading)
     else:
         # Skip first two rounds if QA section exists
         print("QA section found - skipping rounds 1 and 2") 
-        qa_file_path = do_qonly_round_3_blocks(transcript_file_path, FCALL_SYSTEM_PROMPT_QA_QONLY_BLOCKS_1A)
+        qa_file_path = do_qonly_round_3_blocks(source_file_path, FCALL_SYSTEM_PROMPT_QA_QONLY_BLOCKS_FDA_1A, heading=heading)
 
     matches = search_for_no_answers_in_qa_blocks(qa_file_path)
 
@@ -8858,7 +10052,11 @@ def auto_process_qa_qonly(transcript_file_path):
 def mrun_auto_process_qa_qonly():
     pass
 #if __name__ == "__main__":
-    auto_process_qa_qonly(CUR_TRANSCRIPT_FILE_PATH)
+    # cur_source_file_path = "data/floodlamp/reg/fda-townhalls/dev-qa-extract/test_transcript_just2/VTH 36 just2_trans.md"
+    # cur_heading = "### transcript"
+    cur_source_file_path = "data/misc_books/Sovereign Child/The Sovereign Child_sectionsJUST2.md"
+    cur_heading = "CONTENT"
+    auto_process_qa_qonly(cur_source_file_path, heading=cur_heading)
 def mrun_auto_process_qa_qonly_folder():
     pass
 #if __name__ == "__main__":
@@ -8884,165 +10082,899 @@ def mrun_auto_check_qa_qonly_folder():
     for i, qa_file_path in enumerate(qa_files_to_run, 1):
         print(colored(f"\n{qa_file_path}", "blue"))
         search_for_no_answers_in_qa_blocks(qa_file_path)
+### ************************** END OF CODE BEING REFACTORED ************************** (14 tokens)
 
-SCALL_PROMPT_SECTION_TITLE = """
-You will receive a single section of text. From that text, generate one section title that is no more than ten words. Aim for six words if possible. The title should capture the main idea, question, or topic in a condensed format.
-Important Requirements:
-No additional text beyond the section title.
-No preamble, explanations, or quotes around the title—only the title itself.
-The title must be one line and stand on its own.
-INSTRUCTIONS:
-Identify the core theme or question in the text.
-Craft a concise heading of up to ten words, ideally six.
-Do not include any other text, formatting, or commentary.
-When you are finished, your entire response should contain only that single section title, with no quotation marks, extra text, or spacing before or after it.
+
+### QA QONLY REFACTOR (8,615 tokens)
+FCALL_SYSTEM_PROMPT_QA_QONLY_QUESTIONS_1A = """
+You are an expert text analyzer trained in extracting and clarifying questions from any type of text content.
+
+Your Role:
+- Analyze the provided text to identify key questions that would help a reader understand the main points and concepts.
+- Extract both explicit questions (directly stated) and implicit questions (derived from statements or concepts).
+- Break down complex topics into clear, focused questions.
+- Ensure questions are comprehensive but non-redundant.
+
+Guidelines:
+1. Create clear, concise questions that capture the essential information.
+2. Break multi-part questions into separate, focused questions.
+3. Avoid overly broad or vague questions.
+4. Remove any speaker names or unnecessary context from questions.
+5. Maintain the original meaning while making questions more direct and clear.
+6. Include questions about key concepts, definitions, examples, and relationships.
+
+Return only the structured output following the schema, nothing else.
 """
-def write_section_titles(transcript_file_path, scall_prompt, provider="openai", delimiter='---', prepend="\n\n#### ", suffix_new='_section-titles'):
+FCALL_SYSTEM_PROMPT_QA_QONLY_QUESTIONS_1B = """
+You are an expert text analyzer trained in extracting and clarifying questions from any type of text content.
+
+Your Role:
+- Analyze the provided text to identify key questions that would help a reader understand the main points and concepts.
+- Extract both explicit questions (directly stated) and implicit questions (derived from statements or concepts).
+- Break down complex topics into clear, focused questions.
+- Ensure questions are comprehensive but non-redundant.
+
+Guidelines:
+1. Treat the text as an authoritative source:
+   - Phrase questions to address concepts directly (e.g., "Why is X considered incorrect?" not "Why does the author say X is incorrect?")
+   - Only use "author" for personal experiences, encounters, or individual perspectives
+   - Frame factual claims and arguments as standalone statements (e.g., "What historical examples illustrate Y?" not "What examples does the author use to show Y?")
+
+2. Question Structure:
+   - Create clear, concise questions that capture the essential information
+   - Break multi-part questions into separate, focused questions
+   - Avoid overly broad or vague questions
+   - Remove unnecessary context from questions
+   - Maintain the original meaning while making questions direct and clear
+
+3. Content Coverage:
+   - Include questions about key concepts, definitions, examples, and relationships
+   - Cover both explicit statements and implicit ideas
+   - Ensure comprehensive coverage without redundancy
+
+Return only the structured output following the schema, nothing else.
+"""
+FCALL_SYSTEM_PROMPT_QA_QONLY_BLOCKS_1A = """
+You are an expert text analyzer trained in extracting precise question-answer pairs from text content.
+
+Your Role:
+- A single question will be provided to you as input along with a section of text.
+- Your task is to find the best possible answer to that question within the text.
+- Generate exactly one Q&A block following the schema.
+
+Guidelines for Answer Extraction:
+1. 'verbatim_answer':
+   - Find and extract the exact text that best answers the question.
+   - The text must be a direct quote from the source, not a paraphrase.
+   - Remove speaker labels and collapse multi-line text to a single line.
+   - If no relevant answer exists, use 'NO RELEVANT ANSWER IN TRANSCRIPT'.
+
+2. 'clarified_answer':
+   - Provide a concise, clear restatement of the answer.
+   - Edit for clarity while maintaining accuracy.
+   - Keep the entire answer on a single line.
+
+3. 'topics':
+   - List 1-3 key topics addressed in the answer.
+   - Use brief, descriptive terms.
+   - If no answer is found, return an empty list [].
+
+4. 'review_flag':
+   - Set True if there is significant uncertainty about the answer's accuracy or completeness.
+   - Otherwise set False.
+
+Return only a single JSON object following the schema, nothing else.
+"""
+TOOLS_QA_QONLY_QUESTIONS = [{
+    "type": "function",
+    "function": {
+        "name": "extract_questions_generic",
+        "description": "Extract and clarify questions from the text.",
+        "strict": True,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "questions": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of clarified questions that comprehensively cover the content of the text. Each should be concise and clear, without speaker names."
+                }
+            },
+            "required": ["questions"],
+            "additionalProperties": False
+        }
+    }
+}]
+TOOLS_QA_QONLY_BLOCKS= [{
+    "type": "function",
+    "function": {
+        "name": "extract_final_qa_block",
+        "description": (
+                "Given a provided question and a section of text, extract the best possible answer."
+                "Return only ONE QA block containing the relevant data fields. If no answer is found, set verbatim_answer to 'NO RELEVANT ANSWER IN TRANSCRIPT' and clarified_answer to an empty string."
+        ),
+        "strict": True,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "verbatim_answer": {
+                    "type": "string",
+                    "description": (
+                        "The exact text of the answer as it appears in the text. This must be a direct quote from the text, not a paraphrase or summary."
+                        "This should be on a single line, so if the answer is multi-line, it should be collapsed to a single line."
+                    )
+                },
+                "clarified_answer": {
+                    "type": "string",
+                    "description": (
+                        "A concise, edited version of the answer. This should be on a single line."
+                    )
+                },
+                "topics": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": (
+                        "A list of 1-3 key topics addressed in the question-answer block. If no new question is found, return an empty list []."
+                    )
+                },
+                "review_flag": {
+                    "type": "boolean",
+                    "description": (
+                        "Set True if significant uncertainty in the response. Otherwise False."
+                    )
+                }
+            },
+            "required": [
+                "verbatim_answer", "clarified_answer", "topics", "review_flag"
+            ],
+            "additionalProperties": False
+        }
+    }
+}]
+QA_EXTRACT_CONFIG_CONTENT = {
+    "config_name": "QA_EXTRACT_CONFIG_CONTENT", 
+    "suffix_new": "_qa-qonly",
+    "heading": "CONTENT",
+    "delimiter": "---",
+    "q_rounds": [
+        {
+            "q_round_num": 1,
+            "q_round_name": "Questions Extraction",
+            "prefix": "Q",
+            "prompt": FCALL_SYSTEM_PROMPT_QA_QONLY_QUESTIONS_1B,
+            "tools": TOOLS_QA_QONLY_QUESTIONS,
+            "provider": "openai",
+            "model": "gpt-4o-2024-11-20",
+            "max_retries": 2
+        }
+    ],
+    "qa_block_extraction": {
+        "prompt": FCALL_SYSTEM_PROMPT_QA_QONLY_BLOCKS_1A,
+        "tools": TOOLS_QA_QONLY_BLOCKS,
+        "provider": "openai", 
+        "model": "gpt-4o-2024-11-20",
+        "max_retries": 1
+    }
+}
+
+FCALL_SYSTEM_PROMPT_QA_QONLY_EXPLICIT_1A = """
+You are an expert text analyzer trained to extract explicitly asked questions from transcript content.
+
+Your Task (Round 1 - Explicit Questions Only):
+1. Identify every explicitly stated question:
+   - A question is explicit if it appears with a question mark or contains phrases indicating a direct inquiry 
+     (e.g., 'I'd like to ask...', 'Could you clarify...', 'My question is...', 'Can you explain...').
+   - Include rhetorical questions that address key concepts or points.
+
+2. For each explicit question, create a concise, edited version ('clarified question'):
+   - Remove speaker names and extraneous filler phrases.
+   - **If one speaker's turn contains multiple sub-questions (even within one sentence), split them into separate clarified questions.**
+     - This applies even if they revolve around a similar topic or share partial overlap.
+
+3. Apply these guidelines to each question:
+   - **Distinct Content**: Avoid including duplicates or near-duplicates.
+   - **Relevance**: Focus on substantive questions that address key concepts, definitions, examples, and relationships.
+   - **No Speaker Names**: Do not include speaker identifiers in the questions.
+   - **Coverage**: If a transcript chunk has multiple explicit questions, include them all as separate entries.
+   - **Redundancy Prevention**: If the same question appears in slightly different wording, consolidate into one clarified question (unless there is a clear difference in content or context).
+   - **Standalone Clarity**: Rewrite questions to be self-contained without relying on pronouns or context (e.g., 'What are the implications of this approach?' becomes 'What are the implications of using machine learning for text analysis?').
+
+4. Question Treatment:
+   - Treat the content as authoritative - phrase questions to address concepts directly.
+   - Only reference speakers/authors for personal experiences or individual perspectives.
+   - Frame factual claims and arguments as standalone questions.
+
+5. Return the clarified questions as a JSON array of strings. Each entry corresponds to one distinct clarified explicit question.
+
+6. If no explicit questions are found, return an empty array (i.e., []).
+
+Remember:
+- No implied questions in this round (explicit only).
+- Always separate multi-part questions into distinct entries when feasible.
+- Remove speaker labels and personal identifiers.
+- Ensure each question is clearly standalone in wording. Do not use referential words (like "this" or "these") unless they refer to something explicitly defined within the question itself.
+"""
+FCALL_SYSTEM_PROMPT_QA_QONLY_IMPLICIT_1A = """
+You are an expert text analyzer trained to identify implied (unspoken) questions from transcript content.
+
+Context:
+- Below is a list of explicit questions previously identified. You must NOT repeat or rephrase these explicit questions.
+- Extract additional questions that are implied or indirectly addressed by speakers, focusing on:
+  - Key concepts, definitions, and relationships discussed without explicit questions
+  - Explanations that respond to unasked questions
+  - Important statements that naturally raise questions
+  - Complex ideas that benefit from being reframed as questions
+
+Requirements:
+1. **No Duplicates**: Exclude any question that matches or closely overlaps with a previously extracted explicit question.
+2. **Standalone Clarity**: Write each question to be fully self-contained, explicitly naming all relevant concepts, processes, or entities rather than using referential language.
+3. **Multiple Sub-Questions**: If a speaker covers multiple implied questions in one statement, split them into separate clarified questions.
+4. **Relevance**: Focus on substantive topics that help readers understand key concepts and relationships. Skip trivial or tangential points.
+5. **Question Treatment**:
+   - Treat content as authoritative - phrase questions to address concepts directly
+   - Only reference speakers/authors for personal experiences or perspectives
+   - Frame factual claims and arguments as standalone questions
+6. **Precise Language**:
+   - Never use referential words (like "this" or "these") unless they refer to something explicitly defined within the question itself
+   - Include all necessary context within each question
+   - Be specific about processes, concepts, and relationships
+
+Input to the Model:
+- A transcript section
+- A list of previously extracted explicit questions (explicit_questions_list)
+
+Output Format:
+- A valid JSON object with a single key "implicit_questions" mapping to a list of strings.
+- Example:
+{
+  "implicit_questions": [
+    "What factors influence machine learning model selection for natural language processing tasks?",
+    "How do gradient descent optimization techniques apply to neural network training?"
+  ]
+}
+
+If no implied questions exist, return an empty array: "implicit_questions": []
+
+Remember:
+- Do NOT restate or slightly rephrase any explicit questions already extracted.
+- Ensure each implied question is relevant, standalone, and adds value to understanding the content.
+- Keep questions concise and avoid speaker labels or personal identifiers.
+- Break down complex topics into clear, focused questions.
+- Never use referential words (like "this" or "these") unless they refer to something explicitly defined within the question itself.
+"""
+#01-pro
+FCALL_SYSTEM_PROMPT_QA_QONLY_EXPLICIT_2A = """
+You are an expert text analyzer trained in extracting and clarifying explicitly stated questions from any type of text or transcript.
+
+Your Task (Round 1 - Explicit Questions Only):
+1. Identify every explicitly stated question in the provided text:
+   - A question is explicit if it appears with a question mark or includes phrases/structure that indicate a direct inquiry.
+   - Ignore any rhetorical questions or statements that merely hint at an inquiry without being stated explicitly.
+
+2. For each explicit question, create a concise “clarified question”:
+   - Remove speaker names, filler phrases, and extraneous context.
+   - If one speaker’s turn contains multiple sub-questions (even if nested in a single sentence), split them into separate clarified questions.
+   - Ensure each clarified question can stand on its own without relying on prior text references or pronouns.
+
+3. Avoid Redundancy:
+   - If the same explicit question appears multiple times with only minor wording differences, consolidate into one clarified question unless there is a significant difference in content.
+
+4. Adhere to These Guidelines:
+   - Treat the text as an authoritative source:
+     - Frame questions directly (e.g., “Why is X considered significant?” rather than “Why does the author say X is significant?”).
+     - Use “author” only for personal experiences or perspectives unique to the original text.
+   - Question Structure:
+     - Keep questions focused and clear; break multi-part inquiries into separate questions.
+     - Remove unnecessary context to maintain directness and clarity.
+   - Content Coverage:
+     - Include explicit questions about key concepts, definitions, examples, and relationships within the text.
+     - Ensure comprehensive coverage without duplicating nearly identical questions.
+   - Standalone Clarity:
+     - Replace ambiguous pronouns or references (e.g., “this” or “that”) with concrete terms so each question is self-contained.
+
+5. Return Format:
+   - Provide the final clarified questions as a JSON array of strings (no additional keys).
+   - For example: [ "Clarified Question 1", "Clarified Question 2", ... ]
+
+6. No Explicit Questions Found?
+   - Return an empty array: []
+
+Remember: 
+- No implied questions in this round. 
+- Keep each question succinct and self-contained.
+"""
+FCALL_SYSTEM_PROMPT_QA_QONLY_IMPLICIT_2A = """
+You are an expert text analyzer trained in identifying and articulating implied (unspoken) questions from any type of text or transcript.
+
+Your Task (Round 2 - Implied Questions Only):
+1. You have already extracted explicit questions in a previous step; do NOT repeat or rephrase them here.
+2. Identify additional questions that are implied by the text but not explicitly asked:
+   - Questions a reader might naturally ask based on explanations, instructions, or statements within the text.
+   - Clarifications implied by the text’s content or context, even if never directly posed as a question.
+
+3. Avoid Duplicates:
+   - Do not duplicate or closely overlap with any previously extracted explicit questions.
+
+4. Multiple Implied Sub-Questions:
+   - If a single statement suggests multiple distinct implied questions, split them accordingly.
+
+5. Relevance:
+   - Focus on clarifications, technical details, or key points that someone reading the text would be curious about or need to understand more deeply.
+   - Omit trivial or tangential questions.
+
+6. Adhere to These Guidelines:
+   - Treat the text as an authoritative source:
+     - Phrase implied questions directly (e.g., “What factors contribute to X?” instead of “What might the author mean by X?”).
+   - Question Structure:
+     - Keep questions direct and clear, ensuring each is self-contained.
+     - Remove ambiguous references or pronouns, replacing them with clear terms.
+   - Content Coverage:
+     - Cover any unasked yet relevant questions about main ideas, definitions, examples, or relationships.
+     - Ensure there is no redundancy with explicit questions.
+
+7. Return Format:
+   - Output must be a valid JSON object with the key "implicit_questions" mapping to a JSON array of question strings.
+   - Example:
+   {
+     "implicit_questions": [
+       "How can concept A be applied in practical scenarios?",
+       "Why might factor B limit the effectiveness of this approach?"
+     ]
+   }
+   - If no implied questions are found, return "implicit_questions": [].
+
+Remember:
+- Do NOT restate or overlap with explicit questions already identified.
+- Each implied question should be concise, relevant, and self-explanatory.
+"""
+TOOLS_QA_QONLY_EXPLICIT = [{
+    "type": "function",
+    "function": {
+        "name": "extract_explicit_questions",
+        "description": "Extract and clarify all explicitly asked questions from the text, breaking multi-part questions into separate entries",
+        "strict": True,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "questions": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of clarified, explicitly asked questions. Each should be concise and clear, without speaker names."
+                }
+            },
+            "required": ["questions"],
+            "additionalProperties": False
+        }
+    }
+}]
+TOOLS_QA_QONLY_IMPLICIT = [{
+    "type": "function",
+    "function": {
+        "name": "extract_implicit_questions",
+        "description": (
+            "Extract and clarify any implied questions from the transcript, excluding any questions that match or overlap with a given list of explicit questions."
+        ),
+        "strict": True,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "implicit_questions": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": (
+                        "A list of distinct implied questions in the text."
+                        "No duplicates of previously identified questions."
+                    )
+                }
+            },
+            "required": ["implicit_questions"],
+            "additionalProperties": False
+        }
+    }
+}]
+QA_EXTRACT_CONFIG_TRANSCRIPT = {
+    "config_name": "QA_EXTRACT_CONFIG_TRANSCRIPT",
+    "suffix_new": "_qa-qonly",
+    "heading": "### transcript",
+    "delimiter": "---",
+    "q_rounds": [
+        {
+            "q_round_num": 1,
+            "q_round_name": "Explicit Questions Extraction",
+            "prefix": "QE",
+            "prompt": FCALL_SYSTEM_PROMPT_QA_QONLY_EXPLICIT_2A,
+            "tools": TOOLS_QA_QONLY_EXPLICIT,
+            "provider": "openai",
+            "model": "gpt-4o-2024-11-20",
+            "max_retries": 2
+        },
+        {
+            "q_round_num": 2,
+            "q_round_name": "Implicit Questions Extraction",
+            "prefix": "QI",
+            "prompt": FCALL_SYSTEM_PROMPT_QA_QONLY_IMPLICIT_2A,
+            "tools": TOOLS_QA_QONLY_IMPLICIT,
+            "provider": "openai",
+            "model": "gpt-4o-2024-11-20",
+            "max_retries": 2
+        }
+    ],
+    "qa_block_extraction": {
+        "prompt": FCALL_SYSTEM_PROMPT_QA_QONLY_BLOCKS_1A,
+        "tools": TOOLS_QA_QONLY_BLOCKS,
+        "provider": "openai",
+        "model": "gpt-4o-2024-11-20",
+        "max_retries": 1
+    }
+}
+
+TOOLS_QA_QONLY_IMPLICIT_FDA = [{
+    "type": "function",
+    "function": {
+        "name": "extract_implicit_questions",
+        "description": (
+            "Extract and clarify any implied questions from the transcript, excluding any questions that match or overlap with a given list of explicit questions."
+        ),
+        "strict": True,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "implicit_questions": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": (
+                        "A list of distinct implied questions relevant to FDA regulations, diagnostics, disease testing, COVID-19, the pandemic, the public health response, and any other important or relevant topics."
+                        "No duplicates of previously identified explicit questions."
+                    )
+                }
+            },
+            "required": ["implicit_questions"],
+            "additionalProperties": False
+        }
+    }
+}]
+TOOLS_QA_QONLY_BLOCKS_FDA = [{
+    "type": "function",
+    "function": {
+        "name": "extract_final_qa_block",
+        "description": (
+                "Given a final question (verbatim) and an excerpt of transcript text, extract the best possible answer."
+                " Return only ONE QA block containing the relevant data fields. If no answer is found, set verbatim_answer "
+                "to 'NO RELEVANT ANSWER IN TRANSCRIPT' and clarified_answer to an empty string or minimal note."
+        ),
+        "strict": True,
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "verbatim_question": {
+                    "type": "string",
+                    "description": (
+                        "The exact text from the transcript section text that corresponds to the provided question, minus speaker labels/newlines. The entire text should be on a single line. Do not start the text with the speaker name from the preceding speaker line. If the question is implicit, use the string 'IMPLICIT'."
+                    )
+                },
+                "verbatim_answer": {
+                    "type": "string",
+                    "description": (
+                        "The exact text of the answer as it appears in the transcript section text, minus speaker labels/newlines. Do not start the text with the speaker name from the preceding speaker line."
+                    )
+                },
+                "clarified_answer": {
+                    "type": "string",
+                    "description": (
+                        "A concise, edited version of the answer. The entire text of this answer should be on a single line. Do not mention any specific speaker names, instead use 'FDA' where appropriate."
+                    )
+                },
+                "speaker_question": {
+                    "type": "string",
+                    "description": (
+                        "Name/role of question speaker. The name must be as identified in the transcript by the text in the speaker line that precedes a colon or timestamp. Do not use a different name spelling that may appear in the speaker dialogue. If the question is implied from an Authority Speaker's statement, use 'NOT APPLICABLE'."
+                    )
+                },
+                "speaker_answer": {
+                    "type": "string",
+                    "description": (
+                        "Name/role of answer speaker. The name must be as identified in the transcript by the text in the speaker line that precedes a colon or timestamp. Do not use a different name spelling that may appear in the speaker dialogue. If the question is implicit, use the speaker name of the statement that implied the question."
+                    )
+                },
+                "topics": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": (
+                        "A list of 1-3 key topics addressed in the question-answer block. If no new question is found, return an empty list []."
+                    )
+                },
+                "review_flag": {
+                    "type": "boolean",
+                    "description": (
+                        "Set True if significant uncertainty in the response. Otherwise False."
+                    )
+                }
+            },
+            "required": [
+                "verbatim_question", "verbatim_answer", "clarified_answer",
+                "speaker_question", "speaker_answer", "topics", "review_flag"
+            ],
+            "additionalProperties": False
+        }
+    }
+}]
+QA_EXTRACT_CONFIG_FDA_C19_VTH = {
+    "config_name": "QA_EXTRACT_CONFIG_FDA_C19_VTH",
+    "suffix_new": "_qa-qonly",
+    "heading": "### transcript",
+    "delimiter": "---",
+    "q_rounds": [
+        {
+            "q_round_num": 1,
+            "q_round_name": "Explicit Questions Extraction",
+            "prefix": "QE",
+            "prompt": FCALL_SYSTEM_PROMPT_QA_QONLY_EXPLICIT_FDA_1D,
+            "tools": TOOLS_QA_QONLY_EXPLICIT,  # or None if you'd do a simple call
+            "provider": "openai",
+            "model": "gpt-4o-2024-11-20",
+            "max_retries": 2
+        },
+        {
+            "q_round_num": 2,
+            "q_round_name": "Implicit Questions Extraction",
+            "prefix": "QI",
+            "prompt": FCALL_SYSTEM_PROMPT_QA_QONLY_IMPLICIT_FDA_1A,
+            "tools": TOOLS_QA_QONLY_IMPLICIT_FDA,     # or None for simple call
+            "provider": "openai",
+            "model": "gpt-4o-2024-11-20",
+            "max_retries": 2
+        }
+    ],
+    "qa_block_extraction": {
+        "prompt": FCALL_SYSTEM_PROMPT_QA_QONLY_BLOCKS_FDA_1A,
+        "tools": TOOLS_QA_QONLY_BLOCKS_FDA,  # or None
+        "provider": "openai",
+        "model": "gpt-4o-2024-11-20",
+        "max_retries": 1
+    }
+}
+
+
+def create_extract_log_header_config(config):
     """
-    Generate section titles for transcript sections and replace delimiters with these titles.
+    Create the header for the extract log with config information.
+    Shows the config exactly as it appears in the global variable definition.
 
-    :param transcript_file_path: string, path to the transcript file
-    :param scall_prompt: string, prompt for section title generation
-    :param provider: string, which provider to use ("openai" or "anthropic")
-    :param delimiter: string, used to separate transcript sections
-    :param suffix_new: string, suffix for the new file name
-    :return new_file_path: string, path to the created file
+    :param config: dict, the configuration dictionary
+    :return: list of header lines
     """
-    start_time = time.time()
-
-    # Set model based on provider
-    if provider == "openai":
-        model = OPENAI_MODEL
-    elif provider == "anthropic":
-        model = ANTHROPIC_MODEL
-    else:
-        raise ValueError("Provider must be either 'openai' or 'anthropic'")
-
-    # Get transcript sections and metadata
-    metadata, sections, total_sections = get_transcript_metadata_and_sections(transcript_file_path, delimiter)
-
-    # Update metadata
     current_datetime = get_current_datetime_humanfriendly()
-    date = current_datetime.split(' ')[0]
-    metadata = set_metadata_field(metadata, "last updated", f"{date} Added Section Titles")
-    metadata = set_metadata_field(metadata, "source file", transcript_file_path)
-
-    # Process sections and generate titles
-    processed_content = []
-    for section_num, section in enumerate(sections, 1):
-        section = section.strip()
-        if not section:
-            continue
-
-        print(f"\nProcessing section {section_num} of {total_sections}")
-        try:
-            # Generate section title based on provider
-            if provider == "openai":
-                title = simple_openai_chat_completion_request(scall_prompt + "\n\n" + section, model)
-            elif provider == "anthropic":
-                title = simple_anthropic_chat_completion_request(scall_prompt + "\n\n" + section, model)
-            else:
-                raise ValueError("Provider must be either 'openai' or 'anthropic'")
-            
-            # Add section with title
-            processed_content.append(f"{prepend} {section_num}. {title.strip()}\n")  # Title with heading format
-            processed_content.append(section)
-            print(colored(title.strip(), "blue"))
-            
-        except Exception as e:
-            error_msg = f"\n********** Error generating title for section {section_num}: {str(e)}"
-            print(colored(error_msg, "red"))
-            processed_content.append(section)  # Include original section without title
-            continue
-
-    # Create output file with processed content
-    initial_content = "## content\n\n### transcript"
-    new_content = initial_content + "\n".join(processed_content)
-    new_file_path = write_metadata_and_content(
-        transcript_file_path, 
-        metadata, 
-        new_content, 
-        overwrite='no-sub', 
-        suffix_new=suffix_new
-    )
-
-    print(f"\nSection titles generation completed in {(time.time() - start_time) / 60:.1f} minutes.")
-    print(colored("New file written to " + new_file_path, "green"))
-    return new_file_path
-def propagate_section_titles_to_qa(transcript_file_path, section_heading='####', suffix_new='_qa-qonly'):
-    """
-    Propagates section titles from transcript file to corresponding QA file.
-
-    :param transcript_file_path: string, path to the transcript file containing section titles
-    :param section_heading: string, heading format to look for in transcript file
-    :param suffix_new: string, suffix to identify QA file
-    :return qa_file_path: string, path to the modified QA file
-    """
-    # Verify QA file exists
-    qa_file_path = sub_suffix_in_str(transcript_file_path, suffix_new)
-    if not os.path.exists(qa_file_path):
-        raise ValueError(f"QA file not found: {qa_file_path}")
-
-    # Get transcript lines from the transcript section
-    transcript_text = get_heading(transcript_file_path, "### transcript")
-    transcript_lines = transcript_text.splitlines()
-
-    # Extract section titles with their numbers
-    section_titles = {}
-    for line in transcript_lines:
-        if line.strip().startswith(section_heading):
-            # Extract section number and title
-            match = re.match(rf"{section_heading}\s+(\d+)\.\s+(.+)", line.strip())
-            if match:
-                section_num = int(match.group(1))
-                section_title = line.strip()  # Keep full heading line
-                section_titles[section_num] = section_title
-
-    # Get QA lines
-    qa_text = get_heading(qa_file_path, "### qa")
-    qa_lines = qa_text.splitlines()
-
-    # Process QA lines and insert section titles
-    new_qa_lines = []
-    current_section = None
     
-    for line in qa_lines:
-        # Check for QA block header
-        match = re.match(r'QA Block (\d+)-', line.strip())
-        if match:
-            section_num = int(match.group(1))
-            # If this is a new section and we have a title for it
-            if section_num != current_section and section_num in section_titles:
-                if new_qa_lines:  # Add extra newline if not at the start
-                    new_qa_lines.append('')
-                new_qa_lines.append(section_titles[section_num])
-                new_qa_lines.append('')  # Add blank line after title
-                current_section = section_num
-        new_qa_lines.append(line)
-
-    # Join the lines and ensure proper spacing
-    new_qa_text = '\n'.join(new_qa_lines).strip() + '\n\n'
+    # Create header lines
+    header_lines = [
+        "#### extract log header",
+        f"datetime: {current_datetime}",
+        "source file prep: sections before all sub chapters md level 3",
+    ]
     
-    # Write the updated text back using set_heading
-    set_heading(qa_file_path, new_qa_text, "### qa")
-
-    print(f"Section titles propagated to QA file: {qa_file_path}")
-    return qa_file_path
-def mrun_section_titles():
+    # Get the config name from the config itself
+    config_name = config.get('config_name', 'UNNAMED_CONFIG')
+    
+    # Find the variable name in globals that matches our config object
+    config_var_name = None
+    for var_name, var_value in globals().items():
+        if var_value is config:
+            config_var_name = var_name
+            break
+            
+    if not config_var_name:
+        raise ValueError("Could not find config in global variables")
+        
+    # Get the source code of this file
+    with open(__file__, 'r') as f:
+        source_lines = f.readlines()
+    
+    # Find the config definition
+    config_def = ""
+    in_config = False
+    brace_count = 0
+    
+    for line in source_lines:
+        if f"{config_var_name} = {{" in line:
+            in_config = True
+            brace_count = 1
+            config_def = line
+        elif in_config:
+            config_def += line
+            brace_count += line.count("{")
+            brace_count -= line.count("}")
+            if brace_count == 0:
+                break
+    
+    header_lines.append(f"config: {config_def.strip()}\n")
+    return header_lines
+def mtest_create_extract_log_header_config():
     pass
 #if __name__ == "__main__":
-    # cur_file_path = "tests/test_manual_files/md_to_html/2020-12-09_Virtual Town Hall 36_fixnames.md"
-    # write_section_titles(cur_file_path, SCALL_PROMPT_SECTION_TITLE)
-    cur_folder_path = "data/floodlamp/reg/fda-townhalls/f5_fixnames/done_auto"
-    #files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include='_fixnames')
-    files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include='_section-titles')
+    header_lines = create_extract_log_header_config(QA_EXTRACT_CONFIG_FDA_C19_VTH)
+    for line in header_lines:
+        print(line)
+def extract_questions_single_round(section_text, prompt, tools=None, prev_questions=None, provider="openai", max_retries=2, debug=False, abort_on_error=True):
+    """
+    Extract questions from a single section of text, either by function calling or 
+    simple call, depending on provider/tools.
 
-    for i, file_path in enumerate(files_to_run, 1):
-        #write_section_titles(file_path, SCALL_PROMPT_SECTION_TITLE)
-        propagate_section_titles_to_qa(file_path)
+    :param section_text: str, the content of the section
+    :param prompt: str, the LLM prompt to use (could be specialized for function calling or not)
+    :param tools: list or None, if present -> function-calling approach; if None -> simple call
+    :param prev_questions: list of str, previously extracted questions (optional)
+    :param provider: str, e.g. "openai", "anthropic", "deepseek", or others
+    :param debug: bool, for debug prints
+    :param abort_on_error: bool, raise exceptions if True
+    :param max_retries: int, how many times to retry in case of errors
+    :return: list of extracted question strings, or None if error
+    """
+    # Add debug print for initial inputs
+    verbose_print(debug, f"\nStarting extract_questions_single_round with section of length: {len(section_text)} chars")
+    if prev_questions:
+        verbose_print(debug, f"  Processing section with {len(prev_questions)} previous questions")
+    
+    # Create full prompt with context if we have previous questions
+    if prev_questions:
+        prev_questions_context = "Previously extracted questions - **DO NOT extract similar or overlapping questions**:\n"
+        for i, q in enumerate(prev_questions, 1):
+            prev_questions_context += f"{i}. {q}\n"
+        verbose_print(debug, f"Previous questions context:\n{prev_questions_context}")
+        
+        full_prompt = (
+            f"<system_prompt>{prompt}</system_prompt>\n\n"
+            f"<context>{prev_questions_context}</context>\n\n"
+            f"<instruction>Please identify questions in the following transcript section:</instruction>\n\n"
+            f"<content>{section_text}</content>"
+        )
+    else:
+        full_prompt = prompt + "\n\n" + section_text
+    verbose_print(debug, f"Full prompt:\n{full_prompt}")
+    
+    attempts_left = max_retries
+    while attempts_left > 0:
+        try:
+            verbose_print(debug, f"Attempting function call with {provider}")
+            
+            # TODO: Remove this check when adding simple non-function call capability
+            if tools is None:
+                raise ValueError("Tools must be provided - simple non-function call capability not yet implemented")
+                
+            # Make the appropriate function call based on provider
+            if provider == "openai":
+                response = openai_function_call(full_prompt, section_text, tools)
+            elif provider == "anthropic":
+                # Convert tools format for anthropic if needed
+                if tools:
+                    tools = convert_tools_to_anthropic_format(tools)
+                response = anthropic_function_call(full_prompt, section_text, tools)
+            elif provider == "deepseek":
+                response = deepseek_structured_output(full_prompt, section_text, deepseek_qa_output_schema())
+                return response.get('questions', []) if response else None
+            else:
+                raise ValueError(f"Provider must be either 'openai', 'anthropic', or 'deepseek' - {provider} is not supported")
+            
+            verbose_print(debug, f"Got response: {response}")
+            
+            # Parse the response
+            arguments = parse_function_call_response(response, provider)
+            verbose_print(debug, f"Parsed arguments: {arguments}")
+            
+            if not arguments:
+                if abort_on_error:
+                    raise Exception("Failed to parse function call response")
+                return None
+            
+            # Get questions from the first available key in the response
+            for key in ['questions', 'implicit_questions']:
+                if key in arguments:
+                    questions = arguments[key]
+                    break
+            else:
+                questions = []
+                
+            verbose_print(debug, f"Extracted questions: {questions}")
+            return questions  # Can be empty list if no questions found
 
-### ADD SECTIONS (1,415 tokens)
-def get_speaker_lines_by_speakers(file_path, remove_speakers, remove_duplicates=False, verbose=False):
+        except Exception as e:
+            error_msg = str(e)
+            if error_msg:  # Only print error if there's an actual message
+                print(colored(f"Error in question extraction: {error_msg}", "red"))
+                verbose_print(debug, f"Full error details: {error_msg}")
+                if abort_on_error:
+                    if attempts_left <= 1:
+                        raise  # Re-raise the exception to abort processing
+                    else:
+                        print(colored(f"Error occurred. Retrying... {attempts_left - 1} attempts remaining", "red"))
+            attempts_left -= 1
+
+    # If we exhaust all retries without success:
+    print(colored("All retries exhausted; returning None from extract_questions_single_round", "red"))
+    return None
+def process_qa_extraction_rounds(source_file_path, config, do_blocks=True,debug=False):
+    """
+    Process one or more rounds of question extraction from a source file,
+    optionally followed by QA-block extraction if 'qa_block_extraction' is in config.
+    
+    Merges aspects of both your run_q_extraction_by_sections() and Sonnet's process_qa_extraction_rounds().
+
+    :param source_file_path: str, path to the source file
+    :param config: dict, configuration for extraction rounds and optionally QA block generation
+    :param debug: bool, enable debug output
+    :return: str, path to the created/modified QA file
+    """
+    start_time = time.time()
+    suffix_new = config.get('suffix_new', '_qa-qonly')
+    heading = config.get('heading', '### transcript')
+    delimiter = config.get('delimiter', '---')
+    q_rounds = config.get('q_rounds', [])
+    
+    # If no rounds are defined, do nothing
+    if not q_rounds:
+        print("No Q Rounds defined in config; returning.")
+        return None
+    
+    # Prepare or find the QA file
+    qa_file_path = sub_suffix_in_str(source_file_path, suffix_new)
+    
+    # Read transcript
+    metadata, sections, total_sections = get_file_metadata_and_sections(
+        source_file_path, heading=heading, delimiter=delimiter
+    )
+
+    # Check if QA file exists, if not => create and initialize it
+    qa_file_exists = os.path.exists(qa_file_path)
+    if not qa_file_exists:
+        # We'll use the FIRST round in q_rounds to build a "header"
+        first_round = q_rounds[0]
+        first_round_num = first_round.get("q_round_num", 1)
+        first_round_name = first_round.get("q_round_name", "Q Extraction")
+        first_prompt = first_round.get("prompt", "")
+        first_provider = first_round.get("provider", "openai")
+        first_model = first_round.get("model", "gpt-4")
+
+        # A) Create an extract log header
+        log_header_lines = create_extract_log_header_config(config=config)
+        
+        # B) Add placeholders for each section
+        for section_num in range(1, total_sections + 1):
+            log_header_lines.append(f"#### Section {section_num} of {total_sections}")
+            log_header_lines.append("")
+
+        # Prepare metadata
+        current_datetime = get_current_datetime_humanfriendly()
+        date = current_datetime.split(' ')[0]
+        metadata = set_metadata_field(metadata, "last updated", f"{date} Created QA Sections")
+        metadata = set_metadata_field(metadata, "source file", source_file_path)
+
+        # Create the QA file with an initial "## content" heading
+        initial_content = "## content\n"
+        qa_file_path = write_metadata_and_content(
+            source_file_path,
+            metadata,
+            initial_content,
+            overwrite='no-sub',
+            suffix_new=suffix_new
+        )
+        # Append the entire log header
+        with open(qa_file_path, 'a') as f:
+            f.write("\n### extract log\n\n" + "\n".join(log_header_lines) + "\n")
+
+        print(f"Created new QA file: {qa_file_path}")
+    else:
+        print(f"QA file already exists, will update: {qa_file_path}")
+    
+    # For storing questions from previous rounds so we can skip duplicates
+    # or pass them to subsequent rounds. We'll store them as (section_num, question_text).
+    prev_questions_all = []
+
+    # -----------
+    # Perform each round in q_rounds
+    # -----------
+    total_q_rounds = len(q_rounds)
+    for idx, round_cfg in enumerate(q_rounds, start=1):
+        round_num = round_cfg.get('q_round_num', idx)
+        round_name = round_cfg.get('q_round_name', f"Q Round {round_num}")
+        prompt = round_cfg.get('prompt')
+        tools = round_cfg.get('tools')
+        provider = round_cfg.get('provider', 'openai')
+        max_retries = round_cfg.get('max_retries', 2)
+        prefix = round_cfg.get('prefix', f"Q{round_num}")
+
+        print(f"\n===== Starting Q Round {round_num} of {total_q_rounds}: {round_name} =====")
+        round_start_time = time.time()
+
+        # Get the existing extract log for editing
+        if idx == 1:  # First round - use the header lines we just created
+            log_lines = log_header_lines
+        else:  # Subsequent rounds - read from file
+            extract_log_text = get_heading(qa_file_path, "### extract log")
+            if not extract_log_text:
+                extract_log_text = "### extract log\n"
+            log_lines = extract_log_text.split('\n')
+
+        # Iterate over each section
+        for section_num, section_text in enumerate(sections, 1):
+            section_text = section_text.strip()
+            if not section_text:
+                print(f"Empty section at position {section_num}; skipping.")
+                continue
+            
+            print(f"Processing Round {round_num} {round_name} - section {section_num}/{total_sections}")
+
+            # Gather prior questions for this section (if desired)
+            # We are storing them in prev_questions_all
+            prev_questions_section = [
+                q[1] for q in prev_questions_all if q[0] == section_num
+            ] if prev_questions_all else None
+
+            # Extract new questions
+            new_questions = extract_questions_single_round(
+                section_text=section_text,
+                prompt=prompt,
+                tools=tools,
+                prev_questions=prev_questions_section,
+                provider=provider,
+                max_retries=max_retries,
+                debug=debug,
+                abort_on_error=True
+            )
+            if new_questions is None:
+                new_questions = []  # indicates an error or no output
+
+            # Update the log for this section
+            log_lines = log_section_items(
+                log_lines=log_lines,
+                section_num=section_num,
+                items=new_questions,
+                round_name=round_name,
+                prefix=prefix
+            )
+
+            # Extend our global store of questions so we can skip duplicates or pass them on
+            if new_questions:
+                for q_text in new_questions:
+                    prev_questions_all.append((section_num, q_text))
+
+        # Write updated log lines back to the QA file
+        updated_log_text = "\n".join(log_lines)
+        set_heading(qa_file_path, updated_log_text, "### extract log")
+
+        round_end_time = time.time()
+        print(f"{round_name} completed in {(round_end_time - round_start_time)/60:.1f} minutes.")
+        print(f"Extract log updated in {qa_file_path}")
+
+    # -----------
+    # Optionally perform QA-block extraction
+    # -----------
+    if do_blocks and 'qa_block_extraction' in config:
+        qa_block_cfg = config['qa_block_extraction']
+        print("\nDetected QA block extraction config. Performing do_qonly_round_3_blocks now.")
+        do_qonly_round_3_blocks(
+            file_path=source_file_path,
+            fcall_prompt=qa_block_cfg['prompt'],
+            provider=qa_block_cfg.get('provider', 'openai'),
+            heading=heading,
+            delimiter=delimiter,
+            suffix_new=suffix_new
+        )
+
+    total_time = time.time() - start_time
+    time_now = datetime.now().strftime('%Y-%m-%d %I:%M:%S %p')
+    print(f"\nAll question extraction rounds completed in {total_time/60:.1f} minutes at {time_now}.")
+    return qa_file_path
+def mrun_process_qa_extraction_rounds():
+    pass
+#if __name__ == "__main__":
+    # cur_source_file_path = "data/floodlamp/reg/fda-townhalls/dev-qa-extract/test_transcript_just2/VTH 36 just2_trans.md"
+    # process_qa_extraction_rounds(cur_source_file_path, QA_EXTRACT_CONFIG_FDA_C19_VTH)
+    # cur_source_file_path = "data/misc_books/Sovereign Child/The Sovereign Child_sections.md"
+    # process_qa_extraction_rounds(cur_source_file_path, QA_EXTRACT_CONFIG_CONTENT)
+    cur_source_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_section-titles.md"
+    process_qa_extraction_rounds(cur_source_file_path, QA_EXTRACT_CONFIG_TRANSCRIPT, do_blocks=False)
+
+### ADD SECTIONS (3,481 tokens)
+def get_section_lines_by_speakers(file_path, remove_speakers, remove_duplicates=False, verbose=False):
     """
     Get speaker lines and their line numbers from a transcript file.
     
@@ -9102,14 +11034,44 @@ def get_speaker_lines_by_speakers(file_path, remove_speakers, remove_duplicates=
         for speaker, line_num in speaker_lines:
             print(f"({speaker}, {line_num})")
     return speaker_lines
-def mtest_get_speaker_lines_by_speakers():
+def mtest_get_section_lines_by_speakers():
     pass
 #if __name__ == "__main__":
     cur_file_path = "data/floodlamp/reg/fda-townhalls/dev-qa-extract/VTH 36_cemanual.md"
-    speaker_lines = get_speaker_lines_by_speakers(cur_file_path, remove_speakers=["FDA"], remove_duplicates=True, verbose=True)
-def get_speaker_lines_by_perfect_segments(eval_seg_csv_path, ref_transcript_path):
+    speaker_lines = get_section_lines_by_speakers(cur_file_path, remove_speakers=["FDA"], remove_duplicates=True, verbose=True)
+def get_section_lines_by_perfect_segments(eval_seg_csv_path, ref_transcript_path):
     pass
-def add_transcript_section_delimiters(file_path, line_numbers, delimiter="---"):
+def get_section_lines_by_markdown(md_file_path, heading_level):
+    """
+    Get line numbers for blank lines before markdown headings of specified level or lower.
+    Raises ValueError if any heading doesn't have a blank line before it.
+
+    :param md_file_path: string, path to the markdown file to process
+    :param heading_level_: int, maximum heading level to consider (e.g., 3 means look for ###, ##, and #)
+    :return: list of integers, line numbers of blank lines before headings (1-based)
+    """
+    # Read file lines
+    with open(md_file_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+    
+    # Create list to store line numbers
+    section_lines = []
+    
+    # Create pattern to match headings of specified level or lower
+    heading_pattern = r'^#{1,' + str(heading_level) + r'}\s'
+    
+    # Iterate through lines to find headings
+    for i in range(len(lines)):
+        line = lines[i].strip()
+        if re.match(heading_pattern, line):
+            # Check if there's a previous line and it's blank
+            if i > 0 and not lines[i-1].strip():
+                section_lines.append(i)  # 1-based line number
+            else:
+                raise ValueError(f"No blank line before heading at line {i+1}: '{line}'")
+    
+    return section_lines
+def add_section_delimiters(file_path, line_numbers, delimiter="---"):
     """
     Add delimiter strings at specified line numbers in a file.
     
@@ -9129,37 +11091,36 @@ def add_transcript_section_delimiters(file_path, line_numbers, delimiter="---"):
     if any(line_num >= len(lines) for line_num in zero_based_lines):
         raise ValueError(f"Line numbers {[ln + 1 for ln in zero_based_lines if ln >= len(lines)]} are out of bounds. File has {len(lines)} lines.")
     
-    # Check if specified lines are blank
+    # Check if specified lines are blank (allowing whitespace)
     non_blank_lines = []
     for line_num in zero_based_lines:
-        line_content = lines[line_num].replace('\n', '').replace('\r', '')
-        if line_content:  # If line contains anything after removing newlines
-            print(f"Line {line_num + 1} content: '{lines[line_num]}'")  # Debug print (showing 1-based line numbers)
-            non_blank_lines.append(line_num + 1)  # Convert back to 1-based for error message
+        if lines[line_num].strip():  # Use strip() to remove all whitespace before checking
+            print(f"Line {line_num + 1} content: '{lines[line_num]}'")  # Debug print
+            non_blank_lines.append(line_num + 1)
     
     if non_blank_lines:
         raise ValueError(f"The following line numbers are not blank: {non_blank_lines}\nFor file: {file_path}")
     
     # Add delimiters
     for line_num in zero_based_lines:
-        lines[line_num] = delimiter + '\n'
+        lines[line_num] = delimiter + '\n'  # Replace entire line, including any whitespace
     
     # Write modified content back to file
     with open(file_path, 'w', encoding='utf-8') as f:
         f.writelines(lines)
     
     print(f"Added {len(line_numbers)} section delimiters to file: {file_path}")
-def mrun_add_transcript_section_delimiters():
+def mrun_add_section_delimiters():
     pass
 #if __name__ == "__main__":
     cur_file_path = "data/floodlamp/reg/fda-townhalls/f5_fixnames/2020-05-20_Virtual Town Hall 9_fixnames.md"
-    speaker_tuples = get_speaker_lines_by_speakers(cur_file_path, remove_speakers=["FDA"], remove_duplicates=True)
+    speaker_tuples = get_section_lines_by_speakers(cur_file_path, remove_speakers=["FDA"], remove_duplicates=True)
     
     # Extract line numbers and subtract 1 from each
     prev_line_numbers = [line_num - 1 for _, line_num in speaker_tuples]
     print(f"prev_line_numbers: {prev_line_numbers}")
-    add_transcript_section_delimiters(cur_file_path, prev_line_numbers)
-def mrun_add_transcript_section_delimiters_folder():
+    add_section_delimiters(cur_file_path, prev_line_numbers)
+def mrun_add_section_delimiters_folder():
     pass
 #if __name__ == "__main__":
     cur_folder_path = "data/floodlamp/reg/fda-townhalls/f5_fixnames/run_delimiter"
@@ -9167,11 +11128,181 @@ def mrun_add_transcript_section_delimiters_folder():
     total_start_time = time.time()
     
     for i, file_path in enumerate(files_to_run, 1):
-        speaker_tuples = get_speaker_lines_by_speakers(file_path, remove_speakers=["FDA"], remove_duplicates=True)
+        speaker_tuples = get_section_lines_by_speakers(file_path, remove_speakers=["FDA"], remove_duplicates=True)
         # Extract line numbers and subtract 1 from each
         prev_line_numbers = [line_num - 1 for _, line_num in speaker_tuples]
         print(f"prev_line_numbers: {prev_line_numbers}")
-        add_transcript_section_delimiters(file_path, prev_line_numbers)  
+        add_section_delimiters(file_path, prev_line_numbers)  
+def mrun_add_markdown_section_delimiters():
+    pass
+#if __name__ == "__main__":
+    cur_file_path = "data/misc_books/Sovereign Child/The Sovereign Child_sections.md"
+    section_lines = get_section_lines_by_markdown(cur_file_path, heading_level=3)
+    print(f"num section lines: {len(section_lines)}")
+    print(f"section_lines: {section_lines}")
+    add_section_delimiters(cur_file_path, section_lines)
+def propagate_section_titles_to_qa(source_file_path, section_heading='####', suffix_new='_qa-qonly'):
+    """
+    Propagates section titles from text file to corresponding QA file.
+
+    :param source_file_path: string, path to the source file containing section titles
+    :param section_heading: string, heading format to look for in source file
+    :param suffix_new: string, suffix to identify QA file
+    :return qa_file_path: string, path to the modified QA file
+    """
+    # Verify QA file exists
+    qa_file_path = sub_suffix_in_str(source_file_path, suffix_new)
+    if not os.path.exists(qa_file_path):
+        raise ValueError(f"QA file not found: {qa_file_path}")
+
+    # Get transcript lines from the transcript section
+    transcript_text = get_heading(source_file_path, "### transcript")
+    transcript_lines = transcript_text.splitlines()
+
+    # Extract section titles with their numbers
+    section_titles = {}
+    for line in transcript_lines:
+        if line.strip().startswith(section_heading):
+            # Extract section number and title
+            match = re.match(rf"{section_heading}\s+(\d+)\.\s+(.+)", line.strip())
+            if match:
+                section_num = int(match.group(1))
+                section_title = line.strip()  # Keep full heading line
+                section_titles[section_num] = section_title
+
+    # Get QA lines
+    qa_text = get_heading(qa_file_path, "### qa")
+    qa_lines = qa_text.splitlines()
+
+    # Process QA lines and insert section titles
+    new_qa_lines = []
+    current_section = None
+    
+    for line in qa_lines:
+        # Check for QA block header
+        match = re.match(r'QA Block (\d+)-', line.strip())
+        if match:
+            section_num = int(match.group(1))
+            # If this is a new section and we have a title for it
+            if section_num != current_section and section_num in section_titles:
+                if new_qa_lines:  # Add extra newline if not at the start
+                    new_qa_lines.append('')
+                new_qa_lines.append(section_titles[section_num])
+                new_qa_lines.append('')  # Add blank line after title
+                current_section = section_num
+        new_qa_lines.append(line)
+
+    # Join the lines and ensure proper spacing
+    new_qa_text = '\n'.join(new_qa_lines).strip() + '\n\n'
+    
+    # Write the updated text back using set_heading
+    set_heading(qa_file_path, new_qa_text, "### qa")
+
+    print(f"Section titles propagated to QA file: {qa_file_path}")
+    return qa_file_path
+def mrun_propagate_section_titles_to_qa():
+    pass
+#if __name__ == "__main__":
+    cur_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_section-titles.md"
+    propagate_section_titles_to_qa(cur_file_path)
+def mrun_section_titles():
+    pass
+#if __name__ == "__main__":
+    # cur_file_path = "tests/test_manual_files/md_to_html/2020-12-09_Virtual Town Hall 36_fixnames.md"
+    # write_section_titles(cur_file_path, SCALL_PROMPT_SECTION_TITLE)
+    cur_folder_path = "data/floodlamp/reg/fda-townhalls/f5_fixnames/done_auto"
+    #files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include='_fixnames')
+    files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include='_section-titles')
+
+    for i, file_path in enumerate(files_to_run, 1):
+        #write_section_titles(file_path, SCALL_PROMPT_SECTION_TITLE)
+        propagate_section_titles_to_qa(file_path)
+#NOT USED
+SCALL_PROMPT_SECTION_TITLE = """
+You will receive a single section of text. From that text, generate one section title that is no more than ten words. Aim for six words if possible. The title should capture the main idea, question, or topic in a condensed format.
+Important Requirements:
+No additional text beyond the section title.
+No preamble, explanations, or quotes around the title—only the title itself.
+The title must be one line and stand on its own.
+INSTRUCTIONS:
+Identify the core theme or question in the text.
+Craft a concise heading of up to ten words, ideally six.
+Do not include any other text, formatting, or commentary.
+When you are finished, your entire response should contain only that single section title, with no quotation marks, extra text, or spacing before or after it.
+"""
+def write_section_titles(source_file_path, scall_prompt, provider="openai", heading="### transcript", delimiter='---', prepend="\n\n#### ", suffix_new='_section-titles'):
+    """
+    Generate section titles and replace delimiters with these titles.
+
+    :param source_file_path: string, path to the source file
+    :param scall_prompt: string, prompt for section title generation
+    :param provider: string, which provider to use ("openai" or "anthropic")
+    :param delimiter: string, used to separate sections
+    :param suffix_new: string, suffix for the new file name
+    :return new_file_path: string, path to the created file
+    """
+    start_time = time.time()
+
+    # Set model based on provider
+    if provider == "openai":
+        model = OPENAI_MODEL
+    elif provider == "anthropic":
+        model = ANTHROPIC_MODEL
+    else:
+        raise ValueError("Provider must be either 'openai' or 'anthropic'")
+
+    # Get transcript sections and metadata
+    metadata, sections, total_sections = get_file_metadata_and_sections(source_file_path, heading='### transcript', delimiter=delimiter)
+
+    # Update metadata
+    current_datetime = get_current_datetime_humanfriendly()
+    date = current_datetime.split(' ')[0]
+    metadata = set_metadata_field(metadata, "last updated", f"{date} Added Section Titles")
+    metadata = set_metadata_field(metadata, "source file", source_file_path)
+
+    # Process sections and generate titles
+    processed_content = []
+    for section_num, section in enumerate(sections, 1):
+        section = section.strip()
+        if not section:
+            continue
+
+        print(f"\nProcessing section {section_num} of {total_sections}")
+        try:
+            # Generate section title based on provider
+            if provider == "openai":
+                title = simple_openai_chat_completion_request(scall_prompt + "\n\n" + section, model)
+            elif provider == "anthropic":
+                title = simple_anthropic_chat_completion_request(scall_prompt + "\n\n" + section, model)
+            else:
+                raise ValueError("Provider must be either 'openai' or 'anthropic'")
+            
+            # Add section with title
+            processed_content.append(f"{prepend} {section_num}. {title.strip()}\n")  # Title with heading format
+            processed_content.append(section)
+            print(colored(title.strip(), "blue"))
+            
+        except Exception as e:
+            error_msg = f"\n********** Error generating title for section {section_num}: {str(e)}"
+            print(colored(error_msg, "red"))
+            processed_content.append(section)  # Include original section without title
+            continue
+
+    # Create output file with processed content
+    initial_content = "## content\n\n### transcript"
+    new_content = initial_content + "\n".join(processed_content)
+    new_file_path = write_metadata_and_content(
+        source_file_path, 
+        metadata, 
+        new_content, 
+        overwrite='no-sub', 
+        suffix_new=suffix_new
+    )
+
+    time_now = datetime.now().strftime('%Y-%m-%d %I:%M:%S %p')
+    print(f"\nSection titles generation completed in {(time.time() - start_time) / 60:.1f} minutes at {time_now}.")
+    print(colored("New file written to " + new_file_path, "green"))
+    return new_file_path
 
 
 ### OLD PROMPTS (1,346 tokens)
@@ -9797,7 +11928,7 @@ def create_question_errors_file(file_path, split_file_function, prompt, *args, *
 
 
 
-## primary/vectordb.py (5,858 tokens)
+## primary/vectordb.py (6,410 tokens)
 #===== START OF FILE primary/vectordb.py =====
 #Library for vector database operations
 
@@ -9806,7 +11937,8 @@ import os
 import json
 import zipfile
 import shutil
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+import time
 
 from openai import OpenAI
 from pinecone import Pinecone, ServerlessSpec
@@ -9816,7 +11948,6 @@ from langchain_pinecone import Pinecone as LangchainPinecone
 from langchain_community.document_loaders import ObsidianLoader
 from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-
 
 #---API KEYS AND SECRETS---
 from dotenv import load_dotenv
@@ -9836,7 +11967,49 @@ EMBEDDING_MODEL = "text-embedding-3-small"  # OpenAI 1536 dimensions and $0.02/1
 #Pinecone indexes can be seen in the pinecone.io portal > go to Serverless in UL - login sends email to fofgeneral20
 
 
-### VECTOR DB SUPPORT (3,811 tokens)
+### VECTOR DB SUPPORT (4,370 tokens)
+def convert_date_to_unix(date_str, utc_offset=0):
+    """
+    Converts an ISO date string to Unix timestamp with UTC offset.
+
+    :param date_str: string, date in ISO format (e.g., '2024-01-01')
+    :param utc_offset: integer, UTC offset in hours (default: 0 for UTC)
+    :return: integer, Unix timestamp adjusted for UTC offset
+    """
+    # Create timezone object for the offset
+    tz = timezone(timedelta(hours=utc_offset))
+    
+    # Parse the date and make it timezone-aware with specified offset
+    date = datetime.strptime(date_str, '%Y-%m-%d').replace(tzinfo=tz)
+    
+    # Convert to Unix timestamp
+    return int(date.timestamp())
+def mrun_convert_date_to_unix():
+    pass
+if __name__ == "__main__":
+    #date_str = "2024-10-23"
+    date_str = "2023-04-22"
+    utc_offset = -7
+    unix_timestamp = convert_date_to_unix(date_str, utc_offset)
+    print(f"Unix timestamp for {date_str} at UTC {utc_offset}: {unix_timestamp}")
+    comp_unix_timestamp = 1682146800
+    hours_diff = (comp_unix_timestamp - unix_timestamp) / 3600
+    print(f"Comparison Unix timestamp: {comp_unix_timestamp} (UTC{hours_diff:+.0f} offset needed)")
+    #OLD WITH UTC-0 Offset
+    #Unix timestamp for 2023-04-22: 1682146800
+    #Unix timestamp for 2024-09-20: 1726815600
+    #Unix timestamp for 2024-10-23: 1729666800
+    #Unix timestamp for 2023-11-15: 1700035200
+
+    # Get local timezone info
+    local = time.localtime()
+    utc_offset_hours = local.tm_gmtoff / 3600  # Convert seconds to hours
+
+    # Current datetime with timezone info
+    now = datetime.now()
+    print(f"Current local time: {now}")
+    print(f"UTC offset: {utc_offset_hours:+.1f} hours")
+    print(f"DST active: {'Yes' if local.tm_isdst else 'No'}")
 def generate_embedding(text, model=EMBEDDING_MODEL):
     """ 
     Generates an embedding vector for the provided text using the specified OpenAI embeddings model.
@@ -9852,7 +12025,7 @@ def generate_embedding(text, model=EMBEDDING_MODEL):
     return embedding
 
 #TODO review the timestamp lines
-def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=True, embedding_field='QUESTION', date_from_filename=False):
+def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=False, embedding_field='QUESTION', date_from_filename=False):
     """
     Generates vectors from markdown files in the specified folder paths.
 
@@ -9886,6 +12059,15 @@ def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=True
     
     for folder_path in folder_paths:
         file_paths = get_files_in_folder(folder_path, suffixpat_include=suffixpat_include, include_subfolders=include_subfolders)
+        
+        # Debug print statements
+        # print("\nDEBUG: File matching details:")
+        # print(f"Folder path: {folder_path}")
+        # print(f"Suffix pattern: {suffixpat_include}")
+        # print("Found files:")
+        # for path in file_paths:
+        #     print(f"  - {path}")
+
         total_files += len(file_paths)
         for i, path in enumerate(file_paths, 1):
             file_name_with_extension = os.path.basename(path)
@@ -9898,9 +12080,9 @@ def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=True
             # Extract date from filename if enabled (we know it's valid at this point)
             if date_from_filename:
                 date_str = file_name_with_extension.split('_')[0]
-                file_date = datetime.strptime(date_str, '%Y-%m-%d')
-                # Convert to Unix timestamp for Pinecone metadata
-                date_timestamp_unix = int(file_date.timestamp())
+                # Use UTC-7 (PDT) to match existing vector timestamps
+                date_timestamp_unix = convert_date_to_unix(date_str, utc_offset=-7)
+                print(f"DEBUG: Converting date {date_str} to Unix timestamp: {date_timestamp_unix}")
             
             for block in blocks:
                 fields = get_all_fields_dict(block)
@@ -9908,7 +12090,7 @@ def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=True
                 
                 # Add date metadata as timestamp if enabled
                 if date_from_filename:
-                    fields['DATE'] = date_timestamp_unix  # Store as Unix timestamp instead of ISO string
+                    fields['DATE'] = date_timestamp_unix
                 
                 vector_id = (os.path.splitext(file_name_with_extension)[0] + "_" + str(block_num)).replace(" ", "_")
                 
@@ -10223,7 +12405,7 @@ def log_zip_vectordb(vectors_file_path, vector_index_name_with_timestamp, metada
     return log_file_path, zip_file_path
 
 
-### VECTOR DB CREATION (1,690 tokens)
+### VECTOR DB CREATION (1,676 tokens)
 def create_vectordb_vrag_langchain(folder_paths, vector_index_base, suffixpat_include=None, skip_pinecone=False):  # pinecone index names can only contain - and not _ 
     """ 
     Establishes a Pinecone database using documents from the directory of markdown files. 
@@ -10330,7 +12512,6 @@ def create_qrag_vectordb(folder_paths, vector_index_base, suffixpat_include=None
     vectors = generate_vectors_qa(
         folder_paths, 
         suffixpat_include,
-        include_subfolders=True,  # Explicitly name the parameter
         embedding_field=embedding_field,
         date_from_filename=date_from_filename
     )
@@ -10374,33 +12555,31 @@ def create_qrag_vectordb(folder_paths, vector_index_base, suffixpat_include=None
 
 
 
-## primary/rag.py (4,182 tokens)
+## primary/rag.py (6,107 tokens)
 #===== START OF FILE primary/rag.py =====
 #Library of functions and execution code to do RAG tasks
 
 import os
 from datetime import datetime
 from pinecone import Pinecone
-from termcolor import colored
+import pyperclip
 
-from primary.vectordb import generate_embedding
-from primary.llm import simple_openai_chat_completion_request
+from primary.vectordb import generate_embedding, convert_date_to_unix
+from primary.llm import simple_openai_chat_completion_request, deepseek_chat_completion_request_sdk, openai_chat_completion_request_sdk
+from primary.llm import get_call_cost_from_response, TOKEN_PRICE_DICT
 from primary.rag_prompts_routes import *
+from primary.fileops import convert_data_object_to_json_data, get_json_data_from_json_file
 
 
 #---API KEYS AND SECRETS---
 from dotenv import load_dotenv
 load_dotenv(override=True)  # Load environment variables from .env file
-OPENAI_API_KEY = os.environ["OPENAI_API_KEY_LOCAL"]
-ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY_LOCAL"]
 PINECONE_API_KEY = os.environ["PINECONE_API_KEY"]
  
 
 #---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
 
-DEFAULT_LLM_MODEL = 'gpt-4o'
-
-### RETRIEVAL (429 tokens)
+### RETRIEVAL (630 tokens)
 def pinecone_retriever(query, vector_index_name, num_chunks, date_range=None):
     """ 
     Retrieves relevant question chunks from a Pinecone index based on the input question.
@@ -10412,6 +12591,7 @@ def pinecone_retriever(query, vector_index_name, num_chunks, date_range=None):
     :return: tuple containing fetched question chunks and a dictionary of retrieved IDs with their scores.
     """
     pinecone_client = Pinecone(api_key=PINECONE_API_KEY)
+    print(f"DEBUG: Starting pinecone_retriever with date_range={date_range}")
 
     vectorized_query = generate_embedding(query)
     index = pinecone_client.Index(vector_index_name)
@@ -10426,16 +12606,32 @@ def pinecone_retriever(query, vector_index_name, num_chunks, date_range=None):
     
     # Add date range filter if provided
     if date_range and len(date_range) == 2:
-        # Convert ISO date strings to Unix timestamps
-        start_date_timestamp_unix = int(datetime.fromisoformat(date_range[0]).timestamp())
-        end_date_timestamp_unix = int(datetime.fromisoformat(date_range[1]).timestamp())
-        
-        query_params["filter"] = {
-            "DATE": {
-                "$gte": start_date_timestamp_unix,
-                "$lte": end_date_timestamp_unix
+        try:
+            # Use UTC-7 (PDT) to match how vectors were created
+            utc_offset = -7
+            
+            # Convert dates to timestamps using UTC-7
+            start_date_timestamp_unix = convert_date_to_unix(date_range[0], utc_offset)
+            end_date_timestamp_unix = convert_date_to_unix(date_range[1], utc_offset)
+            
+            print(f"DEBUG: Converting dates (UTC-7/PDT):")
+            print(f"  Input dates: {date_range[0]} to {date_range[1]}")
+            print(f"  Unix timestamps: {start_date_timestamp_unix} to {end_date_timestamp_unix}")
+            
+            query_params["filter"] = {
+                "DATE": {
+                    "$gte": start_date_timestamp_unix,
+                    "$lte": end_date_timestamp_unix
+                }
             }
-        }
+            
+            # Create a copy of query_params with truncated vector for logging
+            log_params = query_params.copy()
+            log_params['vector'] = f"[{log_params['vector'][0]:.4f}, ... {len(log_params['vector'])} values]"
+            print(f"DEBUG: Final query_params: {log_params}")
+        except Exception as e:
+            print(f"DEBUG: Error in date conversion: {str(e)}")
+            raise
     
     retrieved_qchunks = index.query(**query_params)
     
@@ -10449,32 +12645,33 @@ def pinecone_retriever(query, vector_index_name, num_chunks, date_range=None):
     return fetched_chunks, retrieved_ids_scores
 
 
-### VRAG (715 tokens)
-def print_vrag_display_text(json_object, show_prompt=False):
+### VRAG (736 tokens)
+def print_vrag_display_text(vrag_json_object, show_prompt=False):
     """
     Prints a formatted display text for VRAG (Vector Retrieval Augmented Generation) results.
 
-    :param json_object: dictionary containing VRAG results with 'content' key.
+    :param vrag_json_object: dictionary containing VRAG results with 'content' key.
     :param show_prompt: boolean to determine whether to show the full LLM prompt.
     :return: None.
     """
-    user_question = json_object['content']['user_question']
-    ai_answer = json_object['content']['ai_answer']
+    user_question = vrag_json_object['content']['user_question']
+    ai_answer = vrag_json_object['content']['ai_answer']
     
     display_text = f"USER QUESTION: {user_question}\n\n"
     
     if show_prompt:
-        llm_prompt = json_object['content']['llm_prompt']
+        llm_prompt = vrag_json_object['content']['llm_prompt']
         display_text += f"LLM PROMPT:\n{llm_prompt}\n\n"
     else:
-        chunk_texts = json_object['content']['chunk_texts']
+        chunk_texts = vrag_json_object['content']['chunk_texts']
         display_text += f"RETRIEVED CHUNKS:\n{chunk_texts}\n\n"
     
     display_text += f"AI ANSWER: {ai_answer}"
     
     print(display_text)
-    
-def vrag_llm_call(user_question, vector_index_name, num_chunks, vrag_preamble=VRAG_PREAMBLE_V1, llm_model=DEFAULT_LLM_MODEL, user_id='default', vrag_version="1.0"):
+
+#TODO: update for deepseek-reasoner
+def vrag_llm_call(user_question, vector_index_name, num_chunks, vrag_preamble=VRAG_PREAMBLE_V1, llm_model='deepseek-reasoner', user_id='default', vrag_version="1.0"):
     """
     Initiates a chat session using vector retrieval augmented generation (VRAG) with a specified question,
     prompt template, and index name. Returns a JSON object with the results.
@@ -10497,7 +12694,7 @@ def vrag_llm_call(user_question, vector_index_name, num_chunks, vrag_preamble=VR
     chunk_texts = chunk_texts.rstrip('\n')  # Remove trailing newline if present
 
     llm_prompt = vrag_preamble + "\n" + chunk_texts + "\nUSER QUESTION: " + user_question + "\n\nAI ANSWER: "
-    llm_answer = simple_openai_chat_completion_request(llm_prompt, model=llm_model)
+    ai_answer = simple_openai_chat_completion_request(llm_prompt, model=llm_model)
     
     return {
         "metadata": {
@@ -10515,12 +12712,12 @@ def vrag_llm_call(user_question, vector_index_name, num_chunks, vrag_preamble=VR
             "user_question": user_question,
             "chunk_texts": chunk_texts,
             "llm_prompt": llm_prompt,
-            "ai_answer": llm_answer
+            "ai_answer": ai_answer
         }
     }
  
 
-### QRAG (2,841 tokens)
+### QRAG (4,536 tokens)
 def sort_chunks_by_stars(fetched_qa_chunks, retrieved_ids_scores, num_chunks):
     """
     Sorts chunks primarily by star rating and then by similarity score, returning the top `num_chunks`.
@@ -10622,8 +12819,9 @@ def parse_chunks(chunks, simscores):
         parsed_chunks.append(parsed_chunk)
     return parsed_chunks
 
-def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict, date_range=None, routes_bounds=[0.3, 0.9], 
-                      llm_model=DEFAULT_LLM_MODEL, user_id='default', user_context=None, qrag_version="1.0"):
+def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict,
+                      date_range=None, routes_bounds=[0.3, 0.9],
+                      user_id='default', user_context=None, qrag_version="2.0"):
     """
     Routes a user question through a question retrieval augmented generation (QRAG) process.
 
@@ -10631,10 +12829,10 @@ def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict,
     :param vector_index_name: str, name of the vector index to search.
     :param num_chunks: int, number of chunks to retrieve and process.
     :param routes_dict: dict, containing routing information and templates.
-    :param date_range: optional list of two dates [start_date, end_date] in ISO format (e.g., ['2021-01-01', '2021-12-31']).
+    :param date_range: optional list of two dates [start_date, end_date] in ISO format.
     :param routes_bounds: list, lower and upper similarity bounds for routing.
-    :param llm_model: str, name of the language model to use.
     :param user_id: str, identifier for the user.
+    :param user_context: dict, optional context about the user.
     :param qrag_version: str, version of the QRAG system.
     :return response: dict, containing metadata and content of the QRAG response.
     """
@@ -10678,16 +12876,18 @@ def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict,
     # Determine max similarity and stars
     max_sim = max(chunk['sim'] for chunk in parsed_chunks) if parsed_chunks else 0
     max_stars = max(chunk['stars'] for chunk in parsed_chunks) if parsed_chunks else 0
-
     lower_sim_bound, upper_sim_bound = routes_bounds
 
     if max_sim >= upper_sim_bound:
         route_preamble = routes_dict['route_preamble_good_match']
+        prompt_initial = routes_dict['prompt_initial_good_match']
     elif max_sim <= lower_sim_bound:
         route_preamble = routes_dict['route_preamble_no_match']
+        prompt_initial = routes_dict['prompt_initial_no_match']
         quoted_qa = ""
     else:
         route_preamble = routes_dict['route_preamble_partial_match']
+        prompt_initial = routes_dict['prompt_initial_partial_match']
 
     # Prepare chunk metadata for the response
     chunks_metadata = []
@@ -10701,7 +12901,8 @@ def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict,
             "sim": "{:.3f}".format(chunk['sim'])
         })
 
-    response = {
+    # Build the final JSON response
+    qrag_routing_output_json_object = {
         "metadata": {
             "timestamp": datetime.now().isoformat(),
             "user_id": user_id,
@@ -10709,7 +12910,6 @@ def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict,
             **({"user_context": user_context} if user_context else {}),
             "vector_index_name": vector_index_name,
             "qrag_version": qrag_version,
-            "llm_model": llm_model,
             "routes_info": {
                 "routes_flow_name": routes_flow_name,
                 "upper_sim_bound": upper_sim_bound,
@@ -10722,6 +12922,7 @@ def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict,
         "content": {
             "user_question": user_question,
             "route_preamble": route_preamble,
+            "prompt_initial": prompt_initial,
             "quoted_qa": quoted_qa,
             "ai_answer": "WAITING FOR AI ANSWER...",
             "chunks": {
@@ -10734,82 +12935,249 @@ def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict,
 
     # Add date range if provided
     if date_range is not None:
-        response["metadata"]["date_range"] = date_range
+        qrag_routing_output_json_object["metadata"]["date_range"] = date_range
+    
+    return qrag_routing_output_json_object
 
-    return response
-
-def qrag_llm_call(json_object):
+LLM_MODEL_OPTIONS_QRAG_LLM_CALL = ["gpt-4o", "gpt-4o-mini", "o3-mini", "deepseek-reasoner"]  # sync these with aws_valid.LLM_MODEL_OPTIONS
+def qrag_llm_call(qrag_json_object, llm_model='o3-mini', large_context=None, large_context_filename=None):
     """ 
     Generates an AI answer for a given JSON object containing question and context information.
 
-    :param json_object: dictionary containing the question, context, and metadata for generating an AI answer.
+    :param qrag_json_object: dictionary containing the question, context, and metadata for generating an AI answer.
+    :param llm_model: str, name of the language model to use.
+    :param large_context: str, optional text content of the large context file.
+    :param large_context_filename: str, optional filename of the large context file.
     :return: dictionary with the updated JSON object including the AI-generated answer.
     """
+    # Check that large_context and large_context_filename are either both present or both None
+    if bool(large_context) != bool(large_context_filename):
+        raise ValueError("Both large_context and large_context_filename must be provided together or both must be None")
+    
     # Verify necessary fields exist in the JSON object
-    required_fields = ['user_question', 'route_preamble', 'quoted_qa', 'ai_answer']
-    missing_fields = [field for field in required_fields if field not in json_object['content']]
+    required_fields = ['user_question', 'prompt_initial', 'quoted_qa']
+    missing_fields = [field for field in required_fields if field not in qrag_json_object['content']]
     if missing_fields:
         raise ValueError(f"Missing required fields in JSON object: {', '.join(missing_fields)}")
 
-    # Extract necessary information from json_object
-    user_question = json_object['content']['user_question']
-    route_preamble = json_object['content']['route_preamble']
-    quoted_qa = json_object['content']['quoted_qa']
-
+    # Extract necessary information from qrag_json_object
+    user_question = qrag_json_object['content']['user_question']
+    prompt_initial = qrag_json_object['content']['prompt_initial']
+    quoted_qa = qrag_json_object['content']['quoted_qa']
+    
+    # Update metadata with LLM model
+    qrag_json_object['metadata']['llm_model'] = llm_model
+    
+    # Store large context filename if provided but not the text content
+    if large_context_filename:
+        qrag_json_object['content']['large_context_filename'] = large_context_filename
+    
     # Prepare the prompt for the LLM call
-    llm_prompt = route_preamble + "\n" + quoted_qa + "\nUSER QUESTION: " + user_question + "\n\nAI ANSWER: "
+    llm_full_prompt = (
+        f"{prompt_initial.strip()}\n\n"
+        f"<USER_QUESTION>\n{user_question}\n</USER_QUESTION>\n\n"
+        f"<QUOTED_QA>\n{quoted_qa}\n</QUOTED_QA>\n\n"
+    )
 
-    # Make the LLM call using simple_openai_chat_completion_request function
-    llm_model = json_object['metadata']['llm_model']
-    llm_answer = simple_openai_chat_completion_request(llm_prompt, model=llm_model)
+    # Only add large context section if it exists
+    if large_context:
+        llm_full_prompt += f"<LARGE_CONTEXT>\n{large_context}\n</LARGE_CONTEXT>\n\n"
 
-    # Add the AI answer to the json_object
-    json_object['content']['ai_answer'] = llm_answer
-    json_object['content']['llm_prompt'] = llm_prompt  # Optionally include the prompt
+    # Make the LLM call
+    llm_messages = [{"role": "user", "content": llm_full_prompt}]
 
-    return json_object
+    if llm_model == 'deepseek-reasoner':
+        llm_response = deepseek_chat_completion_request_sdk(llm_messages, model=llm_model)
+        qrag_json_object['content']['reasoning_steps'] = llm_response.choices[0].message.reasoning_content
+    elif llm_model in LLM_MODEL_OPTIONS_QRAG_LLM_CALL:
+        llm_response = openai_chat_completion_request_sdk(messages=llm_messages, model=llm_model)
+    else:
+        raise ValueError("Currently only the following LLM models are supported for qrag_llm_call: " + ", ".join(LLM_MODEL_OPTIONS_QRAG_LLM_CALL))
+    
+    # Store only selected parts of the response in the json object
+    qrag_json_object['content']['ai_answer'] = llm_response.choices[0].message.content
+    
+    cost_pennies_mycalc = get_call_cost_from_response(llm_response, llm_model, TOKEN_PRICE_DICT, verbose=False)
+    qrag_json_object['content']['cost_pennies_mycalc'] = cost_pennies_mycalc
 
-def print_qrag_display_text(json_object):
-    """ 
-    Prints a formatted display text for QRAG (Question Retrieval Augmented Generation) results.
+    return qrag_json_object
 
-    :param json_object: dictionary containing QRAG results with 'content' key.
-    :return: None.
-    """
-    user_question = json_object['content']['user_question']
-    route_preamble = json_object['content']['route_preamble']
-    quoted_qa = json_object['content']['quoted_qa']
-    ai_answer = json_object['content']['ai_answer']
-    display_text = 'USER QUESTION: ' + user_question + '\n\n' + 'ROUTE PREAMBLE: ' + route_preamble + '\n\n' + quoted_qa + 'AI ANSWER: ' + ai_answer
-    print(display_text)
-
-def qrag_2step(user_question, routes_dict, vector_index_name, num_chunks=2, verbose=True):
+def qrag_2step(user_question, vector_index_name, num_chunks, routes_dict, 
+               date_range=None, llm_model='o3-mini', large_context_filename=None, 
+               large_context_folder="data/large_context_files", verbose=False):
     """ 
     Performs a two-step question-answering process using QRAG (Question Retrieval Augmented Generation).
 
-    :param user_question: string of the user's input question.
-    :return: None
+    :param user_question: str, the question asked by the user.
+    :param vector_index_name: str, name of the vector index to search.
+    :param num_chunks: int, number of chunks to retrieve and process.
+    :param routes_dict: dict, containing routing information and templates.
+    :param date_range: optional list of two dates [start_date, end_date] in ISO format.
+    :param llm_model: str, name of the language model to use.
+    :param large_context_filename: str, optional filename of large context file.
+    :param large_context_folder: str, path to folder containing large context files.
+    :param verbose: bool, control debug output.
+    :return: qrag_json_object: dict, containing the QRAG response.
     """
-    from primary.fileops import pretty_print_json_object
+    from primary.fileops import pretty_print_json_data, get_current_datetime_filefriendly
+    from primary.llm import write_json_file_from_json_data
+
+    print("Running qrag_2step...")
 
     # Create JSON object with routing information
-    routing_json_obj = qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict)
+    print(f"Calling qrag_routing_call with parameters:\n"
+          f"  user_question: {user_question}\n"
+          f"  vector_index_name: {vector_index_name}\n" 
+          f"  num_chunks: {num_chunks}\n"
+          f"  routes_dict: {routes_dict}\n"
+          f"  date_range: {date_range}")
+    
+    routing_json_obj = qrag_routing_call(
+        user_question=user_question, 
+        vector_index_name=vector_index_name, 
+        num_chunks=num_chunks, 
+        routes_dict=routes_dict,
+        date_range=date_range
+    )
 
     if verbose:
-        pretty_print_json_object(routing_json_obj, print_values=True)
+        print("******** Routing JSON object: ********")
+        pretty_print_json_data(routing_json_obj, print_values=True)
     
-    # Print the display text for the QRAG process
-    print_qrag_display_text(routing_json_obj)
+    print(f"  Finished qrag_routing_call.\nRunning qrag_llm_call with model {llm_model}...")
+    
+    # Load large context if filename provided
+    large_context = None
+    if large_context_filename:
+        large_context_path = os.path.join(large_context_folder, large_context_filename)
+        try:
+            with open(large_context_path, 'r') as file:
+                large_context = file.read()
+                print(f"Successfully loaded large context from {large_context_filename}")
+        except Exception as e:
+            print(f"Warning: Failed to load large context file: {str(e)}")
+            large_context = None
+            large_context_filename = None
+    
+    # Generate the AI answer with LLM model and large context
+    qrag_json_object = qrag_llm_call(
+        routing_json_obj,
+        llm_model=llm_model,
+        large_context=large_context,
+        large_context_filename=large_context_filename
+    )
+    
+    print("  Finished qrag_llm_call.\nPrinting display text...")
+    
+    # Then print the display text with the complete information
+    pretty_print_json_data(qrag_json_object, print_values=True)
+    
+    # Save the response to a file
+    datetime = get_current_datetime_filefriendly()
+    query = user_question
+    query_trim = query[:30] + (query[30:].split(None, 1)[0].rstrip('.,!?;:') if len(query) > 30 and not query[30].isspace() else '')
+    json_filename = f"chat_response_{datetime}_{llm_model}_{query_trim}.json"
+    json_file_path = "exchanges/response_files/" + json_filename
+    write_json_file_from_json_data(qrag_json_object, json_file_path, overwrite="yes")
+    
+    if verbose:
+        print("******** QRAG JSON object: ********")
+        pretty_print_json_data(qrag_json_object, print_values=True)
+    
+    return qrag_json_object
 
-    # Generate and print the AI answer
-    ai_answer = qrag_llm_call(routing_json_obj)['content']['ai_answer']
-    print(colored(ai_answer, 'red'))
+def print_qrag_display_text(qrag_json_object):
+    """ 
+    Prints a formatted display text for QRAG (Question Retrieval Augmented Generation) results
+    and copies it to the clipboard.
+
+    :param qrag_json_object: dictionary containing QRAG results with 'content' key.
+    :return: None.
+    """
+    user_question = qrag_json_object['content']['user_question']
+    route_preamble = qrag_json_object['content']['route_preamble']
+    quoted_qa = qrag_json_object['content']['quoted_qa']
+    ai_answer = qrag_json_object['content']['ai_answer']
+    
+    # Get optional fields with default values if they don't exist
+    reasoning_steps = qrag_json_object['content'].get('reasoning_steps', '')
+    large_context_filename = qrag_json_object['content'].get('large_context_filename', '')
+    
+    user_question_first_line = user_question.split('\n')[0]
+    user_question_rest = '\n'.join(user_question.split('\n')[1:])
+    
+    # Build display text with optional sections
+    display_text = [
+        f"# {user_question_first_line}",
+        user_question_rest,
+        "",
+        "## ROUTE PREAMBLE:",
+        route_preamble,
+        "",
+        "## QUOTED QA:",
+        quoted_qa,
+        "",
+        "## AI ANSWER:",
+        ai_answer
+    ]
+    
+    # Add reasoning steps if they exist
+    if reasoning_steps:
+        display_text.extend(["", "## REASONING STEPS:", reasoning_steps])
+    
+    # Add large context filename if it exists
+    if large_context_filename:
+        display_text.extend(["", f"## LARGE CONTEXT FILE:", large_context_filename])
+    
+    # Join all sections with newlines
+    display_text = '\n'.join(display_text)
+    print(display_text)
+    
+    # Copy to clipboard
+    pyperclip.copy(display_text)
+    return display_text
+
+def create_md_from_qrag_exchange_json(exchange_json_filepath):
+    """
+    Creates a markdown file from a qrag exchange JSON object and saves it in the same folder as the JSON.
+
+    :param exchange_json_filepath: string, path to the JSON exchange file.
+    :return: string, path to the created markdown file.
+    """
+    qrag_json_object = get_json_data_from_json_file(exchange_json_filepath)
+    display_text = print_qrag_display_text(qrag_json_object)
+    
+    # Get question
+    question = qrag_json_object['content']['user_question']
+    
+    # Truncate question to 30 chars on word boundary
+    words = question.split()
+    truncated_question = ""
+    for word in words:
+        if len(truncated_question + word) > 30:
+            break
+        truncated_question += word + " "
+    truncated_question = truncated_question.strip()
+    
+    # Get base filename without extension
+    base_filename = os.path.splitext(os.path.basename(exchange_json_filepath))[0]
+    
+    # Create markdown filepath in same folder as JSON
+    folder = os.path.dirname(exchange_json_filepath)
+    md_filename = f"{base_filename}_{truncated_question}.md"
+    exchange_md_filepath = os.path.join(folder, md_filename)
+    
+    # Write markdown file
+    with open(exchange_md_filepath, 'w') as f:
+        f.write(display_text)
+        
+    return exchange_md_filepath
 
 #===== END OF FILE primary/rag.py =====
 
 
 
-## primary/conversion.py (10,467 tokens)
+## primary/conversion.py (7,872 tokens)
 #===== START OF FILE primary/conversion.py =====
 #Library of functions and execution code to do conversion tasks    
 
@@ -10824,6 +13192,10 @@ from markitdown import MarkItDown
 from openai import OpenAI
 from nltk.corpus import words
 from collections import defaultdict
+import xml.etree.ElementTree as ET
+import html
+from bs4 import BeautifulSoup
+from markdownify import markdownify
 
 #from IPython.display import Markdown, display
 
@@ -10902,7 +13274,7 @@ def mtest_convert_llamaindex_gdocs_to_md(gdoc_id_list):
     cur_gdoc_id_list = ['19yTV3UUkOQrfbqOPcL5hhBw9eJyc_5ra5Uz_tKQcs24']
     convert_llamaindex_gdocs_to_md(cur_gdoc_id_list)
 
-### PANDOC (414 tokens)
+### PANDOC (865 tokens)
 ''' To confirm installation, run: pandoc --version
 Should see:
 pandoc 3.2
@@ -10935,8 +13307,54 @@ def mtest_convert_file_to_md_pandoc():
     #cur_file_path = 'tests/test_manual_files/file_conversion/2021-05-18_Instructions for Use - FloodLAMP QuickColor COVID-19 Test v1.1.docx'
     cur_file_path = 'data/floodlamp_fda/subs/2021-05-18_Pre-EUA Sub - FloodLAMP Proposed Pooling and Asymptomatic Screening Study.docx'
     print(convert_file_to_md_pandoc(cur_file_path))
+def convert_md_file_to_epub(md_file_path, title=None):
+    """
+    Converts a markdown file to an epub file using pypandoc with error handling.
 
-### MEGAPARSE (498 tokens)
+    :param md_file_path: string, path to the markdown file to convert
+    :param title: string, optional title for the epub metadata
+    :return: string, path to the output epub file
+    """
+    output_epub_file_path = os.path.splitext(md_file_path)[0] + '.epub'
+    
+    # If no title provided, use the filename without extension
+    if not title:
+        title = os.path.splitext(os.path.basename(md_file_path))[0]
+    
+    # Build extra arguments with required metadata
+    extra_args = [
+        '--standalone',
+        '--wrap=none',
+        '-f', 'markdown-raw_html-native_divs-native_spans',  # More permissive markdown parsing
+        '--epub-chapter-level=2',
+        # Required metadata
+        '--metadata', f'title={title}',
+        '--metadata', 'lang=en-US',
+        '--metadata', 'creator=Unknown',  # Required for some EPUB readers
+        '--metadata', 'date=' + datetime.now().strftime('%Y-%m-%d')  # Add current date
+    ]
+    
+    try:
+        pypandoc.convert_file(
+            md_file_path,
+            'epub',
+            outputfile=output_epub_file_path,
+            extra_args=extra_args,
+            encoding='utf-8'  # Explicitly set encoding
+        )
+        print(f"Successfully converted {md_file_path} to EPUB with title: {title}")
+        return output_epub_file_path
+    except Exception as e:
+        print(f"Error converting file: {str(e)}")
+        raise  # Re-raise the exception to see the full error trace
+def mrun_convert_md_file_to_epub():
+    pass
+#if __name__ == "__main__": 
+    cur_md_file_path = 'data/misc_books/Sovereign Child/The Sovereign Child_sectionsJUST2.md'
+    title = "The Sovereign Child"
+    print(convert_md_file_to_epub(cur_md_file_path, title))
+
+### MEGAPARSE (562 tokens)
 def convert_megaparse_pdf_to_md(file_path, use_llama_parse=False, use_vision=False):
     """
     Converts PDF to markdown using LlamaParse, MegaParse with GPT-4 Vision, or UnstructuredParser.
@@ -10983,6 +13401,8 @@ def mrun_convert_megaparse_pdf_to_md():
 #if __name__ == "__main__":
     file_path = 'data/misc_books/The Sovereign Child.pdf'
     print(convert_megaparse_pdf_to_md(file_path))
+#audiblez book.epub -l en-gb -v af_nicole -s 1.5
+#audiblez "data/misc_books/Sovereign Child/The Sovereign Child_sectionsJUST2.epub" -l en-gb -v af_sky -s 1.5
 
 ### MS MARKITDOWN (367 tokens)
 def convert_file_to_md_msmid(file_path, new_suffix="_msmid"):
@@ -11283,10 +13703,10 @@ def mtest_remove_extraneous_spaces_in_words():
     pass
 #if __name__ == "__main__":
     initialize_nltk(silent=False)
-    test_text = 'Humorously, school is about college, and college is about getting a job and sustaining a life. And only then, *in your twen ties*, can food and bathing and clothes and entertainment be about those things in themselves. Shouldn’t childhood be the time when kids are free to explore those things that are integral to life, to learn about and develop relationships with them for their own sake? The magic of childhood is that kids don’t have dependents or even a responsibility to ensure their own sur vival, so it is precisely during this time that a person is most free to engage with the world directly.'
+    test_text = "Humorously, school is about college, and college is about getting a job and sustaining a life. And only then, *in your twen ties*, can food and bathing and clothes and entertainment be about those things in themselves. Shouldn't childhood be the time when kids are free to explore those things that are integral to life, to learn about and develop relationships with them for their own sake? The magic of childhood is that kids don't have dependents or even a responsibility to ensure their own sur vival, so it is precisely during this time that a person is most free to engage with the world directly."
     print(remove_extraneous_spaces_in_words(test_text, verbose=True))
 
-### MARKDOWN (1,627 tokens)
+### MARKDOWN (2,002 tokens)
 def convert_csv_to_md_table(csv_content):
     """
     Convert CSV content to a markdown table.
@@ -11387,17 +13807,31 @@ def mrun_convert_markdown_to_md_mod_text():
 #if __name__ == "__main__":
     md_file_path = "data/pv/pv_epc_evac/2024-10-23_PVSD WFPD - Wildfire Preparedness Parent Presentation 3_combo.md"
     md_mod_file_path = convert_markdown_to_md_mod_text(md_file_path)
-def combine_files_into_md(file_paths, target_file_path, max_file_size_mb=10):
+def combine_files_into_md(file_paths, target_file_path, max_file_size_mb=10, number_order=True, strip_extensions=False):
     """
     Combine multiple files into a single markdown file.
-    
-    :param file_paths: List of file paths to combine (relative to repo root)
-    :param target_file_path: Path for the output markdown file (relative to repo root)
-    :param max_file_size_mb: Maximum allowed file size in MB (default: 10)
-    :return: The relative path of the combined markdown file
+
+    :param file_paths: list, file paths to combine (relative to repo root)
+    :param target_file_path: string, path for the output markdown file (relative to repo root)
+    :param max_file_size_mb: int, maximum allowed file size in MB (default: 10)
+    :param number_order: bool, whether to sort files by first number in filename (default: True)
+    :param strip_extensions: bool, whether to strip file extensions in headers (default: False)
+    :return target_file_path: string, relative path of the combined markdown file
     """
     supported_extensions = ['.txt', '.md', '.py', '.js', '.css', '.html', '.json', '.csv']
     max_file_size_bytes = max_file_size_mb * 1024 * 1024
+
+    # Sort files by number if requested
+    if number_order:
+        def extract_first_number(filepath):
+            # Get just the filename without path
+            filename = os.path.basename(filepath)
+            # Find all numbers in the filename
+            numbers = re.findall(r'\d+', filename)
+            # Return first number if found, otherwise return infinity (to put at end)
+            return float('inf') if not numbers else int(numbers[0])
+        
+        file_paths = sorted(file_paths, key=extract_first_number)
 
     # Get the repo root directory
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -11409,7 +13843,9 @@ def combine_files_into_md(file_paths, target_file_path, max_file_size_mb=10):
             file_path = os.path.join(repo_root, relative_path)
             file_name = os.path.basename(file_path)
             file_extension = os.path.splitext(file_name)[1].lower()
-
+            if strip_extensions:
+                file_name = os.path.splitext(file_name)[0]
+            
             if file_extension not in supported_extensions:
                 print(f"Skipping unsupported file: {file_name}")
                 continue
@@ -11451,50 +13887,196 @@ def mrun_combine_files_into_md():
     "projects/math_quiz/math_quiz.css"
     ]
     combine_files_into_md(file_paths, 'projects/math_quiz/combined_math_quiz.md')
+def combine_md_files_in_folder(folder_path, target_filename='combined.md', number_order=True, strip_extensions=True):
+    """
+    Combines multiple markdown files into a single file.
 
-### HTML (2,804 tokens)
-def wrap_qa_blocks_in_details(html_file_path, question_field="CLARIFIED QUESTION", answer_field="CLARIFIED ANSWER"):
+    :param folder_path: string, path to folder containing markdown files
+    :param target_filename: string, name for combined output file
+    :return: string, path to combined markdown file
+    """
+    target_file_path = os.path.join(folder_path, target_filename)
+    if os.path.exists(target_file_path):
+        os.remove(target_file_path)
+    file_paths = get_files_in_folder(folder_path, suffixpat_include='.md', include_subfolders=False)
+    combine_files_into_md(file_paths, target_file_path, number_order=number_order, strip_extensions=strip_extensions)
+def mrun_combine_md_files():
+    pass
+#if __name__ == "__main__":
+    folder_path = "data/deutsch/books/FOR chapters"
+    combine_md_files_in_folder(folder_path)
+
+### SCRAPING (657 tokens)
+def format_date_for_filename(date_str):
+    """
+    Convert various date formats to YYYY-MM-DD.
+    Handles partial dates by using the first of the month/year.
+    
+    :param date_str: str, date string from RSS feed
+    :return: str, formatted date YYYY-MM-DD
+    """
+    try:
+        # Try to parse the full date string
+        date_obj = datetime.strptime(date_str, '%a, %d %b %Y %H:%M:%S %z')
+        return date_obj.strftime('%Y-%m-%d')
+    except ValueError:
+        # Handle partial dates
+        year_match = re.search(r'\b\d{4}\b', date_str)
+        month_match = re.search(r'\b(January|February|March|April|May|June|July|August|September|October|November|December)\b', date_str)
+        
+        if year_match and month_match:
+            # Year and month only
+            year = year_match.group()
+            month = datetime.strptime(month_match.group(), '%B').strftime('%m')
+            return f"{year}-{month}-01"
+        elif year_match:
+            # Year only
+            return f"{year_match.group()}-01-01"
+        else:
+            return "1900-01-01"  # Default date if parsing fails
+def extract_articles_from_feed(feed_file, output_dir, heading="article"):
+    """
+    Extract articles from an RSS feed file and save as markdown files.
+    
+    :param feed_file: str, path to the RSS feed file
+    :param output_dir: str, directory where markdown files will be saved
+    :param heading: str, heading to use for the content section (default: "article")
+    """
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Parse the XML feed
+    tree = ET.parse(feed_file)
+    root = tree.getroot()
+    
+    # Find all item elements (articles)
+    channel = root.find('channel')
+    for item in channel.findall('item'):
+        # Extract article metadata
+        title = item.find('title').text
+        date_str = item.find('pubDate').text
+        formatted_date = format_date_for_filename(date_str)
+        
+        # Get content and unescape HTML entities
+        content = item.find('{http://purl.org/rss/1.0/modules/content/}encoded').text
+        content = html.unescape(content)
+        
+        # Convert HTML to markdown
+        md_content = markdownify(content)
+        
+        # Get link if available
+        link = item.find('link')
+        link_text = link.text if link is not None else ""
+        
+        # Create filename in the specified format
+        safe_title = title.replace('/', '-').replace('\\', '-')
+        filename = f"{formatted_date}_TCS Site_{safe_title}.md"
+        filename = ''.join(c for c in filename if c.isalnum() or c in '-_. ')
+        
+        # Prepare markdown file content with new format
+        full_content = f"""## metadata
+last updated: {formatted_date}
+link: {link_text}
+
+
+## content (21,101 tokens)
+
+{heading}
+
+{md_content}
+"""
+        
+        # Save to file
+        output_path = os.path.join(output_dir, filename)
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(full_content)
+        
+        print(f"Saved: {filename}")
+
+def mrun_extract_articles_from_feed():
+    pass
+#if __name__ == "__main__":
+    feed_file = "data/deutsch/essays/tcs/httrack from dd tag/by-david-deutsch/feed/index.html"
+    output_dir = "data/deutsch/essays/tcs/dd"
+    extract_articles_from_feed(feed_file, output_dir, heading="### article")
+
+### HTML (3,887 tokens)
+def wrap_qa_blocks_in_details(html_file_path, question_field, answer_field):
     """
     Wraps QA blocks in nested details tags for collapsible viewing.
     
     :param html_file_path: string, path to the HTML file to modify
-    :param question_field: string, field name for questions (default: CLARIFIED QUESTION)
-    :param answer_field: string, field name for answers (default: CLARIFIED ANSWER)
+    :param question_field: string, field name for questions
+    :param answer_field: string, field name for answers
     :return: None
     """
-    # Read the HTML file
     with open(html_file_path, 'r', encoding='utf-8') as file:
         content = file.read()
     
-    # Pattern to find QA blocks with all content
-    qa_block_pattern = r'(<p>QA Block (\d+-\d+)<br>\n' + \
-                      f'{question_field}: (.*?)<br>\n' + \
-                      f'{answer_field}: (.*?)<br>\n' + \
-                      r'.*?</p>)'
-    
-    def wrap_qa_block(match):
-        full_block = match.group(1)
-        block_num = match.group(2)
-        question = match.group(3)
-        answer = match.group(4)
-        
-        # Add block number to question
-        question_with_num = f"{block_num}. {question}"
-        
-        # Create nested details structure with all content preserved
-        wrapped_content = f'''  <details>
-    <summary>{question_with_num}</summary>
+    # Check if content has block IDs (e.g., "1-1", "2-12")
+    if 'QA BLOCK:' in content or 'QA Block' in content:
+        # Has block IDs - determine specific format
+        if 'QA BLOCK:' in content:
+            # Sovereign Child format (uppercase with colon)
+            qa_block_pattern = (
+                r'<p>\s*QA BLOCK:\s*(\d+-\d+)\s*<br\s*/?>\s*'
+                r'QUESTION:\s*(.*?)\s*<br\s*/?>\s*'
+                r'(?:.*?<br\s*/?>\s*)*?'  # Match any intermediate lines non-greedily
+                r'ANSWER:\s*(.*?)\s*<br\s*/?>\s*'
+                r'(?:.*?)</p>'
+            )
+        else:
+            # FDA townhall format (title case without colon)
+            qa_block_pattern = (
+                r'<p>QA Block (\d+-\d+)<br>\n'
+                + f'{question_field}: (.*?)<br>\n'
+                + f'{answer_field}: (.*?)<br>\n'
+                + r'.*?</p>'
+            )
+        def wrap_qa_block(match):
+            full_block = match.group(0)  # Use group(0) for the entire match
+            block_num = match.group(1)
+            question = match.group(2)
+            answer = match.group(3)
+            
+            return f'''  <details>
+    <summary>{block_num}. {question}</summary>
     <details>
       <summary>{answer}</summary>
       {full_block}</details>
   </details>'''
+    else:
+        # No block IDs - simple Q&A format
+        qa_block_pattern = (
+            r'<p>\s*'
+            + f'{question_field}:\s*(.*?)\s*<br\s*/?>\s*'
+            + r'(?:.*?<br\s*/?>\s*)*?'  # Match any intermediate lines non-greedily
+            + f'{answer_field}:\s*(.*?)(?=\s*<br|</p>)'
+            + r'.*?</p>'
+        )
         
-        return wrapped_content
+        def wrap_qa_block(match):
+            full_block = match.group(0)
+            question = match.group(1)
+            answer = match.group(2).strip()
+            
+            return f'''  <details>
+    <summary>{question}</summary>
+    {full_block}
+  </details>'''
+    
+    # Find all matches before replacing
+    matches = list(re.finditer(qa_block_pattern, content, flags=re.DOTALL))
+    
+    if not matches:
+        print("\nPattern not matching. Debug info:")
+        print(f"Pattern used: {qa_block_pattern}")
+        print("\nContent sample:")
+        print(content[:500])
     
     # Replace QA blocks with wrapped versions
     modified_content = re.sub(qa_block_pattern, wrap_qa_block, content, flags=re.DOTALL)
     
-    # Write the modified content back
     with open(html_file_path, 'w', encoding='utf-8') as file:
         file.write(modified_content)
 def clean_summaries_in_html_file(html_file_path):
@@ -11543,7 +14125,7 @@ def clean_summaries_in_html_file(html_file_path):
             flags=re.DOTALL | re.IGNORECASE
         )
     
-    print(f"\nProcessed {summaries_checked} summaries, cleaned {summaries_cleaned} with hrefs")
+    #print(f"Processed {summaries_checked} summaries, cleaned {summaries_cleaned} with hrefs\n")
     
     # Write the modified content back
     with open(html_file_path, 'w', encoding='utf-8') as file:
@@ -11615,14 +14197,17 @@ def add_additional_html_from_template(html_file_path, template_file_path):
     # Write modified content back to file
     with open(html_file_path, 'w', encoding='utf-8') as file:
         file.write(str(html_soup.prettify()))
-def h_tune_html_file(html_file_path, tune_string, h_level, insert=True, remove_suffixext=True):
+def h_tune_html_file(html_file_path, new_heading_text, h_level, insert=True, remove_suffixext=True):
     """
     Modifies heading text in an HTML file at specified heading level.
     
     :param html_file_path: string, path to the HTML file to modify
-    :param tune_string: string, text to insert or replace with
+    :param new_heading_text: string, text to either:
+                           - insert after first underscore (if insert=True)
+                           - completely replace existing heading with (if insert=False)
     :param h_level: int, heading level to modify (1-6)
-    :param insert: bool, if True inserts tune_string after first underscore, if False replaces entire heading
+    :param insert: bool, if True inserts new_heading_text after first underscore,
+                       if False replaces entire heading
     :param remove_suffixext: bool, if True removes text after and including last underscore
     :return: None
     """
@@ -11644,11 +14229,11 @@ def h_tune_html_file(html_file_path, tune_string, h_level, insert=True, remove_s
                 # Remove suffix if requested
                 if remove_suffixext:
                     base = base.rsplit('_', 1)[0]
-                return f'<h{h_level}>{parts[0]}_{tune_string} {base}</h{h_level}>'
+                return f'<h{h_level}>{parts[0]}_{new_heading_text} {base}</h{h_level}>'
             return match.group(0)  # No underscore found, return unchanged
         else:
             # Simply replace the entire heading text
-            return f'<h{h_level}>{tune_string}</h{h_level}>'
+            return f'<h{h_level}>{new_heading_text}</h{h_level}>'
     
     # Replace the heading content
     modified_content = re.sub(pattern, modify_heading, content, flags=re.DOTALL)
@@ -11656,18 +14241,60 @@ def h_tune_html_file(html_file_path, tune_string, h_level, insert=True, remove_s
     # Write back to the file
     with open(html_file_path, 'w', encoding='utf-8') as file:
         file.write(modified_content)
-def convert_markdown_to_html(md_file_path, heading, collapse_h=4, css_file_path=None, cap_first=True):
+def convert_markdown_to_html(md_file_path, heading, collapse_h=4, css_file_path=None, cap_first=True, debug=True, bold_first_line=True, wrap_subsections=False):
     """
-    Converts a markdown file to an html file using pypandoc and optionally replaces style with external CSS link.
-    
+    Converts a markdown file to an html file using pypandoc with enhanced formatting options.
+
     :param md_file_path: string, path to the markdown file to convert
     :param heading: string, heading to use for the document
     :param collapse_h: int, heading level to wrap with details/summary elements (default: 4)
-    :param css_file_path: string or None, path to CSS file to link (if None - keeps default styles, if empty string - removes styles)
+    :param css_file_path: string or None, path to CSS file to link
+    :param cap_first: bool, whether to capitalize first letter of headings
+    :param debug: bool, whether to print debug information
+    :param bold_first_line: bool, whether to bold first line of paragraphs
+    :param wrap_subsections: bool, whether to wrap subsections in details tags
     :return: string, path to the output HTML file
     """
+    import re  # Add explicit import at function start
+    
     html_file_path = md_file_path.replace('.md', '.html')
     convert_text = get_heading(md_file_path, heading)
+    
+    if convert_text is None:
+        raise ValueError(f"No content found for heading '{heading}' in file {md_file_path}")
+        
+    if (heading == "CONTENT"):
+        verbose_print(debug, "For heading= 'CONTENT'")
+        convert_text = convert_text.replace("CONTENT", "")
+        
+        # Debug print to check content before scaling
+        verbose_print(debug, f"Content before scaling:\n{convert_text[:200]}...")
+        
+        # Only scale headings if there is exactly one h1 heading
+        h1_count = len(re.findall(r'^\s*#\s+', convert_text, re.MULTILINE))
+        h2_count = len(re.findall(r'^\s*##\s+', convert_text, re.MULTILINE))
+        
+        verbose_print(debug, f"Found {h1_count} h1 headings and {h2_count} h2 headings")
+        
+        if h1_count == 1:
+            verbose_print(debug, "  Found exactly one h1 heading - scaling all headings down by 2 levels")
+            convert_text = scale_headings(convert_text, 2)
+        elif h1_count > 1:
+            verbose_print(debug, "  Found multiple h1 headings - scaling all headings down by 3 levels") 
+            convert_text = scale_headings(convert_text, 3)
+        else:
+            if h2_count == 1:
+                verbose_print(debug, "  Found exactly one h2 heading - scaling all headings down by 1 level")
+                convert_text = scale_headings(convert_text, 1)
+            elif h2_count > 1:
+                verbose_print(debug, "  Found multiple h2 headings - scaling all headings down by 2 levels")
+                convert_text = scale_headings(convert_text, 2)
+        
+        # Debug print to check content after scaling
+        verbose_print(debug, f"Content after scaling:\n{convert_text[:200]}...")
+
+    # Strip any blank lines from the beginning of the text
+    convert_text = convert_text.lstrip('\n')
     
     # Create temporary file with the text to convert
     temp_file_path = 'temp_convert_md_to_html.md'
@@ -11693,9 +14320,28 @@ def convert_markdown_to_html(md_file_path, heading, collapse_h=4, css_file_path=
         content = file.read()
     content = content.replace('<br />', '<br>')
     
-    # Add details/summary around h4 tags
+    # Bold first line of paragraphs if requested
+    if bold_first_line:
+        content = re.sub(r'(<p>)(.*?)(<br|</p>)', 
+                        lambda m: f'{m.group(1)}<strong>{m.group(2)}</strong>{m.group(3)}', 
+                        content, flags=re.DOTALL)
+
+    # Add details/summary around subsections if requested
+    if wrap_subsections:
+        # Pattern matches any h5 tag and its content up to the next h5 or h4
+        subsection_pattern = r'(<h5.*?</h5>)(.*?)(?=<h[45]|$)'
+        def wrap_subsection(match):
+            heading = match.group(1)
+            content = match.group(2)
+            return f'''<details class="subsection">
+  <summary>{heading}</summary>{content}
+</details>'''
+        
+        # Process subsections before main collapse_h
+        content = re.sub(subsection_pattern, wrap_subsection, content, flags=re.DOTALL)
+
+    # Handle main section collapsing
     if collapse_h:
-        import re
         pattern = f'(<h{collapse_h}.*?</h{collapse_h}>)(.*?)(?=<h{collapse_h}|$)'
         def wrap_section(match):
             heading = match.group(1)  # The complete h4 tag
@@ -11885,7 +14531,7 @@ def mtest_create_md_ocr_on_image_folder():
 
 
 
-## primary/structured.py (9,834 tokens)
+## primary/structured.py (12,823 tokens)
 #===== START OF FILE primary/structured.py =====
 #Library for structured processing of QA files
 
@@ -11909,8 +14555,8 @@ from primary.fileops import *
 warnings.formatwarning = custom_formatwarning
 #USAGE: warnings.warn(f"Insert warning message here")
 
-### BLOCK PROCESSING (4,119 tokens)
-def get_blocks_from_file(qa_file_path, heading="### qa"):
+### BLOCK PROCESSING (5,323 tokens)
+def get_blocks_from_file(file_path, heading="### qa"):
     """
     Extracts and validates blocks of text from a file.
 
@@ -11921,15 +14567,15 @@ def get_blocks_from_file(qa_file_path, heading="### qa"):
     from primary.fileops import get_heading
     
     block_delimiter = "\n\n"  
-    qa_text = get_heading(qa_file_path, heading)
-    if qa_text is None:
-        raise ValueError(f"Heading '{heading}' not found in file {qa_file_path}")
+    text = get_heading(file_path, heading)
+    if text is None:
+        raise ValueError(f"Heading '{heading}' not found in file {file_path}")
         
-    qa_text = re.sub(r'^#.*\n?', '', qa_text, flags=re.MULTILINE)
-    qa_text = re.sub(r'\n{3,}', '\n\n', qa_text)
+    text = re.sub(r'^#.*\n?', '', text, flags=re.MULTILINE)
+    text = re.sub(r'\n{3,}', '\n\n', text)
     blocks_list = []
 
-    blocks = qa_text.split(block_delimiter)
+    blocks = text.split(block_delimiter)
     for block in blocks:
         if block.strip():
             blocks_list.append(block.strip())
@@ -12354,6 +15000,118 @@ def propagate_fields_by_subheading(file_path, full_fields, required_fields, dele
 
     return new_file_path  # Return the relative file path of the new file
 
+def select_blocks_top_stars(blocks_list, num_blocks=5):
+    """
+    Selects the top num_blocks from the list based on stars count, with timestamp as a tiebreaker.
+    Blocks with no stars or equal stars are sorted by earliest timestamp.
+
+    :param blocks_list: list of text blocks to process
+    :param num_blocks: int, number of top blocks to return
+    :return: list of the top num_blocks blocks sorted by stars (desc) and timestamp (asc)
+    """
+    def get_block_sort_values(block):
+        # Get stars value, defaulting to 0 if missing or invalid
+        stars = get_field_value(block, "STARS")
+        try:
+            stars = int(stars) if stars is not None else 0
+        except (ValueError, TypeError):
+            stars = 0
+            
+        # Get timestamp value, defaulting to max value if missing or invalid
+        timestamp = get_field_value(block, "TIMESTAMP")
+        try:
+            if timestamp:
+                # Remove any markdown link formatting
+                timestamp = re.sub(r'\[([^\]]+)\].*', r'\1', timestamp)
+                seconds = convert_timestamp_to_seconds(timestamp)
+            else:
+                seconds = float('inf')
+        except (ValueError, TypeError):
+            seconds = float('inf')
+            
+        # Return tuple for sorting (stars descending, timestamp ascending)
+        return (-stars, seconds)
+            
+    return sorted(blocks_list, key=get_block_sort_values)[:num_blocks]
+def create_qa_top_stars_file(qa_file_path, suffix_new="_qa-topstars", num_blocks=5):
+    """
+    Creates a new file with the top num_blocks from the list of blocks based on the number of stars.
+    """
+    blocks_list = get_blocks_from_file(qa_file_path)
+    top_blocks = select_blocks_top_stars(blocks_list, num_blocks)
+    top_text = '\n\n'.join(top_blocks)
+    new_qa_file_path = copy_file_and_replace_suffix(qa_file_path, suffix_new)
+    set_heading(new_qa_file_path, "\n" + top_text, "### qa")
+    return new_qa_file_path
+def create_transcript_top_stars_file(qa_top_stars_file_path, suffix_orig="_vrb", suffix_new="_vrb-topstars", debug=False):
+    """
+    Creates a new transcript file containing only the speaker segments related to the top-starred QA pairs.
+
+    :param qa_top_stars_file_path: string, path to the QA top stars file
+    :param suffix_orig: string, suffix of the original transcript file
+    :param suffix_new: string, suffix for the new transcript file
+    :param debug: boolean, if True prints debug information
+    :return: string, path to the newly created transcript file
+    """
+    # Get the original transcript file path
+    transcript_file_path = sub_suffix_in_str(qa_top_stars_file_path, suffix_orig)
+    
+    # Get QA timestamps from the TIMESTAMP: lines
+    qa_blocks = get_blocks_from_file(qa_top_stars_file_path, "### qa")
+    qa_timestamps = []
+    for block in qa_blocks:
+        for line in block.split('\n'):
+            if line.startswith('TIMESTAMP:'):
+                # Get the timestamp string after "TIMESTAMP: "
+                qa_timestamp = line[len('TIMESTAMP:'):].strip()
+                if qa_timestamp:
+                    qa_timestamps.append(qa_timestamp)
+    
+    verbose_print(debug, "\nQA timestamps:", qa_timestamps)
+    verbose_print(debug, "\nAnalyzing transcript blocks:")
+    
+    # Get all transcript blocks
+    transcript_blocks = get_blocks_from_file(transcript_file_path, "### transcript")
+    
+    # Filter transcript blocks based on timestamps
+    selected_blocks = []
+    
+    for i in range(len(transcript_blocks)):
+        current_block = transcript_blocks[i]
+        next_block = transcript_blocks[i + 1] if i + 1 < len(transcript_blocks) else None
+        
+        # Get first lines of current and next blocks
+        current_first_line = current_block.split('\n')[0] if current_block else ""
+        next_first_line = next_block.split('\n')[0] if next_block else ""
+        
+        # Check if either current or next block has matching timestamp
+        current_has_match = any(timestamp in current_first_line for timestamp in qa_timestamps)
+        next_has_match = any(timestamp in next_first_line for timestamp in qa_timestamps)
+        
+        verbose_print(debug, f"\nAnalyzing block: {current_first_line}")
+        verbose_print(debug, f"  Current block has matching timestamp? {current_has_match}")
+        verbose_print(debug, f"  Next block has matching timestamp? {next_has_match}")
+        
+        if current_has_match or next_has_match:
+            verbose_print(debug, "  Keeping this block")
+            selected_blocks.append(current_block)
+    
+    verbose_print(debug, f"\nTotal blocks selected: {len(selected_blocks)}")
+    
+    # Create new file with selected blocks
+    new_transcript_file_path = copy_file_and_replace_suffix(transcript_file_path, suffix_new)
+    selected_text = '\n\n'.join(selected_blocks)
+    set_heading(new_transcript_file_path, "\n" + selected_text, "### transcript")
+    
+    return new_transcript_file_path
+def mtest_create_top_stars_files_single():
+    pass
+#if __name__ == "__main__":
+    qa_file_path = "data/deutsch/f8_done_qafixed_and_vrb/2011-08-01_On Point with Tom Ashbrook_qafixed.md"
+    qa_top_stars_file_path = create_qa_top_stars_file(qa_file_path)
+    print(f"QA top stars file: {qa_top_stars_file_path}")
+    print(f"Transcript top stars file: {create_transcript_top_stars_file(qa_top_stars_file_path)}")
+
 
 ### BLOCK VALIDATION (2,523 tokens)
 def validate_stars(stars_str):
@@ -12616,7 +15374,7 @@ def validate_iso_dates_in_filename(folder_paths, suffixpat_include):
     print(colored(f"All files have valid ISO dates in filenames: {total_valid_files}/{total_files}", "green"))
     return True
 
-### TOPICS (3,073 tokens)
+### TOPICS (3,060 tokens)
 #TODO try on townhall qa files - may need to update for alternate METADATA and CONTENT format
 def extract_topic_counts_triples(qa_file_path, verbose=False):
     """
@@ -12627,7 +15385,7 @@ def extract_topic_counts_triples(qa_file_path, verbose=False):
     :return: string of CSV lines with each line in the format "topic, file_stem, count".
     """
     # Get the blocks from the file
-    blocks = get_blocks_from_file(qa_file_path, verbose)
+    blocks = get_blocks_from_file(qa_file_path)
     
     # Initialize a dictionary to keep track of topics and their occurrences
     topic_dict = {}
@@ -12651,7 +15409,6 @@ def extract_topic_counts_triples(qa_file_path, verbose=False):
     topic_counts_csv_lines = "\n".join([f"{topic}, {file_stem}, {count}" for topic, count in topic_dict.items()])
     
     return topic_counts_csv_lines
-
 def create_topics_matrix(folder_paths, target_file_path="topics_matrix.csv", suffixpat_include="_qafixed"):
     """
     Collects topics from files in specified folders and creates a CSV matrix file at the target file path.
@@ -12687,7 +15444,6 @@ def mtest_create_topics_matrix():
 #if __name__ == "__main__":
     cur_folder_paths = ["data/f_c7_done_early", "data/f_c8_qafixed_talks", "data/f_c6_done_after_dq", "data/f_c5_done_after_dq" ]   
     create_topics_matrix(cur_folder_paths)
-
 def change_topic_in_file(file_path, find_topic, replace_topic):
     """
     Replaces a specified topic with another in a single file.
@@ -12722,7 +15478,6 @@ def change_topic_in_file(file_path, find_topic, replace_topic):
         write_metadata_and_content(file_path, metadata, new_content, overwrite='yes')
     
     return replacements_in_file
-
 def change_topic_in_folders(folder_paths, find_topic, replace_topic, suffixpat_include="_qafixed"):
     """
     Replaces a specified topic with another across files in given folders.
@@ -12753,7 +15508,6 @@ def change_topic_in_folders(folder_paths, find_topic, replace_topic, suffixpat_i
     for file_path, count in files_with_replacements:
         file_name = os.path.basename(file_path)
         print(f"{count} {file_name}")
-
 def review_singlet_topic_SONNET(folder_paths, matrix_csv_file_path, starting_letter="a"):
     # Read the CSV file
     with open(matrix_csv_file_path, 'r') as csvfile:
@@ -12804,7 +15558,6 @@ def review_singlet_topic_SONNET(folder_paths, matrix_csv_file_path, starting_let
                 print(f"Could not find file for topic '{topic}'")
 
     print("Review of singlet topics completed.")
-
 def review_singlet_topic(folder_paths, matrix_csv_file_path, starting_letter="a"):
     # Step 1: Read the CSV file and build the data structures
     topic_counts = {}  # Mapping from topic to total count
@@ -12914,12 +15667,197 @@ def review_singlet_topic(folder_paths, matrix_csv_file_path, starting_letter="a"
             change_topic_in_file(file_path, topic, new_topic)
 
 
+### QA (1,768 tokens)
+def compare_fields(file_path, field1, field2, print_same_exceptions=False, print_different=True):
+    """
+    Compare two fields in a file and print the differences.
+
+    :param file_path: string, the file path to process.
+    :param field1: string, the first field to compare.
+    :param field2: string, the second field to compare.
+    :param print_same_exceptions: bool, whether to print blocks that are same with exceptions.
+    :param print_different: bool, whether to print blocks that are different.
+    :return: None.
+    """
+    # Define exceptions that should be considered "same"
+    exceptions = [
+        ('same_with_quotes', lambda x, y: x.replace('"', "'") == y.replace('"', "'"))
+    ]
+    
+    # Get all blocks from the file
+    blocks = get_blocks_from_file(file_path)
+    total_blocks = len(blocks)
+    
+    # Count blocks by category
+    identical_count = 0
+    same_with_exceptions = []
+    different_blocks = []
+    
+    for i, block in enumerate(blocks, 1):
+        fields_dict = get_all_fields_dict(block)
+        value1 = fields_dict.get(field1)
+        value2 = fields_dict.get(field2)
+        
+        if value1 == value2:
+            identical_count += 1
+        else:
+            # Check if differences are due to known exceptions
+            is_exception = False
+            for exc_name, exc_func in exceptions:
+                if exc_func(value1, value2):
+                    same_with_exceptions.append((exc_name, i, value1, value2))
+                    is_exception = True
+                    break
+            
+            if not is_exception:
+                different_blocks.append((i, value1, value2))
+    
+    # Calculate counts
+    exception_count = len(same_with_exceptions)
+    different_count = len(different_blocks)
+    
+    # Print summary with aligned numbers and percentages
+    print(f"\nComparing {field1} with {field2}:")
+    print(f"{'Identical:':<22} {identical_count:>5} ({identical_count/total_blocks*100:>6.1f}%)")
+    print(f"{'Same with exceptions:':<22} {exception_count:>5} ({exception_count/total_blocks*100:>6.1f}%)")
+    print(f"{'Different:':<22} {different_count:>5} ({different_count/total_blocks*100:>6.1f}%)")
+    print(f"{'Total blocks:':<22} {total_blocks:>5}")
+
+    # Print blocks that are same with exceptions (if enabled)
+    if same_with_exceptions and print_same_exceptions:
+        print("\nBlocks that are same with exceptions:")
+        for exc_type, block_num, val1, val2 in same_with_exceptions:
+            print(f"\nQA Block {block_num} ({exc_type})")
+            print(f"{field1}: {val1}")
+            print(f"{field2}: {val2}")
+    
+    # Print differing blocks (if enabled)
+    if different_blocks and print_different:
+        print("\nDiffering blocks:")
+        for block_num, val1, val2 in different_blocks:
+            print(f"\nQA Block {block_num}")
+            print(f"{field1}: {val1}")
+            print(f"{field2}: {val2}")
+def mrun_compare_fields():
+    pass
+if __name__ == "__main__":
+    #cur_file_path = "data/misc_books/Sovereign Child/The Sovereign Child_qa-qonly.md"
+    cur_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_qa-qonly.md"
+    compare_fields(cur_file_path, "CLARIFIED QUESTION", "VERBATIM QUESTION")
+def write_blocks_to_heading(file_path, blocks, heading):
+    """
+    Write blocks of text under a specified heading in a file, converting any field containing a list of strings 
+    to a comma-separated format.
+
+    :param file_path: string, path to the file to write to
+    :param blocks: list of strings, each string being a block of text
+    :param heading: string, the heading to write under (including # markers)
+    :return: None
+    """
+    # Process each block to convert list formats if present
+    processed_blocks = []
+    for block in blocks:
+        lines = block.split('\n')
+        processed_lines = []
+        for line in lines:
+            # Check if line contains a field with a list (starts with [ after the colon)
+            if ': [' in line:
+                field_name, field_value = line.split(':', 1)
+                field_value = field_value.strip()
+                if field_value.startswith('[') and field_value.endswith(']'):
+                    # Extract values from list format and join with commas
+                    values_str = field_value[1:-1].replace("'", "").replace('"', "")
+                    processed_lines.append(f'{field_name}: {values_str.strip()}')
+                else:
+                    processed_lines.append(line)
+            else:
+                processed_lines.append(line)
+        processed_blocks.append('\n'.join(processed_lines))
+    
+    # Join blocks with double newlines to maintain block separation
+    modified_text = '\n\n'.join(processed_blocks)
+    
+    # Ensure the text ends with a newline
+    if not modified_text.endswith('\n'):
+        modified_text += '\n'
+        
+    try:
+        set_heading(file_path, modified_text, heading)
+    except Exception as e:
+        raise ValueError(f"Error writing blocks to heading: {str(e)}")
+def remap_fields(file_path, rename_fields, delete_fields=[]):
+    """
+    Remap fields in a file based on tuples of old field names to new field names.
+
+    :param file_path: string, path to the file to process
+    :param rename_fields: list of tuples (old_field, new_field) for renaming
+    :param delete_fields: list of fields to delete
+    :return: None
+    """
+    # Create case-mapping dictionaries to preserve original case
+    rename_case_map = {}
+    for old, new in rename_fields:
+        old_stripped = old.rstrip(':')
+        new_stripped = new.rstrip(':')
+        rename_case_map[old_stripped.upper()] = new_stripped
+    
+    delete_fields = [field.rstrip(':').upper() for field in delete_fields]
+    
+    # Get blocks from file
+    try:
+        blocks = get_blocks_from_file(file_path)
+    except Exception as e:
+        raise ValueError(f"Error reading blocks from file: {str(e)}")
+    
+    if not blocks:
+        raise ValueError(f"No blocks found in file: {file_path}")
+        
+    # Get the heading above the first block
+    first_block = blocks[0]
+    heading = get_heading_above(file_path, first_block)
+    if not heading:
+        raise ValueError(f"Could not find heading above blocks in file: {file_path}")
+    
+    # Process each block
+    modified_blocks = []
+    for block in blocks:
+        fields_dict = get_all_fields_dict(block)
+        
+        # Verify all old field names exist in at least one block
+        missing_fields = [old for old, _ in rename_fields if old.rstrip(':').upper() not in fields_dict]
+        if missing_fields:
+            raise ValueError(f"Fields not found in block: {', '.join(missing_fields)}")
+        
+        # Create new block with renamed and deleted fields
+        new_block_lines = []
+        for field, value in fields_dict.items():
+            # Skip deleted fields
+            if field in delete_fields:
+                continue
+                
+            # Rename field if it's in rename_fields, preserving case from new field name
+            new_field = rename_case_map.get(field, field)
+            new_block_lines.append(f"{new_field}: {value}")
+            
+        modified_blocks.append('\n'.join(new_block_lines))
+    
+    # Write the modified blocks back to the file
+    write_blocks_to_heading(file_path, modified_blocks, heading)
+def mrun_remap_fields():
+    pass
+#if __name__ == "__main__":
+    cur_file_path = "data/misc_books/Sovereign Child/The Sovereign Child_qa-qonly.md"
+    rename_fields = [("CLARIFIED QUESTION", "QUESTION"), ("VERBATIM ANSWER", "ANSWER")]
+    delete_fields = ["CLARIFIED ANSWER", "VERBATIM QUESTION", "SPEAKER QUESTION", "SPEAKER ANSWER"]
+    remap_fields(cur_file_path, rename_fields, delete_fields)
+
+
 #===== END OF FILE primary/structured.py =====
 
 
 
 
-## primary/corpuses.py (8,978 tokens)
+## primary/corpuses.py (17,315 tokens)
 #===== START OF FILE primary/corpuses.py =====
 #Library of functions and execution code to do corpus tasks
 
@@ -12930,6 +15868,7 @@ from pathlib import Path
 import csv
 from collections import defaultdict
 import urllib.parse
+import pickle
 
 from primary.fileops import *
 from primary.conversion import *
@@ -12953,19 +15892,178 @@ CUSTOM_VALIDATORS = {
     "TOPICS": validate_topics
 }
 
-### DEUTSCH CORPUS (616 tokens)
+### S3 WEBFLOW UPLOADS (1,649 tokens)
+def collect_s3_source_files(folder_path, transcript_suffix, qa_suffix):
+    transcript_html = get_files_in_folder(folder_path, suffixpat_include=transcript_suffix + ".html")
+    transcript_md   = get_files_in_folder(folder_path, suffixpat_include=transcript_suffix + ".md")
+    qa_html         = get_files_in_folder(folder_path, suffixpat_include=qa_suffix + ".html")
+    qa_md           = get_files_in_folder(folder_path, suffixpat_include=qa_suffix + ".md")
+    return transcript_html, transcript_md, qa_html, qa_md
+def build_s3_source_file_mapping(files_group, config, s3_upload=True, s3_prompt_overwrite=True):
+    # files_group is a tuple of file lists (transcript_html, transcript_md, qa_html, qa_md)
+    transcript_html, transcript_md, qa_html, qa_md = files_group
+    file_mapping = defaultdict(dict)
+    total_base_names = set()
+    total_files = 0
+
+    file_groups = [
+        (transcript_html, "transcripts-html/", "transcript_html"),
+        (transcript_md, "transcripts-md/", "transcript_md"),
+        (qa_html, "qa-html/", "qa_html"),
+        (qa_md, "qa-md/", "qa_md")
+    ]
+    
+    for files, s3_subfolder, key_suffix in file_groups:
+        for file_path in files:
+            base_name = os.path.splitext(os.path.basename(file_path))[0]
+            base_name = re.sub(f'{config["transcript_suffix"]}$|{config["qa_suffix"]}$', '', base_name)
+            total_base_names.add(base_name)
+            
+            if s3_upload:
+                upload_file_to_s3(
+                    file_path, 
+                    bucket=config["bucket"], 
+                    s3_path=config["s3_path"] + s3_subfolder, 
+                    prompt_overwrite=s3_prompt_overwrite
+                )
+                total_files += 1
+            
+            encoded_filename = urllib.parse.quote(os.path.basename(file_path))
+            s3_url = f"https://{config['bucket']}.s3.us-west-2.amazonaws.com/{config['s3_path']}{s3_subfolder}{encoded_filename}"
+            file_mapping[base_name][key_suffix] = s3_url
+
+            # Handle metadata fields for transcript MD files
+            if key_suffix == "transcript_md":
+                # Get metadata field mapping from config, or use empty dict if not provided
+                metadata_mapping = config.get("metadata_field_mapping", {})
+                
+                # Read each metadata field and map to the corresponding CMS field name
+                for md_field, cms_field in metadata_mapping.items():
+                    _, field_value = read_metadata_field_from_file(file_path, md_field)
+                    # Convert 'link youtube' -> 'youtube_url' for internal mapping
+                    internal_key = cms_field.replace('-', '_').lower()
+                    file_mapping[base_name][internal_key] = field_value
+
+    print(f"S3 Upload Summary: {len(total_base_names)} base names processed, {total_files} files uploaded.")
+    return file_mapping
+def create_cms_item_list(file_mapping, config):
+    cms_items = []
+    metadata_mapping = config.get("metadata_field_mapping", {})
+    # Create reverse mapping from internal keys to CMS field names
+    reverse_mapping = {cms_field.replace('-', '_').lower(): cms_field 
+                      for _, cms_field in metadata_mapping.items()}
+    
+    for base_name, urls in file_mapping.items():
+        if all(key in urls for key in ["transcript_html", "transcript_md", "qa_html", "qa_md"]):
+            cms_name = base_name
+            if config.get("cms_item_name_old") and config.get("cms_item_name_new"):
+                cms_name = base_name.replace(config["cms_item_name_old"], config["cms_item_name_new"])
+            
+            # Start with required fields
+            cms_item = {
+                "name": cms_name,
+                "s3-transcript-html-url": urls["transcript_html"],
+                "s3-qa-html-url": urls["qa_html"],
+                "s3-transcript-md-url": urls["transcript_md"],
+                "s3-qa-md-url": urls["qa_md"],
+            }
+            
+            # Add mapped metadata fields
+            for internal_key, cms_field in reverse_mapping.items():
+                cms_item[cms_field] = urls.get(internal_key, "")
+            
+            cms_items.append(cms_item)
+    
+    return cms_items
+def process_webflow_cms(cms_items, config, webflow_cms_prompt_overwrite=True):
+    collection_details = webflow_cms_get_collection_details(config["collection_id"], verbose=True)
+    if not collection_details:
+        print("Failed to fetch collection details for validation")
+        return
+    
+    existing_items = webflow_cms_list_items(config["collection_id"], verbose=True)
+    is_updating = False
+    existing_items_map = {}
+    if existing_items:
+        existing_names = [item['fieldData'].get('name', '') for item in existing_items]
+        existing_items_map = {item['fieldData'].get('name', ''): item['id'] for item in existing_items}
+        overlapping_items = [cms_name for cms_name in 
+                             [item["name"] for item in cms_items] if cms_name in existing_names]
+        if overlapping_items:
+            print("The following items already exist in the Webflow CMS:")
+            for name in overlapping_items:
+                print(f"- {name}")
+            if webflow_cms_prompt_overwrite:
+                response = input("Press Enter to proceed with updating these items, or 'x' to abort: ").lower()
+                if response == 'x':
+                    print("Aborting operation.")
+                    return
+            is_updating = True
+    
+    for item in cms_items:
+        if is_updating and item['name'] in existing_items_map:
+            result = webflow_cms_update_item(
+                collection_id=config["collection_id"],
+                item_id=existing_items_map[item['name']],
+                field_data=item,
+                collection_validation=False,
+                verbose=True
+            )
+            if not result:
+                print(f"Failed to update CMS item for {item['name']}")
+        else:
+            result = webflow_cms_create_item(
+                collection_id=config["collection_id"],
+                field_data=item,
+                collection_validation=False,
+                verbose=True
+            )
+            if not result:
+                print(f"Failed to create CMS item for {item['name']}")
+def process_corpus_s3_webflow_upload(config, s3_upload=True, webflow_upload=True, s3_prompt_overwrite=True, webflow_cms_prompt_overwrite=True):
+    # Step 1: Collect Files
+    files = collect_s3_source_files(config["folder_path"], config["transcript_suffix"], config["qa_suffix"])
+    
+    # Step 2: Build File Mapping and Upload to S3
+    file_mapping = build_s3_source_file_mapping(files, config, s3_upload, s3_prompt_overwrite)
+    
+    # Step 3: Pause for confirmation before Webflow operations (if desired)
+    if webflow_upload:
+        response = input("Press Enter to continue with Webflow CMS operations, or 'x' to abort: ").lower()
+        if response == 'x':
+            print("Aborting operation.")
+            return
+    
+    # Step 4: Create CMS Item List
+    cms_items = create_cms_item_list(file_mapping, config)
+    
+    # Step 5: Process Webflow CMS Items
+    if webflow_upload:
+        process_webflow_cms(cms_items, config, webflow_cms_prompt_overwrite)
+def mrun_process_corpus_s3_webflow_upload():
+    pass
+#if __name__ == "__main__":
+    config = CONFIG_S3_WEBFLOW_UPLOAD_MY_CORPUS_HERE
+    process_corpus_s3_webflow_upload(config, s3_upload=True, webflow_upload=True, s3_prompt_overwrite=True, webflow_cms_prompt_overwrite=True)
+
+
+### DEUTSCH CORPUS (1,777 tokens)
+def mrun_create_deustch_qa_from_prepqa():
+    pass
+#if __name__ == "__main__":
+    apply_to_folder(create_qa_file_select_speaker, 'data/deutsch/f5_run_qa_now', 'David Deutsch', FCALL_PROMPT_QA_DEUTSCH, suffixpat_include='_prepqa')
+
 DEUTSCH_REQUIRED_FIELDS = ["QUESTION", "TIMESTAMP", "ANSWER", "EDITS", "TOPICS", "STARS"]  
 DEUTSCH_FOLDER_PATHS = ["data/deutsch/f8_done_qafixed_and_vrb", "data/deutsch/f8_qafixed_talks"]
 def validate_corpus_deutsch():
     validate_blocks_in_folders(DEUTSCH_FOLDER_PATHS, DEUTSCH_REQUIRED_FIELDS, CUSTOM_VALIDATORS, suffixpat_include="_qafixed")
-def mrun_deutsch_corpus():
+def mrun_corpus_deutsch():
     pass
 #if __name__ == "__main__":
-    validate_corpus_deutsch()
+    #validate_corpus_deutsch()
 
-    # from primary.structured import create_topics_matrix, change_topic_in_folders, review_singlet_topic
     # cur_topics_matrix_csv = "data/deutsch/topics_matrix.csv"
-    #cur_topics_matrix_csv = create_topics_matrix(DEUTSCH_FOLDER_PATHS)
+    # cur_topics_matrix_csv = create_topics_matrix(DEUTSCH_FOLDER_PATHS)
     
     # cur_find_replace_pairs = [("%", " percent")]
     # for folder_path in DEUTSCH_FOLDER_PATHS:
@@ -12974,8 +16072,7 @@ def mrun_deutsch_corpus():
     # change_topic_in_folders(DEUTSCH_FOLDER_PATHS, "quantum computer", "quantum computation")
     # review_singlet_topic(DEUTSCH_FOLDER_PATHS, cur_topics_matrix_csv, "z")
 
-    #from primary.vectordb import create_qrag_vectordb
-    #create_qrag_vectordb(DEUTSCH_FOLDER_PATHS, "deutsch-transcript-qrag", suffixpat_include="_qafixed")
+    create_qrag_vectordb(DEUTSCH_FOLDER_PATHS, "deutsch-transcript-qrag", suffixpat_include="_qafixed.md", embedding_field="QUESTION", date_from_filename=True)
 def mrun_deutsch_download_new_s3_files():
     pass
 #if __name__ == "__main__":
@@ -13001,7 +16098,91 @@ def mtest_qrag_2step_deutsch():
     cur_vector_index_name = 'deutsch-transcript-qrag-78f-20240926'
     qrag_2step(cur_query, cur_routes_dict, cur_vector_index_name)
 
-### PV EVAC CORPUS (661 tokens)
+def mrun_find_and_replace_on_deutsch():
+    pass
+#if __name__ == "__main__":  
+    csv_file_path = "data/deutsch/findandreplace_deutsch.csv"
+    # folder_path = "data/deutsch/dd_test_files"
+    # suffixpat_include = "_vrb.md"
+    # find_and_replace_from_csv(folder_path, csv_file_path, suffixpat_include=suffixpat_include, include_subfolders=False, include_metadata=True, verbose=True)
+    # # ALL
+    folders = ["data/deutsch/f8_done_qafixed_and_vrb", "data/deutsch/f8_qafixed_talks", "data/deutsch/f8_vrb_talks_only"]
+    suffix_pats = ["_vrb.md", "_qafixed.md"]
+    for folder in folders:
+        for suffix_pat in suffix_pats:
+            find_and_replace_from_csv(folder, csv_file_path, suffixpat_include=suffix_pat, include_subfolders=False, include_metadata=True, verbose=True)
+def mrun_move_files_deutsch():
+    pass
+#if __name__ == "__main__":
+    source_folders = DEUTSCH_FOLDER_PATHS
+    destination_folder = "data/deutsch/fx_archive"
+    suffixpat_include = "_propernames.md"
+    for source_folder in source_folders:
+        move_files_with_suffix(source_folder, destination_folder, suffixpat_include)
+
+def mrun_create_top_stars_files_deutsch():  # 2-4-25 RT
+    pass
+#if __name__ == "__main__":
+    #folders = DEUTSCH_FOLDER_PATHS
+    folders = ["data/deutsch/dd_update"]  # 1st copy orig _qafixed and _vrb to this folder, then delete them after and copy new top-stars files there
+    destination_folder = "data/deutsch/dd_top-stars"
+    for folder in folders:
+        qafixed_files = get_files_in_folder(folder, suffixpat_include='_qafixed.md')
+        for qafixed_file in qafixed_files:
+            qa_top_stars_file_path = create_qa_top_stars_file(qafixed_file, num_blocks=5)
+            print(create_transcript_top_stars_file(qa_top_stars_file_path))
+        move_files_with_suffix(folder, destination_folder, suffixpat_include='_qa-topstars.md')
+        move_files_with_suffix(folder, destination_folder, suffixpat_include='_vrb-topstars.md')
+
+def mrun_create_html_files_for_deutsch():  # 2-3-25 RT
+    pass
+#if __name__ == "__main__":
+    cur_folder_path = "data/deutsch/dd_update"
+    #cur_folder_path = "data/deutsch/dd_test_files"
+    transcript_md_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include='_vrb-topstars.md')
+    qa_md_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include='_qa-topstars.md')
+    css_file_path = ""  # was "transcript-with-section-titles.css" for local testing
+    new_heading_text = "David Deutsch Corpus"
+
+    # transcripts
+    for i, md_file_path in enumerate(transcript_md_files_to_run, 1):
+        html_file_path = convert_markdown_to_html(md_file_path, heading="### transcript", css_file_path=css_file_path)
+        h_tune_html_file(html_file_path, new_heading_text, 1)
+        clean_summaries_in_html_file(html_file_path)
+        add_additional_html_from_template(html_file_path, "web/md_to_html_dev/additions_transcript.html")
+
+    # qa
+    for i, md_file_path in enumerate(qa_md_files_to_run, 1):
+        html_file_path = convert_markdown_to_html(md_file_path, heading="### qa", css_file_path=css_file_path)
+        h_tune_html_file(html_file_path, new_heading_text, 1)
+        h_tune_html_file(html_file_path, "Extracted Question and Answer", 3, insert=False)
+        wrap_qa_blocks_in_details(html_file_path, "QUESTION", "ANSWER")
+        clean_summaries_in_html_file(html_file_path)
+        add_additional_html_from_template(html_file_path, "web/md_to_html_dev/additions_qa.html")
+
+WEBFLOW_CMS_COLLECTION_ID_DEUTSCH_TRANSCRIPTS = "67a249cf5625c057b2fd345c"
+CONFIG_S3_WEBFLOW_UPLOAD_DEUTSCH_TRANSCRIPTS = {
+    "folder_path": "data/deutsch/dd_update",
+    "transcript_suffix": "_vrb-topstars",
+    "qa_suffix": "_qa-topstars",
+    "bucket": "fofpublic",
+    "s3_path": "deutsch-sources-top-stars/",
+    "collection_id": WEBFLOW_CMS_COLLECTION_ID_DEUTSCH_TRANSCRIPTS,
+    "cms_item_name_old": "",
+    "cms_item_name_new": "",
+    "metadata_field_mapping": {
+        "link youtube": "youtube-url",
+        "link spotify": "spotify-url"
+    }
+}
+def mrun_process_corpus_s3_webflow_upload():
+    pass
+#if __name__ == "__main__":
+    config = CONFIG_S3_WEBFLOW_UPLOAD_DEUTSCH_TRANSCRIPTS
+    process_corpus_s3_webflow_upload(config, s3_upload=True, webflow_upload=True, s3_prompt_overwrite=False, webflow_cms_prompt_overwrite=False)
+
+
+### PV EVAC CORPUS (656 tokens)
 PV_EVAC_FULL_FIELDS = ["QUESTION", "TIMESTAMP", "ANSWER", "QUESTION NAME", "ANSWER NAME", "ORIGINAL QUESTION", "STATUS", "TOPICS", "STARS"]
 PV_EVAC_REQUIRED_FIELDS = ["QUESTION", "TIMESTAMP", "ANSWER", "QUESTION NAME", "ANSWER NAME", "STATUS", "TOPICS", "STARS"]
 def mrun_propagate_fields_pv_evac():
@@ -13028,8 +16209,7 @@ def mrun_pv_epc_corpus():
     # file_path = "data/pv/pv_epc_evac/2024-10-23_PVSD WFPD - Wildfire Preparedness Parent Presentation 3_combo.md"
     # convert_markdown_to_md_mod_text(file_path)
     
-    from primary.vectordb import create_qrag_vectordb
-    create_qrag_vectordb(PV_EVAC_FOLDER_PATHS, "pv-evac-qrag", suffixpat_include="_qaprop")
+    create_qrag_vectordb(PV_EVAC_FOLDER_PATHS, "pv-evac-qrag", suffixpat_include="_qaprop", embedding_field="QUESTION", date_from_filename=True)
 def mtest_qrag_2step_pv_evac():
     pass
 #if __name__ == "__main__":
@@ -13038,7 +16218,7 @@ def mtest_qrag_2step_pv_evac():
     cur_vector_index_name = 'pv-evac-qrag-3f-20241106'
     qrag_2step(cur_query, cur_routes_dict, cur_vector_index_name)
 
-### FDA TOWNHALLS CORPUS (5,405 tokens)
+### FDA TOWNHALLS CORPUS (5,393 tokens)
 FDA_TOWNHALLS_REQUIRED_FIELDS = ["CLARIFIED QUESTION", "CLARIFIED ANSWER", "VERBATIM QUESTION", "VERBATIM ANSWER", "SPEAKER QUESTION", "SPEAKER ANSWER", "TOPICS", "REVIEW FLAG"]
 FDA_TOWNHALLS_QA_FOLDER = "data/floodlamp/reg/fda-townhalls/f5_fixnames/a_done_site"
 def remove_lines_fda_townhall(text):
@@ -13154,13 +16334,11 @@ def mrun_find_and_replace_on_fda_townhalls():
     #apply_to_folder(sub_suffix_in_file, fixnames_folder, suffix_new, suffixpat_include=suffix_orig)
     # NEXT PASS
     find_and_replace_from_csv(fixnames_folder, csv_file_path, suffixpat_include=suffix_new, include_subfolders=True, verbose=True)
-def mrun_fda_townhalls_corpus():
+def mrun_corpus_fda_townhalls():
     pass
 #if __name__ == "__main__":
     #validate_blocks_in_folders([FDA_TOWNHALLS_QA_FOLDER], FDA_TOWNHALLS_REQUIRED_FIELDS, CUSTOM_VALIDATORS, suffixpat_include="_qa-qonly.md")
     #validate_iso_dates_in_filename([FDA_TOWNHALLS_QA_FOLDER], suffixpat_include="_qa-qonly.md")
-
-    from primary.vectordb import create_qrag_vectordb
     create_qrag_vectordb([FDA_TOWNHALLS_QA_FOLDER], "fda-townhalls-qrag", suffixpat_include="_qa-qonly.md", embedding_field="CLARIFIED QUESTION", date_from_filename=True)
 
 def csv_of_num_characters_transcript_and_qa(folder_path, transcript_suffix='_fixnames', qa_suffix='_qa-qonly'):
@@ -13415,7 +16593,7 @@ def mrun_upload_s3_and_webflow_fda_townhalls():
     pass
 #if __name__ == "__main__":
     upload_s3_and_webflow_fda_townhalls(s3_upload=True, s3_prompt_overwrite=False, webflow_upload=True)
-def mrun_flex_fda_townhalls_folder():
+def mrun_flex_fda_townhalls_folder():  # for running whatever you want on the folder it's flexible!
     pass
 #if __name__ == "__main__":
     cur_folder_path = "data/floodlamp/reg/fda-townhalls/f5_fixnames/done_auto"
@@ -13462,6 +16640,496 @@ def mtest_s3_upload_fda_townhalls():
     json_file_path = "tests/test_manual_files/jsons/qrag-exch_2025-01-01_000000.json"
     s3_path = "s3-qrag-fda-townhalls"
     upload_file_to_s3(json_file_path, bucket='fofsecure', s3_path=s3_path)
+
+### Sovereign Child (5,541 tokens)
+SOVEREIGN_CHILD_REQUIRED_FIELDS = ["QUESTION", "ANSWER", "TOPICS", "REVIEW FLAG"]
+SOVEREIGN_CHILD_FOLDER = "data/misc_books/Sovereign Child"
+def mrun_corpus_sovereign_child():
+    pass
+#if __name__ == "__main__":
+    #validate_blocks_in_folders([SOVEREIGN_CHILD_FOLDER], SOVEREIGN_CHILD_REQUIRED_FIELDS, CUSTOM_VALIDATORS, suffixpat_include="_qa-qonly.md")
+    #validate_iso_dates_in_filename([SOVEREIGN_CHILD_FOLDER], suffixpat_include="_qa-qonly.md")
+    #create_qrag_vectordb([SOVEREIGN_CHILD_FOLDER], "sovereign-child-qrag", suffixpat_include="_qa-qonly.md", embedding_field="QUESTION", date_from_filename=True)
+def mrun_deepseek_sovereign_child():
+    pass
+#if __name__ == "__main__":
+    start_time = time.time()
+    #model = "o3-mini"
+    model = "deepseek-reasoner"
+    query = "What is a thorough response to a parent who thinks compulsory school is good?"
+    routes_dict = ROUTES_DICT_SOVEREIGN_CHILD_V1
+    vector_index_name = "sovereign-child-qrag-2f-20250208"
+    num_chunks = 20
+    qrag_routing_response = qrag_routing_call(query, vector_index_name, num_chunks, routes_dict)
+    quoted_qa = qrag_routing_response["content"]["quoted_qa"]
+    #print(quoted_qa)
+    prompt_initial = "Answer the USER QUESTION below the following multiple sources of context:\nUse as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\nUse the BOOK TEXT as additional important context.\nUse as background context your knowledge of the parenting philosophy Taking Children Seriously, as well as the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.\n\n"
+    query_context = "<USER_QUESTION>\n" + query + "\n</USER_QUESTION>\n\n"
+    rag_context = "<QUOTED_QA>\n" + quoted_qa.rstrip() + "\n</QUOTED_QA>\n\n"
+    large_context_file_path = "data/misc_books/Sovereign Child/2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple_trimmed.md"
+    #large_context_file_path = "data/misc_books/Sovereign Child/2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple_trimmed-TEST.md"
+    _, book_text = read_file_flex(large_context_file_path)
+    book_text = book_text.split('\n', 1)[1].lstrip()  # remove CONTENT line and any blank lines that follow that
+    book_text = book_text.rstrip()
+    large_context = "<BOOK_TEXT>\n" + book_text.rstrip() + "\n</BOOK_TEXT>\n\n"
+    prompt_parts = {
+        'prompt_initial': prompt_initial,
+        'query': query,
+        'query_context': query_context,
+        'rag_context': rag_context,
+        'large_context': large_context,
+        'large_context_file_path': large_context_file_path
+    }
+    md_file_path = "data/misc_books/Sovereign Child/deepseek_sovereign_child_include-both.md"
+    response = reasoning_prompt_to_md_multipart(prompt_parts, model=model, md_file_path=md_file_path, heading_level=1)
+
+    elapsed_time = time.time() - start_time
+    minutes = int(elapsed_time // 60)
+    seconds = int(elapsed_time % 60)
+    print(f"Total execution time: {minutes}:{seconds:02d}")
+def mrun_count_tokens_sovereign_child():
+    pass
+#if __name__ == "__main__":
+    cur_file_path = "data/misc_books/Sovereign Child/2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple_trimmed.md"
+    text = read_complete_text(cur_file_path)
+    print(count_tokens(text))
+def mrun_create_html_files_for_sovereign_child():
+    pass
+#if __name__ == "__main__":
+    cur_folder_path = SOVEREIGN_CHILD_FOLDER
+    #transcript_md_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include='_section-titles.md')
+    #qa_md_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include='_qa-qonly.md')
+    #qa_md_files_to_run = ["data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_qa-qonly.md"]
+    css_file_path = ""  # was "transcript-with-section-titles.css"
+
+    # transcripts
+    # for i, md_file_path in enumerate(transcript_md_files_to_run, 1):
+    #     html_file_path = convert_markdown_to_html(md_file_path, heading="### transcript", css_file_path=css_file_path)
+    #     h_tune_html_file(html_file_path, "", 1)
+    #     clean_summaries_in_html_file(html_file_path)
+    #     add_additional_html_from_template(html_file_path, "web/md_to_html_dev/additions_transcript.html")
+
+    # qa
+    # for i, md_file_path in enumerate(qa_md_files_to_run, 1):
+    #     html_file_path = convert_markdown_to_html(md_file_path, heading="### qa", css_file_path=css_file_path)
+    #     h_tune_html_file(html_file_path, "", 1)
+    #     h_tune_html_file(html_file_path, "AI Extracted Question and Answer", 3, insert=False)
+    #     wrap_qa_blocks_in_details(html_file_path, "QUESTION", "ANSWER")
+    #     clean_summaries_in_html_file(html_file_path)
+    #     add_additional_html_from_template(html_file_path, "web/md_to_html_dev/additions_qa.html")
+def mrun_create_html_file_for_book():
+    pass
+if __name__ == "__main__":
+    # md_file_path = "data/misc_books/Sovereign Child/2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple_section-titles.md"
+    # html_file_path = convert_markdown_to_html(md_file_path, heading="CONTENT", collapse_h=4, css_file_path="", bold_first_line=False, wrap_subsections=True)
+    # h_tune_html_file(html_file_path, "", 1)
+    # #h_tune_html_file(html_file_path, "Book", 3, insert=False)
+    # clean_summaries_in_html_file(html_file_path)
+    # add_additional_html_from_template(html_file_path, "web/md_to_html_dev/additions_transcript.html")
+
+    #html_file_path = "data/misc_books/Sovereign Child/2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple_section-titles.html"
+    
+    # Upload to S3
+    cur_bucket = "fofpublic"
+    # cur_s3_path = "sources-sovereign-child/transcripts-html/"
+    # upload_file_to_s3(html_file_path, bucket=cur_bucket, s3_path=cur_s3_path, prompt_overwrite=False)
+
+    html_file_path = "data/misc_books/Sovereign Child/2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple_qa-qonly.html"
+    cur_s3_path = "sources-sovereign-child/qa-html/"
+    upload_file_to_s3(html_file_path, bucket=cur_bucket, s3_path=cur_s3_path, prompt_overwrite=False)
+
+def mrun_propagate_heading4_placeholders():
+    pass
+#if __name__ == "__main__":
+    cur_file_path = "data/misc_books/Sovereign Child/2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple_qa-qonly.md"
+    extract_log_text = get_heading(cur_file_path, "### extract log")
+    qa_text = get_heading(cur_file_path, "### qa")
+    
+    if not extract_log_text or not qa_text:
+        ValueError(f"No extract log text or qa text found in file: {cur_file_path}")
+
+    questions = []
+    
+    # Process each line
+    lines = extract_log_text.split('\n')
+    for i, line in enumerate(lines):
+        # Look for heading level 5 "Questions Extraction"
+        if line.strip() == "##### Questions Extraction":
+            # Get the next line after the heading
+            if i + 1 < len(lines):
+                next_line = lines[i + 1].strip()
+                if next_line.startswith('Q '):
+                    # Get everything after the colon, strip whitespace
+                    question_parts = next_line.split(':', 1)
+                    if len(question_parts) > 1:
+                        question = question_parts[1].strip()
+                        questions.append(question)
+    
+    # Now find each question in the qa and add placeholder heading
+    qa_lines = qa_text.split('\n')
+    insertions = 0
+    for question in questions:
+        # Find the line number containing this question
+        for i, line in enumerate(qa_lines):
+            if line.strip().startswith('QUESTION: ' + question):
+                # Add placeholder heading before the question
+                qa_lines.insert(i, '#### X')
+                insertions += 1
+                break
+    
+    print(f"Added {insertions} placeholder headings")
+    print(f"First 5 questions: {questions[:5]}")
+    print(f"Total questions: {len(questions)}")
+    set_heading(cur_file_path, '\n'.join(qa_lines), "### qa")
+def upload_s3_and_webflow_sovereign_child(s3_upload=True, s3_prompt_overwrite=True, webflow_upload=True):
+    """
+    Uploads Sovereign Child files to S3 and creates corresponding Webflow CMS items.
+
+    :param s3_upload: bool, whether to upload files to S3
+    :param s3_prompt_overwrite: bool, whether to prompt before overwriting S3 files
+    :param webflow_upload: bool, whether to create Webflow CMS items
+    :return: None
+    """
+    cur_folder_path = "data/misc_books/Sovereign Child"
+    transcript_suffix = "_section-titles"
+    qa_suffix = "_qa-qonly"
+    cur_bucket = "fofpublic"
+    cur_s3_path = "sources-sovereign-child/"
+    collection_id = SOVEREIGN_CHILD_ID
+    cms_name = "Sovereign Child"
+
+    # transcript_html_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include=transcript_suffix+".html")
+    # transcript_md_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include=transcript_suffix+".md")
+    # qa_html_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include=qa_suffix+".html")
+    # qa_md_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include=qa_suffix+".md")
+    
+    transcript_html_files_to_run = []
+    transcript_md_files_to_run = []
+    single_qa_md_file_to_run = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_qa-qonly.md"
+    single_qa_html_file_to_run = single_qa_md_file_to_run.replace(".md", ".html")
+    qa_md_files_to_run = [single_qa_md_file_to_run]
+    qa_html_files_to_run = [single_qa_html_file_to_run]
+
+    cms_items = []
+
+    # Initialize counters
+    total_base_names = set()
+    total_files = 0
+
+    # Build mapping of base names to file paths and metadata
+    file_mapping = defaultdict(dict)
+    for files, s3_subfolder, key_suffix in [
+        (transcript_html_files_to_run, "transcripts-html/", "transcript_html"),
+        (transcript_md_files_to_run, "transcripts-md/", "transcript_md"),
+        (qa_html_files_to_run, "qa-html/", "qa_html"),
+        (qa_md_files_to_run, "qa-md/", "qa_md")
+    ]:
+        for file_path in files:
+            base_name = os.path.splitext(os.path.basename(file_path))[0]
+            base_name = re.sub(f'{transcript_suffix}$|{qa_suffix}$', '', base_name)
+            
+            # Print status in blue for each base name's first file
+            if base_name not in total_base_names:
+                total_base_names.add(base_name)
+            
+            # Upload to S3 if not skipped
+            if s3_upload:
+                upload_file_to_s3(file_path, bucket=cur_bucket, s3_path=cur_s3_path + s3_subfolder, prompt_overwrite=s3_prompt_overwrite)
+                total_files += 1
+            
+            # Store S3 URL with URL-encoded filename
+            encoded_filename = urllib.parse.quote(os.path.basename(file_path))
+            s3_url = f"https://{cur_bucket}.s3.us-west-2.amazonaws.com/{cur_s3_path}{s3_subfolder}{encoded_filename}"
+            file_mapping[base_name][key_suffix] = s3_url
+
+            # For transcript MD files, read metadata fields
+            if key_suffix == "transcript_md":
+                _, youtube_url = read_metadata_field_from_file(file_path, "youtube link")
+                _, pdf_url = read_metadata_field_from_file(file_path, "pdf link")  # not working for book
+                
+                file_mapping[base_name]["youtube_url"] = youtube_url
+                file_mapping[base_name]["pdf_url"] = pdf_url
+
+    # Print summary after all uploads complete
+    print(colored(f"\nS3 Upload Summary:", "green"))
+    print(colored(f"  Total base names processed: {len(total_base_names)}", "green"))
+    print(colored(f"  Total files uploaded: {total_files}", "green"))
+    
+    if webflow_upload:
+        # Prompt user before proceeding
+        response = input("\nPress Enter to continue with Webflow CMS operations, or 'x' to abort: ").lower()
+        if response == 'x':
+            print("Aborting operation.")
+            return
+
+        # Validate Webflow collection once before creating items
+        collection_details = webflow_cms_get_collection_details(collection_id, verbose=True)
+        if not collection_details:
+            print(colored("Failed to fetch collection details for validation", "red"))
+            return
+
+        # Check for existing items
+        existing_items = webflow_cms_list_items(collection_id, verbose=True)
+        if existing_items:
+            existing_names = [item['fieldData'].get('name', '') for item in existing_items]
+            existing_items_map = {item['fieldData'].get('name', ''): item['id'] for item in existing_items}
+            
+            # Check if any of our new items already exist
+            overlapping_items = [cms_name for base_name, urls in file_mapping.items()]
+            
+            if overlapping_items:
+                print(colored("\nThe following items already exist in the Webflow CMS:", "blue"))
+                for name in overlapping_items:
+                    print(f"- {name}")
+                
+                response = input("\nPress Enter to proceed with updating these Webflow CMS items, or 'x' to abort: ").lower()
+                if response == 'x':
+                    print("Aborting operation.")
+                    return
+                
+                # Store whether we're updating for later use
+                is_updating = True
+            else:
+                is_updating = False
+        else:
+            is_updating = False
+
+    # Create CMS items list
+    for base_name, urls in file_mapping.items():
+        if all(key in urls for key in ["transcript_html", "transcript_md", "qa_html", "qa_md"]):
+            cms_item = {
+                "name": base_name,
+                "s3-transcript-html-url": urls["transcript_html"],
+                "s3-qa-html-url": urls["qa_html"],
+                "s3-transcript-md-url": urls["transcript_md"],
+                "s3-qa-md-url": urls["qa_md"],
+                "youtube-url": urls.get("youtube_url", ""),
+                "pdf-url": urls.get("pdf_url", "")
+            }
+            cms_items.append(cms_item)
+
+    # Create or update Webflow CMS items
+    if webflow_upload:
+        for item in cms_items:
+            if is_updating and item['name'] in existing_items_map:
+                # Update existing item
+                result = webflow_cms_update_item(
+                    collection_id=collection_id,
+                    item_id=existing_items_map[item['name']],
+                    field_data=item,
+                    collection_validation=False,  # Skip validation since we did it once
+                    verbose=True
+                )
+                if not result:
+                    print(colored(f"Failed to update CMS item for {item['name']}", "red"))
+            else:
+                # Create new item
+                result = webflow_cms_create_item(
+                    collection_id=collection_id,
+                    field_data=item,
+                    collection_validation=False,  # Skip validation since we did it once
+                    verbose=True
+                )
+                if not result:
+                    print(colored(f"Failed to create CMS item for {item['name']}", "red"))
+def mrun_upload_s3_and_webflow_sovereign_child():
+    pass
+#if __name__ == "__main__":
+    upload_s3_and_webflow_sovereign_child(s3_upload=True, s3_prompt_overwrite=False, webflow_upload=False)
+def get_timestamps_for_qa_from_transcript(qa_file_path, transcript_file_path, debug=True):
+    """
+    Adds timestamps to QA blocks by matching answers with transcript dialogue.
+
+    :param qa_file_path: string, path to QA markdown file
+    :param transcript_file_path: string, path to transcript markdown file
+    :return: None, updates QA file in place
+    """
+    # Get all H4 headings from both files
+    qa_text = get_heading(qa_file_path, "### qa")
+    transcript_text = get_heading(transcript_file_path, "### transcript")
+    
+    qa_h4_headings = [line.strip() for line in qa_text.split('\n') if line.startswith('#### ')]
+    transcript_h4_headings = [line.strip() for line in transcript_text.split('\n') if line.startswith('#### ')]
+    
+    # for i in range(len(qa_h4_headings)):
+    #     print(f"qa: {qa_h4_headings[i]}")
+    #     print(f"tr: {transcript_h4_headings[i]}")
+    #     print()
+
+    # Verify headings match
+    if qa_h4_headings != transcript_h4_headings:
+        raise ValueError("H4 headings in QA and transcript files do not match exactly")
+    
+    print(f"H4 headings match in both files. Found {len(qa_h4_headings)} sections.")
+    
+    # Initialize counters and lists
+    match_count = 0
+    mismatch_count = 0
+    no_match_count = 0
+    total_blocks = 0
+    mismatch_blocks = []
+    no_match_blocks = []
+    
+    # Build new QA text with sections
+    new_qa_sections = []
+    
+    # Process each section
+    for section_heading in qa_h4_headings:
+        # Add section heading to new text
+        new_qa_sections.append(section_heading)
+        
+        # Get QA blocks and transcript text for this section
+        qa_blocks = get_blocks_from_file(qa_file_path, section_heading)
+        section_transcript = get_heading(transcript_file_path, section_heading)
+        
+        section_updated_blocks = []
+        
+        # Process each QA block in this section
+        for block in qa_blocks:
+            fields = get_all_fields_dict(block)
+            qa_block_id = get_field_value(block, 'QA BLOCK')
+            qa_speaker = get_field_value(block, 'SPEAKER ANSWER')
+            verbatim_answer = get_field_value(block, 'VERBATIM ANSWER')
+            
+            if not qa_speaker or not verbatim_answer:
+                ValueError(f"No speaker question or verbatim answer found for block: {block}")
+            
+            # Extract all dialogue segments with timestamps and create list of dictionaries
+            dialogue_segments = []
+            timestamp = None
+            
+            lines = section_transcript.split('\n')
+            for i in range(len(lines)-1):  # -1 to avoid index error
+                line = lines[i]
+                if '[' in line and ']' in line and 'http' in line:
+                    # Extract timestamp and speaker
+                    parts = line.split('[')
+                    if len(parts) > 1:
+                        transcript_speaker = parts[0].strip()
+                        # Get the dialogue from the next line
+                        dialogue = lines[i + 1].strip()
+                        segment = {
+                            'line': line,
+                            'speaker': transcript_speaker,
+                            'dialogue': dialogue,
+                            'score': 0
+                        }
+                        dialogue_segments.append(segment)
+                        if not timestamp:
+                            timestamp = line
+            
+            # Calculate scores for each segment
+            verbatim_answer_trimmed = ' '.join(verbatim_answer.split()[:10]).lower()
+            
+            def clean_text(text):
+                # Remove punctuation, convert to lowercase, and normalize whitespace
+                import re
+                text = re.sub(r'[.,!?"]', '', text.lower())
+                return ' '.join(text.split())
+            
+            def get_match_score(text1, text2):
+                # Clean both texts
+                text1 = clean_text(text1)
+                text2 = clean_text(text2)
+                
+                # Get words from both texts
+                words1 = set(text1.split())
+                words2 = set(text2.split())
+                
+                # Calculate word overlap
+                common_words = words1.intersection(words2)
+                if not words1:
+                    return 0
+                
+                # Score based on how many words match
+                word_match_ratio = len(common_words) / len(words1)
+                
+                # Bonus for sequential words matching
+                from difflib import SequenceMatcher
+                sequence_ratio = SequenceMatcher(None, text1, text2).ratio()
+                
+                # Combine scores with more weight on word matches
+                return (word_match_ratio * 0.7) + (sequence_ratio * 0.3)
+            
+            best_score = 0
+            best_segment = None
+            
+            for segment in dialogue_segments:
+                score = get_match_score(verbatim_answer_trimmed, segment['dialogue'])
+                segment['score'] = score
+                if score > best_score:
+                    best_score = score
+                    best_segment = segment
+            
+            total_blocks += 1
+            
+            # Now check speaker match only for the best matching segment
+            match_threshold = 0.5
+            should_debug = False
+
+            if best_segment and best_score > match_threshold:  # Threshold for good match
+                if best_segment['speaker'] == qa_speaker:
+                    # Strip everything before the first '[' for the timestamp
+                    timestamp_line = best_segment['line'][best_segment['line'].find('['):]
+                    fields['TIMESTAMP'] = timestamp_line
+                    match_count += 1
+                else:
+                    timestamp_line = best_segment['line'][best_segment['line'].find('['):]
+                    fields['TIMESTAMP'] = timestamp_line
+                    mismatch_count += 1
+                    mismatch_blocks.append(qa_block_id)
+                    should_debug = True
+            else:
+                timestamp_line = timestamp[timestamp.find('['):]
+                fields['TIMESTAMP'] = timestamp_line
+                no_match_count += 1
+                no_match_blocks.append(qa_block_id)
+                should_debug = True
+
+            # Reconstruct block with new timestamp before ANSWER
+            updated_block = []
+            for field, content in fields.items():
+                if field == 'ANSWER':
+                    # Insert TIMESTAMP before ANSWER
+                    updated_block.append(f"TIMESTAMP: {fields['TIMESTAMP']}")
+                if field != 'TIMESTAMP':  # Skip TIMESTAMP in normal iteration
+                    updated_block.append(f"{field}: {content}")
+            section_updated_blocks.append('\n'.join(updated_block) + '\n')  # Add newline after each block
+
+            if debug and should_debug:
+                print("\nDebug info:")
+                print(f"QA Block: '{qa_block_id}'")
+                print(f"Expected speaker: '{qa_speaker}'")
+                print(f"Best match speaker: '{best_segment['speaker'] if best_segment else 'None'}'")
+                print(f"Verbatim answer (trimmed): '{verbatim_answer_trimmed}'")
+                print("\nAll segments sorted by score:")
+                sorted_segments = sorted(dialogue_segments, key=lambda x: x['score'], reverse=True)
+                for segment in sorted_segments:
+                    print(f"Score: {segment['score']:.3f}")
+                    print(f"Speaker line: {segment['speaker']} [{segment['line'].split('[')[1]}")
+                    print(f"Dialogue: {segment['dialogue'][:100]}...")
+                    print()
+                debug = False  # Turn off debug after first error
+        
+        # Add all blocks for this section
+        new_qa_sections.extend(section_updated_blocks)
+        new_qa_sections.append('')  # Add blank line between sections
+    
+    # Print statistics
+    print(f"Matches found: {match_count}")
+    print(f"\nSpeaker mismatches: {mismatch_count}  {mismatch_blocks}")
+    print(f"\nNo matches found: {no_match_count}  {no_match_blocks}")
+    print(f"\nTotal blocks processed: {total_blocks}")
+    
+    # Write entire QA text with all sections
+    final_qa_text = '\n'.join(new_qa_sections)
+    set_heading(qa_file_path, final_qa_text, "### qa")
+def mrun_get_timestamps_for_qa_from_transcript():
+    pass
+#if __name__ == "__main__":
+    qa_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_qa-qonly.md"
+    transcript_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_section-titles.md"
+    get_timestamps_for_qa_from_transcript(qa_file_path, transcript_file_path)
 
 ''' ’,'   ''' # curvy apostrophe
 
@@ -13711,7 +17379,7 @@ def mrun_create_csv_of_files_by_suffix_folders():
 
 
 
-## primary/aws.py (13,420 tokens)
+## primary/aws.py (13,521 tokens)
 #===== START OF FILE primary/aws.py =====
 #Library of functions and execution code to do AWS tasks
 
@@ -13771,7 +17439,7 @@ def mtest_generate_hmac_hash():
     else:
         print("Hash verification failed.")
 
-### AWS S3 (4,004 tokens)
+### AWS S3 (4,634 tokens)
 def upload_file_to_s3(file_path, bucket='fofpublic', object_name=None, s3_path=None, prompt_overwrite=False):
     """
     Upload a file to an S3 bucket
@@ -14171,6 +17839,79 @@ def generate_presigned_s3_url(bucket, object_key, method='get', content_type=Non
             Params={'Bucket': bucket, 'Key': object_key},
             ExpiresIn=expire_seconds
         )
+
+def get_large_context_from_s3(filename):
+    """
+    Fetch large context file from S3.
+
+    :param filename: str, name of the file to fetch from large-context-files folder
+    :return: str, content of the file
+    :raises: ClientError with specific error details
+    """
+    s3 = boto3.client('s3')
+    bucket = 'fofsecure'
+    key = f'large-context-files/{filename}'
+    
+    try:
+        response = s3.get_object(Bucket=bucket, Key=key)
+        return response['Body'].read().decode('utf-8')
+    except ClientError as e:
+        error_code = e.response['Error']['Code']
+        if error_code == 'NoSuchKey':
+            print(f"File not found: {filename}")
+            return None
+        elif error_code == 'AccessDenied':
+            print(f"Access denied to s3://{bucket}/{key}. Check IAM permissions.")
+            return None
+        else:
+            print(f"AWS Error: {str(e)}")
+            return None
+def mtest_get_large_context_from_s3():
+    pass
+#if __name__ == "__main__":
+    # Test valid file
+    try:
+        filename = 'deutsch_large_context_v1.md'
+        print(f"\nTesting get_large_context_from_s3 with file:{filename}")
+        content = get_large_context_from_s3(filename)
+        if content:
+            print(f"Successfully retrieved file. First 100 chars: {content[:100]}")
+        else:
+            print("Error: No content returned")
+    except ClientError as e:
+        print(f"AWS Error: {str(e)}")
+        print(f"Error Code: {e.response['Error']['Code']}")
+        print(f"Error Message: {e.response['Error']['Message']}")
+
+    # Test non-existent file
+    try:
+        filename = 'nonexistent_file.txt'
+        print(f"\nTesting with non-existent file: {filename}")
+        content = get_large_context_from_s3(filename)
+    except ClientError as e:
+        print(f"Expected error for non-existent file: {str(e)}")
+
+def upload_large_context_files_to_s3(folder_path='data/large_context_files'):  # not tested
+    s3 = boto3.client('s3')
+    s3_folder = 'large-context-files'
+    uploaded_count = 0
+    try:
+        for file_name in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, file_name)
+            if os.path.isfile(file_path):
+                s3.upload_file(
+                    Bucket='fofsecure',
+                    Key=f'{s3_folder}/{file_name}',
+                    Filename=file_path
+                )
+                uploaded_count += 1
+        print(f"Successfully uploaded {uploaded_count} files to S3")
+    except Exception as e:
+        print(f"Error uploading to S3: {str(e)}")
+def mrun_upload_large_context_files_to_s3():
+    pass
+if __name__ == "__main__":
+    upload_large_context_files_to_s3()
 
 ### AWS API KEYS (5,804 tokens)
 def create_api_key(key_name, description="API key for Lambda function"):
@@ -15070,86 +18811,7 @@ def mrun_test_waf_limit():
     test_waf_limit(initial_rapid_requests=20, wait_minutes=2, post_wait_requests=5, verbose=False)
     # (see 12-4 cursor chat)
 
-### AWS LOGGING (530 tokens)
-def setup_api_gateway_logging(api_names=None):
-    """
-    Set up detailed logging for API Gateway stages.
-    If api_names is None, will configure all APIs in LAMBDA_GLOBALS_MAPPING.
-    
-    :param api_names: list of str, optional list of API names to configure
-    :return: dict, results of configuration attempts
-    """
-    api_client = boto3.client('apigateway')
-    results = {}
-    
-    # Use all APIs if none specified
-    if api_names is None:
-        api_names = LAMBDA_GLOBALS_MAPPING.keys()
-    
-    for api_name in api_names:
-        try:
-            # Get API ID without needing specific method or resource
-            apis = api_client.get_rest_apis()['items']
-            api = next((api for api in apis if api['name'] == api_name), None)
-            
-            if not api:
-                results[api_name] = f"Failed to find API"
-                continue
-                
-            rest_api_id = api['id']
-            
-            # Get stages for this API
-            stages = api_client.get_stages(restApiId=rest_api_id)
-            
-            for stage in stages['item']:
-                stage_name = stage['stageName']
-                
-                # Update stage settings for detailed logging
-                api_client.update_stage(
-                    restApiId=rest_api_id,
-                    stageName=stage_name,
-                    patchOperations=[
-                        {
-                            'op': 'replace',
-                            'path': '/*/*/logging/loglevel',
-                            'value': 'INFO'
-                        },
-                        {
-                            'op': 'replace',
-                            'path': '/*/*/metrics/enabled',
-                            'value': 'true'
-                        },
-                        # Log full request/response data
-                        {
-                            'op': 'replace',
-                            'path': '/*/*/logging/dataTrace',
-                            'value': 'true'
-                        },
-                        # Include detailed validation errors
-                        {
-                            'op': 'replace',
-                            'path': '/variables/loggingLevel',
-                            'value': 'INFO'
-                        }
-                    ]
-                )
-                
-                results[f"{api_name} ({stage_name})"] = "Successfully configured logging"
-                
-        except Exception as e:
-            results[api_name] = f"Error: {str(e)}"
-    
-    return results
-def mrun_setup_api_gateway_logging():
-    pass
-#if __name__ == "__main__":
-    # Configure all APIs
-    results = setup_api_gateway_logging()
-    print("\nAPI Gateway Logging Configuration Results:")
-    for api, result in results.items():
-        print(f"{api}: {result}")
-
-### AWS JWT (621 tokens)
+### AWS JWT (622 tokens)
 def get_jwt_signing_key():
     """
     Retrieve JWT signing key from AWS Secrets Manager.
@@ -15207,12 +18869,11 @@ def verify_jwt(token):
         return None
 def mrun_verify_jwt():
     pass
-if __name__ == "__main__":
+#if __name__ == "__main__":
     #token = os.environ["JWT_01-22"]
     token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3My45My42Mi44MSIsImlhdCI6MTczNzYwMjMxMCwiZXhwIjoxNzQwMTk0MzEwfQ.9Xs7mdPuOrxELu1y0-b3Z8AMBYDfBCBs2Jn1DUTOawg"
     result = verify_jwt(token)
     print(f"Verification result: {result}")
-
 def mtest_generate_and_verifyjwt():
     pass
 #if __name__ == "__main__":
@@ -15224,24 +18885,30 @@ def mtest_generate_and_verifyjwt():
     result = verify_jwt(token)
     print(f"Verification result: {result}")
 
+
+
 #===== END OF FILE primary/aws.py =====
 
 
 
 
-## primary/aws_valid.py (13,308 tokens)
+## primary/aws_valid.py (13,625 tokens)
 #===== START OF FILE primary/aws-valid.py =====
 #Library for setup and testing AWS API Gateway validation
 
 import os
 import sys
+import re
 import json
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import sleep
 import requests
-from io import StringIO
+import io
+import subprocess
+from termcolor import colored
+from contextlib import redirect_stdout
     
 from primary.fileops import *
 from primary.aws import *
@@ -15254,7 +18921,7 @@ JWT_TEST = os.environ['JWT_01-22']
 
 #---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
 
-### AWS API GATEWAY VALIDATION (13,160 tokens)
+### AWS API GATEWAY VALIDATION (13,458 tokens)
 ''' Categories of test requests:
 clean_requests: Well-formed inputs that meet all schema and functional requirements.
 schema_invalid_requests: Inputs that violate schema constraints but would still be acceptable by the function's logic if not for API Gateway validation (e.g., too long, but not empty).
@@ -15272,11 +18939,12 @@ vrag-llm             n5yjgn8jak
 '''
 MAX_USER_NAME_LENGTH = 64  # sync with webflow-fof-site-body.js var maxUserNameLength
 MAX_QUESTION_LENGTH = 500  # sync with webflow-fof-site-body.js var maxQuestionLength
+MAX_FILE_NAME_LENGTH = 255  # sync with webflow-fof-site-body.js var maxFileNameLength
 MAX_EMAIL_ADDRESS_LENGTH = 254  # sync with webflow-fof-site-body.js var maxEmailLength
 MAX_PARAMETER_LENGTH = 50  # use as a default for internal parameters and variable names
 MIN_NUM_CHUNKS = 2  # sync with min num-chunks-options in webflow-qrag-input-component-embed.html
 MAX_NUM_CHUNKS = 20  # sync with max num-chunks-options in webflow-qrag-input-component-embed.html, think pinecone_retriever can go higher
-LLM_MODEL_OPTIONS = ["gpt-4o", "gpt-4o-mini"]
+LLM_MODEL_OPTIONS = ["gpt-4o", "gpt-4o-mini", "o3-mini", "deepseek-reasoner", "o3", "o1", "BLANK from qrag-routing lambda", "BLANK from qrag_routing_call"]
 REMOVE_FIELD = "__REMOVE_FIELD__"  # # Define a sentinel value for field removal
 
 #SKIPPED IMPLEMENTING THIS SCHEMA FOR API GATEWAY VALIDATION 12-16-24 RT
@@ -15498,12 +19166,12 @@ TEST_REQUESTS_HMAC_HASH = {
 API_ENDPOINT_QRAG_ROUTING = "https://us05oglu51.execute-api.us-west-2.amazonaws.com/api/qrag-routing"
 SCHEMA_QRAG_ROUTING = {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "QRAGRoutingRequest",
+    "title": "QRAGRoutingRequest", 
     "description": "Schema for validating QRAG routing requests",
     "type": "object",
     "required": [
         "user_question",
-        "vector_index_name", 
+        "vector_index_name",
         "route_dict_name"
     ],
     "properties": {
@@ -15514,7 +19182,7 @@ SCHEMA_QRAG_ROUTING = {
             "maxLength": MAX_QUESTION_LENGTH
         },
         "vector_index_name": {
-            "type": "string",
+            "type": "string", 
             "description": "Name of the vector index to search against"
         },
         "route_dict_name": {
@@ -15532,11 +19200,6 @@ SCHEMA_QRAG_ROUTING = {
             },
             "minItems": 2,
             "maxItems": 2
-        },
-        "llm_model": {
-            "type": "string",
-            "description": "The LLM model to use for generating responses",
-            "enum": LLM_MODEL_OPTIONS
         },
         "user_id": {
             "type": "string",
@@ -15586,35 +19249,27 @@ TEST_REQUESTS_QRAG_ROUTING = {
             "description": "Complete template request with all fields including hashed user data",
             "request": {
                 "user_question": "Is this working from the aws-valid.py module?",
-                "vector_index_name": "deutsch-transcript-qrag-78f-20240926",
+                "vector_index_name": "deutsch-transcript-qrag-83f-20250202",
                 "num_chunks": 2,
-                "route_dict_name": "ROUTES_DICT_DEUTSCH_V4",
+                "route_dict_name": "ROUTES_DICT_DEUTSCH_M1",
                 "routes_bounds": [0.3, 0.9],
-                "llm_model": "gpt-4o-mini", 
                 "user_id": "test_user",
-                "qrag_version": "1.0",
+                "qrag_version": "2.0",
                 "hashedUserNiceName": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
                 "hashedUserIPAddress": "b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1",
                 "hashedInputUserEmail": "c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0v1w2"
             }
         },
         {   
-            "description": "Minimal valid request without optional hashed fields",
+            "description": "Add start_date and end_date",
             "request": {
-                "user_question": "Is this working from the aws-valid.py module?",
-                "vector_index_name": "deutsch-transcript-qrag-78f-20240926",
-                "route_dict_name": "ROUTES_DICT_DEUTSCH_V4"
+                "start_date": "1995-01-01",
+                "end_date": "2024-12-23"
             }
         }
     ],
 
     "schema_invalid_requests": [
-        {   
-            "description": "Invalid llm_model value - Not in enum list",
-            "request": {
-                "llm_model": "gpt-3"
-            }
-        },
         {   
             "description": "Out of range - Values must be between 0 and 1",
             "request": {
@@ -15690,25 +19345,18 @@ TEST_REQUESTS_QRAG_ROUTING = {
 API_ENDPOINT_QRAG_LLM = "https://sz901mb96d.execute-api.us-west-2.amazonaws.com/api/qrag-llm"
 SCHEMA_QRAG_LLM = {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "QRAGLLMRequest",
+    "title": "QRAGLLMRequest", 
     "type": "object",
     "required": ["metadata", "content"],
     "properties": {
         "metadata": {
             "type": "object",
-            "required": [
-                "vector_index_name",
-                "llm_model"
-            ],
+            "required": ["routes_info", "vector_index_name"],
             "properties": {
                 "vector_index_name": {
                     "type": "string",
                     "minLength": 1,
                     "maxLength": MAX_PARAMETER_LENGTH
-                },
-                "llm_model": {
-                    "type": "string",
-                    "enum": LLM_MODEL_OPTIONS
                 },
                 "user_id": {
                     "type": "string",
@@ -15722,34 +19370,48 @@ SCHEMA_QRAG_LLM = {
                     "type": "string",
                     "maxLength": MAX_PARAMETER_LENGTH
                 },
+                "large_context_filename": {
+                    "type": ["string", "null"],  # Allow either string or null
+                    "maxLength": MAX_FILE_NAME_LENGTH
+                },
                 "routes_info": {
                     "type": "object",
+                    "properties": {
+                        "routes_flow_name": {"type": "string"},
+                        "upper_sim_bound": {"type": "number"},
+                        "lower_sim_bound": {"type": "number"},
+                        "max_sim": {"type": "string"},
+                        "max_stars": {"type": "integer"},
+                        "routes_dict_content": {"type": "object"}
+                    },
                     "additionalProperties": True
+                },
+                "is_retry": {
+                    "type": "boolean"
                 }
             },
             "additionalProperties": True
         },
         "content": {
             "type": "object",
-            "required": ["user_question"],
+            "required": ["user_question", "prompt_initial", "quoted_qa"],
             "properties": {
                 "user_question": {
                     "type": "string",
                     "minLength": 1,
                     "maxLength": MAX_QUESTION_LENGTH
                 },
-                "route_preamble": {
-                    "type": "string"
-                },
-                "quoted_qa": {
-                    "type": "string"
-                },
-                "ai_answer": {
-                    "type": "string"
-                },
+                "route_preamble": {"type": "string"},
+                "prompt_initial": {"type": "string"},
+                "quoted_qa": {"type": "string"},
+                "ai_answer": {"type": "string"},
                 "chunks": {
                     "type": "object",
-                    "additionalProperties": True
+                    "properties": {
+                        "max_sim": {"type": "string"},
+                        "max_stars": {"type": "integer"},
+                        "chunks": {"type": "array"}
+                    }
                 }
             },
             "additionalProperties": False
@@ -15764,23 +19426,23 @@ TEST_REQUESTS_QRAG_LLM = {
                 "metadata": {
                     "timestamp": "2024-06-13T11:46:33.651753",
                     "user_id": "default", 
-                    "vector_index_name": "deutsch-transcript-qrag-78f-20240926",
-                    "bot_version": "1.0",
-                    "llm_model": "gpt-4o-mini",
+                    "vector_index_name": "deutsch-transcript-qrag-83f-20250202",
+                    "bot_version": "2.0",
                     "routes_info": {
-                        "routes_flow_name": "3 routes, sim-star double, separate prompts",
+                        "routes_flow_name": "3 routes, separate route prompts",
                         "upper_sim_bound": 0.9,
                         "lower_sim_bound": 0.3,
                         "max_sim": "0.216",
                         "max_stars": 5,
                         "routes_dict_content": {
-                            "routes_dict_name": "ROUTES_DICT_DEUTSCH_V3"
+                            "routes_dict_name": "ROUTES_DICT_DEUTSCH_M1"
                         }
                     }
                 },
                 "content": {
                     "user_question": "What should I eat for lunch?",
                     "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
+                    "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
                     "quoted_qa": "",
                     "ai_answer": "WAITING FOR LLM RESPONSE",
                     "chunks": {
@@ -15790,18 +19452,25 @@ TEST_REQUESTS_QRAG_LLM = {
                     }
                 }
             }
-        }
-    ],
-
-    "schema_invalid_requests": [
-        {   
-            "description": "Invalid llm_model value - Not in enum list",
+        },
+        {
+            "description": "Complete matching Portal API Gateway test with large context filename",
             "request": {
                 "metadata": {
-                    "llm_model": "gpt-3"
+                    "large_context_filename": "deutsch_large_context_v1.md"
                 }
             }
         },
+        {   
+            "description": "Test retry flag",
+            "request": {
+                "metadata": {
+                    "is_retry": True
+                }
+            }
+        }
+    ],
+    "schema_invalid_requests": [
         {
             "description": "Exceeds maxLength",
             "request": {
@@ -15815,6 +19484,14 @@ TEST_REQUESTS_QRAG_LLM = {
             "request": {
                 "content": {
                     "user_question": ""
+                }
+            }
+        },
+        {   
+            "description": "Invalid data types in content",
+            "request": {
+                "content": {
+                    "user_question": 12345
                 }
             }
         }
@@ -15843,11 +19520,11 @@ TEST_REQUESTS_QRAG_LLM = {
                 }
             }
         },
-        {   
-            "description": "Invalid data types in content",
+        {
+            "description": "Large context filename not in S3 folder",
             "request": {
-                "content": {
-                    "user_question": 12345
+                "metadata": {
+                    "large_context_filename": "not-present-filename.md"
                 }
             }
         }
@@ -16099,7 +19776,15 @@ LAMBDA_GLOBALS_MAPPING = {
     'send-email': 'SEND_EMAIL',
     'vrag-llm': 'VRAG_LLM'
 }
-
+LAMBDA_APIS_MAPPING = {
+    'deepgram-callback': 'lsehufc3n2',
+    'hash-store': 'wd3rapoqy7',
+    'hmac-hash': 'xusv8bpl49', 
+    'qrag-llm': 'sz901mb96d',
+    'qrag-routing': 'us05oglu51',
+    'send-email': 'lvyznjx395',
+    'vrag-llm': 'n5yjgn8jak'
+}
 LAMBDA_JWT_REQUIRED = {
     'deepgram-callback': False,
     'hash-store': False,
@@ -16231,8 +19916,8 @@ def mtest_create_complete_request():
 #lambda_function='hmac-hash'      # No JWT - PASS 12-21 0540
 #lambda_function='hash-store'     # No JWT - PASS 12-21 0540
 #lambda_function='send-email'     # JWT - PASS 12-21 0723
-lambda_function='qrag-routing'   # JWT - PASS 12-21 0540
-#lambda_function='qrag-llm'       # JWT - PASS 12-21 0642
+#lambda_function='qrag-routing'   # JWT - PASS 12-21 0540
+lambda_function='qrag-llm'       # JWT - PASS 12-21 0642
 #lambda_function='vrag-llm'       # JWT - PASS 12-21 0717
 all_lambdas = ['deepgram-callback', 'hmac-hash', 'hash-store', 'send-email', 'qrag-routing', 'qrag-llm', 'vrag-llm']
 
@@ -16365,7 +20050,7 @@ def test_lambda_requests(lambda_function, stage='dev', direct_lambda=True, with_
                 api_endpoint,
                 json=request_data,
                 headers=headers,
-                timeout=10
+                timeout=180  # Changed from 10 to 180 seconds
             )
             try:
                 return response.json()
@@ -16580,6 +20265,7 @@ if __name__ == "__main__":
         jwt_token = JWT_TEST
 
     results = test_lambda_requests(lambda_function, direct_lambda=True, with_gateway=True, jwt_token=jwt_token)
+    #print(colored("TESTING the green color", "green"))
 
 def check_validation_setup(lambda_function, http_method='POST', verbose=False):
     """
@@ -16945,11 +20631,268 @@ then it will preserve that state by rerunning the setup_request_validation if en
 
 
 
-## primary/rag_prompts_routes.py (6,423 tokens)
+## primary/rag_prompts_routes.py (10,395 tokens)
 #===== START OF FILE primary/rag_prompts_routes.py =====
 #Routes and prompts for RAG
 
 #---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
+ROUTES_DICT_SOVEREIGN_CHILD_M1 = {
+    'routes_dict_name': 'ROUTES_DICT_SOVEREIGN_CHILD_M1',
+    
+    # For the "good match" scenario
+    'prompt_initial_good_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
+        "There is a GOOD MATCH in the QUOTED QA so make sure to stay faithful to the QUOTED QA while answering the USER QUESTION.\n"
+        "Use the LARGE CONTEXT which is the book text from 'The Sovereign Child' as additional important context.\n"
+        "Use as background context your knowledge of the parenting philosophy Taking Children Seriously, as well as the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.\n\n"
+    ),
+    'route_preamble_good_match': (
+        "There is a GOOD MATCH in our extracted quotes. Below is the official source Q&A followed by an AI ANSWER that synthesizes these official sources with your specific question.\n"
+    ),
+
+    # For the "partial match" scenario
+    'prompt_initial_partial_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
+        "There is only a PARTIAL MATCH in the QUOTED QA so use the QUOTED QA while answering the USER QUESTION but also make sure to synthesize the QUOTED QA with the other context in order to answer the USER QUESTION.\n"
+        "Use the LARGE CONTEXT which is the book text from 'The Sovereign Child' as additional important context.\n"
+        "Use as background context your knowledge of the parenting philosophy Taking Children Seriously, as well as the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.\n\n"
+    ),
+    'route_preamble_partial_match': (
+        "There is a PARTIAL MATCH in our extracted quotes. Please see the Q&A below, "
+        "then do your best to synthesize an answer."
+    ),
+
+    # For the "no match" scenario
+    'prompt_initial_no_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "No match was found from so no QUOTED QA is provided.\n"
+        "Use the LARGE CONTEXT which is the book text from 'The Sovereign Child' as the primary context.\n"
+        "Use as additional background context your knowledge of the parenting philosophy Taking Children Seriously, as well as the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.\n\n"
+
+    ),
+    'route_preamble_no_match': (
+        "There is NO MATCH in the extracted quotes.\n"
+        "The AI ANSWER below is uses the book text from 'The Sovereign Child' as well as the model's background knowledge of the philosophy of Taking Children Seriously and the ideas of David Deutsch."
+    ),
+
+    # Template for formatting chunked Q&A items
+    "quoted_qa_item_template": (
+        "QUESTION: {question}\n"
+        "ANSWER: {answer}\n"
+        "SOURCE: {source}\n"
+        "TIMESTAMP: {timestamp}\n"
+        "{display}\n\n"
+    ),
+
+    # Wrapper for the entire chunked Q&A
+    "quoted_qa_template": "{quoted_qa_formatted}",
+
+    # Usually not used if we are building a multi-part prompt manually
+    'user_ai_qa': 'USER QUESTION: {user_question}\n\nAI ANSWER: '
+}
+
+ROUTES_DICT_FDA_TOWNHALLS_M1 = {
+    'routes_dict_name': 'ROUTES_DICT_FDA_TOWNHALLS_M1',
+
+    # For the "good match" scenario
+    'prompt_initial_good_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
+        "There is a GOOD MATCH in the QUOTED QA so make sure to stay faithful to the QUOTED QA while answering the USER QUESTION.\n"
+        "Use as background context your knowledge of FDA Town Hall meetings—covering test modifications, bridging studies, validation requirements, and other relevant regulatory guidelines.\n"
+        "Provide clear, concise information about any relevant FDA policies or processes referenced in the quoted material.\n\n"
+    ),
+    'route_preamble_good_match': (
+        "There is a GOOD MATCH in our extracted quotes. Below is the official FDA Q&A followed by an AI ANSWER that synthesizes these official sources with your specific question.\n"
+    ),
+
+    # For the "partial match" scenario
+    'prompt_initial_partial_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
+        "There is only a PARTIAL MATCH in the QUOTED QA so use the QUOTED QA while answering the USER QUESTION but also make sure to synthesize the QUOTED QA with the other context in order to answer the USER QUESTION.\n"
+        "Use as background context your knowledge of FDA Town Hall meetings—covering test modifications, bridging studies, validation requirements, and other relevant regulatory guidelines.\n\n"
+    ),
+    'route_preamble_partial_match': (
+        "There is a PARTIAL MATCH in our extracted quotes. Please see the Q&A below, "
+        "then do your best to synthesize an answer."
+    ),
+
+    # For the "no match" scenario
+    'prompt_initial_no_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "No match was found so no QUOTED QA is provided.\n"
+        "Your task is to identify what topic the user's question appears to be about and respond with a single sentence stating that their question appears to be about that topic and noting that it is unrelated to the FDA Town Hall corpus.\n\n"
+    ),
+    'route_preamble_no_match': (
+        "There is NO MATCH in the extracted quotes.\n"
+        "This system is designed to answer questions about FDA Town Hall content, including bridging studies, test modifications, and related regulatory processes. If your question is indeed about FDA Town Hall topics, please rephrase or clarify so we can best assist you."
+    ),
+
+    # Template for formatting chunked Q&A items
+    "quoted_qa_item_template": (
+        "CLARIFIED QUESTION: {question}\n"
+        "CLARIFIED ANSWER: {answer}\n"
+        "VERBATIM QUESTION: {verbatim_question}\n"
+        "VERBATIM ANSWER: {verbatim_answer}\n"
+        "SPEAKER FOR QUESTION: {speaker_question}\n"
+        "SPEAKER FOR ANSWER: {speaker_answer}\n"
+        "TOPICS: {topics}\n"
+        "SOURCE: {source}\n"
+        "{display}\n\n"
+    ),
+
+    # Wrapper for the entire chunked Q&A
+    "quoted_qa_template": "{quoted_qa_formatted}",
+
+    # Usually not used if we are building a multi-part prompt manually
+    'user_ai_qa': 'USER QUESTION: {user_question}\n\nAI ANSWER: '
+}
+
+ROUTES_DICT_PV_EVAC_M1 = {
+    'routes_dict_name': 'ROUTES_DICT_PV_EVAC_M1',
+
+    # For the "good match" scenario
+    'prompt_initial_good_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
+        "There is a GOOD MATCH in the QUOTED QA so make sure to stay faithful to the QUOTED QA while answering the USER QUESTION.\n"
+        "Use as background context your knowledge of Portola Valley emergency procedures and wildfire evacuation protocols.\n"
+        "Prioritize information related to Shelter in Place by placing it first in any response to a general question or one where the response includes shelter in place.\n"
+        "Take the approach to thoughtfully but frankly communicating to parents that:\n"
+        "1) Shelter-in-place is only considered in the extreme circumstances of a mandatory evacuation order\n"
+        "2) If a shelter-in-place order is issued for the schools, the WFPD will bring resources to defend the shelter-in-place facilities with the highest priority\n"
+        "3) Parents absolutely cannot pick their children up from school, and if they try to do so they will be stopped by fire and police authorities\n"
+        "4) Attempting to pick up children will put their lives, their children's lives, those of first responders, and the entire community at risk\n"
+        "DO NOT use strong adjectives in your response, such as 'comprehensive' and 'thorough', to describe plans or approaches because significantly more work is needed by both authorities and parents to prepare for emergency evacuation of the schools and especially the shelter-in-place scenario.\n\n"
+    ),
+    'route_preamble_good_match': (
+        "There is a GOOD MATCH in our extracted quotes. Below is the official source Q&A followed by an AI ANSWER that synthesizes these official sources with current evacuation protocols and your specific question.\n"
+    ),
+
+    # For the "partial match" scenario
+    'prompt_initial_partial_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
+        "There is only a PARTIAL MATCH in the QUOTED QA so use the QUOTED QA while answering the USER QUESTION but also make sure to synthesize the QUOTED QA with the other context in order to answer the USER QUESTION.\n"
+        "Use as background context your knowledge of Portola Valley emergency procedures and wildfire evacuation protocols.\n"
+        "Prioritize information related to Shelter in Place by placing it first in any response to a general question or one where the response includes shelter in place.\n"
+        "Take the approach to thoughtfully but frankly communicating to parents that:\n"
+        "1) Shelter-in-place is only considered in the extreme circumstances of a mandatory evacuation order\n"
+        "2) If a shelter-in-place order is issued for the schools, the WFPD will bring resources to defend the shelter-in-place facilities with the highest priority\n"
+        "3) Parents absolutely cannot pick their children up from school, and if they try to do so they will be stopped by fire and police authorities\n"
+        "4) Attempting to pick up children will put their lives, their children's lives, those of first responders, and the entire community at risk\n"
+        "DO NOT use strong adjectives in your response, such as 'comprehensive' and 'thorough', to describe plans or approaches because significantly more work is needed by both authorities and parents to prepare for emergency evacuation of the schools and especially the shelter-in-place scenario.\n\n"
+    ),
+    'route_preamble_partial_match': (
+        "There is a PARTIAL MATCH in our extracted quotes. Please see the Q&A below, "
+        "then do your best to synthesize an answer."
+    ),
+
+    # For the "no match" scenario
+    'prompt_initial_no_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "No match was found so no QUOTED QA is provided.\n"
+        "Your task is to identify what topic the user's question appears to be about and respond with a single sentence stating that their question appears to be about that topic and noting that it is unrelated to Portola Valley emergency procedures.\n\n"
+    ),
+    'route_preamble_no_match': (
+        "There is NO MATCH in the extracted quotes.\n"
+        "This system is designed to answer questions about Portola Valley emergency procedures and wildfire evacuation protocols only. Please rephrase your question to focus on Portola Valley emergency procedures if that was your intent."
+    ),
+
+    # Template for formatting chunked Q&A items
+    "quoted_qa_item_template": (
+        "QUESTION: {question}\n"
+        "ANSWER: {answer}\n"
+        "SOURCE: {source}\n"
+        "TIMESTAMP: {timestamp}\n"
+        "{display}\n\n"
+    ),
+
+    # Wrapper for the entire chunked Q&A
+    "quoted_qa_template": "{quoted_qa_formatted}",
+
+    # Usually not used if we are building a multi-part prompt manually
+    'user_ai_qa': 'USER QUESTION: {user_question}\n\nAI ANSWER: '
+}
+
+ROUTES_DICT_DEUTSCH_M1 = {
+    'routes_dict_name': 'ROUTES_DICT_DEUTSCH_M1',
+
+    # For the "good match" scenario
+    'prompt_initial_good_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
+        "There is a GOOD MATCH in the QUOTED QA so make sure to stay faithful to the QUOTED QA while answering the USER QUESTION.\n"
+        "Use as background context your knowledge of David Deutsch and his philosophy of deep optimism.\n\n"
+    ),
+    'route_preamble_good_match': (
+        "There is a GOOD MATCH in our extracted quotes. Below is the official source Q&A followed by an AI ANSWER that synthesizes these quotes with David Deutsch's philosophy and your specific question.\n"
+    ),
+
+    # For the "partial match" scenario
+    'prompt_initial_partial_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
+        "There is only a PARTIAL MATCH in the QUOTED QA so use the QUOTED QA while answering the USER QUESTION but also make sure to synthesize the QUOTED QA with the other context in order to answer the USER QUESTION.\n"
+        "Use as background context your knowledge of David Deutsch and his philosophy of deep optimism.\n\n"
+    ),
+    'route_preamble_partial_match': (
+        "There is a PARTIAL MATCH in our extracted quotes. Please see the Q&A below, "
+        "then do your best to synthesize an answer."
+    ),
+
+    # For the "no match" scenario
+    'prompt_initial_no_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "No match was found so no QUOTED QA is provided.\n"
+        "Use as background context your knowledge of David Deutsch and his philosophy of deep optimism.\n\n"
+    ),
+    'route_preamble_no_match': (
+        "There is NO MATCH in the extracted quotes.\n"
+        "The AI ANSWER below uses the model's background knowledge of David Deutsch's philosophy and ideas."
+    ),
+
+    # Template for formatting chunked Q&A items
+    "quoted_qa_item_template": (
+        "QUESTION: {question}\n"
+        "ANSWER: {answer}\n"
+        "SOURCE: {source}\n"
+        "TIMESTAMP: {timestamp}\n"
+        "{display}\n\n"
+    ),
+
+    # Wrapper for the entire chunked Q&A
+    "quoted_qa_template": "{quoted_qa_formatted}",
+
+    # Usually not used if we are building a multi-part prompt manually
+    'user_ai_qa': 'USER QUESTION: {user_question}\n\nAI ANSWER: '
+}
+
+
+#**** OLD PRE-DEEPSEEK ROUTES ****
+
+
+ROUTES_DICT_SOVEREIGN_CHILD_V1 = {
+    'routes_dict_name': 'ROUTES_DICT_SOVEREIGN_CHILD_V1',  # mirror global variable name
+    'prompt_initial_good_match': 'Answer the USER QUESTION below the following multiple sources of context:\nUse as the top priority context the QUOTED QUESTIONS AND ANSWERS which have been extracted from the sources that are the primary subject for this AI tool.\nUse as background context your knowledge of the parenting philosophy Taking Children Seriously, as well as the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.\n',
+    'route_preamble_good_match': 'There is a good match for your question in our Portola Valley evacuation documentation. See the QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these official sources with current evacuation protocols and your specific question.',
+    'prompt_initial_partial_match': 'Answer the USER QUESTION below the following multiple sources of context:\nUse as the top priority context the QUOTED QUESTIONS AND ANSWERS which have been etxracted from the sources that are the primary subject for this AI tool.\nUse as background context your knowledge of the parenting philosophy Taking Children Seriously, as well as the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.\n',
+    'route_preamble_partial_match': 'There is a partial match for your question in our Portola Valley evacuation documentation. See the QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these official sources with current evacuation protocols and your specific question.',
+    'prompt_initial_no_match': 'Answer the USER QUESTION using as background context your knowledge of the parenting philosophy Taking Children Seriously, as well as the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.\nExplicitly state in your response that no match in the source documents was found for their question and therefore you are using this background context to answer their question.',
+    'route_preamble_no_match': 'There are no matches for your question in the included documents. The AI answer below is only using background context from the AI training data specific to the parenting philosophy Taking Children Seriously and the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.',
+    "quoted_qa_item_template": (
+        "QUESTION: {question}\n"
+        "ANSWER: {answer}\n"
+        "SOURCE: {source}\n"
+        "TIMESTAMP: {timestamp}\n"
+        "{display}\n\n"
+    ),
+    "quoted_qa_template": "{quoted_qa_formatted}",  # Wraps the entire formatted chunks
+    'user_ai_qa': 'USER QUESTION: {user_question}\n\nAI ANSWER: '
+}
 
 ROUTES_DICT_FDA_TOWNHALLS_V1 = {
     'routes_dict_name': 'ROUTES_DICT_FDA_TOWNHALLS_V1',  # mirror global variable name
@@ -17259,7 +21202,7 @@ VRAG_PREAMBLE_V1 = 'Use the sources provided below to provide a insightful and a
 
 
 
-## primary/video.py (8,911 tokens)
+## primary/video.py (8,941 tokens)
 #===== START OF FILE primary/video.py =====
 #Library of functions and execution code to process video files
 
@@ -17911,7 +21854,7 @@ def remove_consecutive_profile_repeats(input_csv_path, output_csv_path=None):
     return output_csv_path
 
 
-### VIDEO FUNCTIONS (2,937 tokens)
+### VIDEO FUNCTIONS (2,967 tokens)
 def extract_profiles_from_video(
     video_source,
     start_time_seconds=0,
@@ -17986,12 +21929,13 @@ def extract_profiles_from_video(
     return main_csv_path
 def mrun_extract_profiles_from_video():
     pass
-#if __name__ == "__main__":
-    video_source = "data/0_gitignore/video_2024-10-30_PV-TC.mkv"
+if __name__ == "__main__":
+    #video_source = "data/0_gitignore/video_2024-10-30_PV-TC.mkv"
+    video_source = "/Users/randytrue/Documents/Focus on Foundations/OurKarlPopper Zoom w Aaron and Logan.mp4"
     start_time = 0*60
     end_time = 10*60 #None
     
-    main_csv_path = extract_profiles_from_video(video_source, start_time, end_time)
+    main_csv_path = extract_profiles_from_video(video_source)#, start_time, end_time)
 
 def apply_common_profiles_csv(profiles_csv_path, common_profiles_path):
     """
@@ -18179,7 +22123,7 @@ def process_folder_for_profiles(folder_path, common_profiles_path, apply_common_
         print(f"No files found needing profile extraction in {folder_path}")
 def mrun_process_folder_for_profiles():     
     pass
-if __name__ == "__main__":
+#if __name__ == "__main__":
     folder_path = 'data/pv/meetings_tc_2023'
     common_profiles_path = 'data/pv/meetings_tc_2024/common_profiles_pv-tc.md'
     process_folder_for_profiles(folder_path, common_profiles_path, apply_common_profiles_only=False)
@@ -18213,7 +22157,7 @@ if __name__ == "__main__":
 
 
 
-## primary/webflow_api.py (3,757 tokens)
+## primary/webflow_api.py (3,789 tokens)
 #===== START OF FILE secondary/webflow.py =====
 #Library of functions and execution code to do Webflow tasks
 
@@ -18234,7 +22178,7 @@ WEBFLOW_API_KEY_FOF_ALL = os.environ["WEBFLOW_API_KEY_FOF_ALL"]
 #Initialize the Webflow API client
 client = Webflow(access_token=WEBFLOW_API_KEY_FOF_ALL)
 
-### WEBFLOW SITES (268 tokens)
+### WEBFLOW SITES (306 tokens)
 SITE_ID_FOF = "66f32336260d050c6e0fffa0"
 def mrun_print_site_info():
     pass
@@ -18253,10 +22197,11 @@ def mrun_print_site_info():
     print(f"Time Zone: {site_info.time_zone}")
     print(f"Custom Domains: {site_info.custom_domains}")
 
-DEUTSCH_INTERVIEWS_VRBS_ID = "6711b684a9e995b7c0f06e17"
+DEUTSCH_INTERVIEWS_VRBS_ID = "6711b684a9e995b7c0f06e17"  # for test one - not the real interviews collection
 FDA_C19_TOWNHALLS_ID = "6780532037b7b191793c3544"
+SOVEREIGN_CHILD_ID = "67b1eb365b3e0e9c63aa3cf5"
 
-### WEBFLOW CMS (3,340 tokens)
+### WEBFLOW CMS (3,334 tokens)
 def webflow_cms_get_collection_details(collection_id, debug=False, verbose=True):
     """
     Get the full details of a collection from its ID.
@@ -18330,8 +22275,8 @@ def webflow_cms_get_collection_details(collection_id, debug=False, verbose=True)
 
 def mrun_get_collection_details():
     pass
-#if __name__ == "__main__":
-    cur_collection_id = FDA_C19_TOWNHALLS_ID
+if __name__ == "__main__":
+    cur_collection_id = SOVEREIGN_CHILD_ID
     collection_details = webflow_cms_get_collection_details(cur_collection_id, verbose=True)
 
 def webflow_cms_import_heading(collection_id, file_path, heading):
@@ -18413,8 +22358,8 @@ def webflow_cms_list_items(collection_id, include_archived=True, verbose=False):
         return None
 def mrun_webflow_cms_list_items():
     pass
-if __name__ == "__main__":
-    cur_collection_id = FDA_C19_TOWNHALLS_ID
+#if __name__ == "__main__":
+    cur_collection_id = SOVEREIGN_CHILD_ID
     items = webflow_cms_list_items(cur_collection_id, verbose=True)
 
 def webflow_cms_import_transcript_and_qa(collection_id, transcript_file_path, qa_suffix='_qa-qonly', verbose=False):

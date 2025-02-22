@@ -3,13 +3,17 @@
 
 import os
 import sys
+import re
 import json
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
-from datetime import datetime
+from datetime import datetime, timedelta
 from time import sleep
 import requests
-from io import StringIO
+import io
+import subprocess
+from termcolor import colored
+from contextlib import redirect_stdout
     
 from primary.fileops import *
 from primary.aws import *
@@ -40,11 +44,12 @@ vrag-llm             n5yjgn8jak
 '''
 MAX_USER_NAME_LENGTH = 64  # sync with webflow-fof-site-body.js var maxUserNameLength
 MAX_QUESTION_LENGTH = 500  # sync with webflow-fof-site-body.js var maxQuestionLength
+MAX_FILE_NAME_LENGTH = 255  # sync with webflow-fof-site-body.js var maxFileNameLength
 MAX_EMAIL_ADDRESS_LENGTH = 254  # sync with webflow-fof-site-body.js var maxEmailLength
 MAX_PARAMETER_LENGTH = 50  # use as a default for internal parameters and variable names
 MIN_NUM_CHUNKS = 2  # sync with min num-chunks-options in webflow-qrag-input-component-embed.html
 MAX_NUM_CHUNKS = 20  # sync with max num-chunks-options in webflow-qrag-input-component-embed.html, think pinecone_retriever can go higher
-LLM_MODEL_OPTIONS = ["gpt-4o", "gpt-4o-mini"]
+LLM_MODEL_OPTIONS = ["gpt-4o", "gpt-4o-mini", "o3-mini", "deepseek-reasoner", "o3", "o1", "BLANK from qrag-routing lambda", "BLANK from qrag_routing_call"]
 REMOVE_FIELD = "__REMOVE_FIELD__"  # # Define a sentinel value for field removal
 
 # SKIPPED IMPLEMENTING THIS SCHEMA FOR API GATEWAY VALIDATION 12-16-24 RT
@@ -266,12 +271,12 @@ TEST_REQUESTS_HMAC_HASH = {
 API_ENDPOINT_QRAG_ROUTING = "https://us05oglu51.execute-api.us-west-2.amazonaws.com/api/qrag-routing"
 SCHEMA_QRAG_ROUTING = {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "QRAGRoutingRequest",
+    "title": "QRAGRoutingRequest", 
     "description": "Schema for validating QRAG routing requests",
     "type": "object",
     "required": [
         "user_question",
-        "vector_index_name", 
+        "vector_index_name",
         "route_dict_name"
     ],
     "properties": {
@@ -282,7 +287,7 @@ SCHEMA_QRAG_ROUTING = {
             "maxLength": MAX_QUESTION_LENGTH
         },
         "vector_index_name": {
-            "type": "string",
+            "type": "string", 
             "description": "Name of the vector index to search against"
         },
         "route_dict_name": {
@@ -300,11 +305,6 @@ SCHEMA_QRAG_ROUTING = {
             },
             "minItems": 2,
             "maxItems": 2
-        },
-        "llm_model": {
-            "type": "string",
-            "description": "The LLM model to use for generating responses",
-            "enum": LLM_MODEL_OPTIONS
         },
         "user_id": {
             "type": "string",
@@ -354,35 +354,27 @@ TEST_REQUESTS_QRAG_ROUTING = {
             "description": "Complete template request with all fields including hashed user data",
             "request": {
                 "user_question": "Is this working from the aws-valid.py module?",
-                "vector_index_name": "deutsch-transcript-qrag-78f-20240926",
+                "vector_index_name": "deutsch-transcript-qrag-83f-20250202",
                 "num_chunks": 2,
-                "route_dict_name": "ROUTES_DICT_DEUTSCH_V4",
+                "route_dict_name": "ROUTES_DICT_DEUTSCH_M1",
                 "routes_bounds": [0.3, 0.9],
-                "llm_model": "gpt-4o-mini", 
                 "user_id": "test_user",
-                "qrag_version": "1.0",
+                "qrag_version": "2.0",
                 "hashedUserNiceName": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
                 "hashedUserIPAddress": "b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1",
                 "hashedInputUserEmail": "c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0v1w2"
             }
         },
         {   
-            "description": "Minimal valid request without optional hashed fields",
+            "description": "Add start_date and end_date",
             "request": {
-                "user_question": "Is this working from the aws-valid.py module?",
-                "vector_index_name": "deutsch-transcript-qrag-78f-20240926",
-                "route_dict_name": "ROUTES_DICT_DEUTSCH_V4"
+                "start_date": "1995-01-01",
+                "end_date": "2024-12-23"
             }
         }
     ],
 
     "schema_invalid_requests": [
-        {   
-            "description": "Invalid llm_model value - Not in enum list",
-            "request": {
-                "llm_model": "gpt-3"
-            }
-        },
         {   
             "description": "Out of range - Values must be between 0 and 1",
             "request": {
@@ -458,25 +450,18 @@ TEST_REQUESTS_QRAG_ROUTING = {
 API_ENDPOINT_QRAG_LLM = "https://sz901mb96d.execute-api.us-west-2.amazonaws.com/api/qrag-llm"
 SCHEMA_QRAG_LLM = {
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "title": "QRAGLLMRequest",
+    "title": "QRAGLLMRequest", 
     "type": "object",
     "required": ["metadata", "content"],
     "properties": {
         "metadata": {
             "type": "object",
-            "required": [
-                "vector_index_name",
-                "llm_model"
-            ],
+            "required": ["routes_info", "vector_index_name"],
             "properties": {
                 "vector_index_name": {
                     "type": "string",
                     "minLength": 1,
                     "maxLength": MAX_PARAMETER_LENGTH
-                },
-                "llm_model": {
-                    "type": "string",
-                    "enum": LLM_MODEL_OPTIONS
                 },
                 "user_id": {
                     "type": "string",
@@ -490,34 +475,48 @@ SCHEMA_QRAG_LLM = {
                     "type": "string",
                     "maxLength": MAX_PARAMETER_LENGTH
                 },
+                "large_context_filename": {
+                    "type": ["string", "null"],  # Allow either string or null
+                    "maxLength": MAX_FILE_NAME_LENGTH
+                },
                 "routes_info": {
                     "type": "object",
+                    "properties": {
+                        "routes_flow_name": {"type": "string"},
+                        "upper_sim_bound": {"type": "number"},
+                        "lower_sim_bound": {"type": "number"},
+                        "max_sim": {"type": "string"},
+                        "max_stars": {"type": "integer"},
+                        "routes_dict_content": {"type": "object"}
+                    },
                     "additionalProperties": True
+                },
+                "is_retry": {
+                    "type": "boolean"
                 }
             },
             "additionalProperties": True
         },
         "content": {
             "type": "object",
-            "required": ["user_question"],
+            "required": ["user_question", "prompt_initial", "quoted_qa"],
             "properties": {
                 "user_question": {
                     "type": "string",
                     "minLength": 1,
                     "maxLength": MAX_QUESTION_LENGTH
                 },
-                "route_preamble": {
-                    "type": "string"
-                },
-                "quoted_qa": {
-                    "type": "string"
-                },
-                "ai_answer": {
-                    "type": "string"
-                },
+                "route_preamble": {"type": "string"},
+                "prompt_initial": {"type": "string"},
+                "quoted_qa": {"type": "string"},
+                "ai_answer": {"type": "string"},
                 "chunks": {
                     "type": "object",
-                    "additionalProperties": True
+                    "properties": {
+                        "max_sim": {"type": "string"},
+                        "max_stars": {"type": "integer"},
+                        "chunks": {"type": "array"}
+                    }
                 }
             },
             "additionalProperties": False
@@ -532,23 +531,23 @@ TEST_REQUESTS_QRAG_LLM = {
                 "metadata": {
                     "timestamp": "2024-06-13T11:46:33.651753",
                     "user_id": "default", 
-                    "vector_index_name": "deutsch-transcript-qrag-78f-20240926",
-                    "bot_version": "1.0",
-                    "llm_model": "gpt-4o-mini",
+                    "vector_index_name": "deutsch-transcript-qrag-83f-20250202",
+                    "bot_version": "2.0",
                     "routes_info": {
-                        "routes_flow_name": "3 routes, sim-star double, separate prompts",
+                        "routes_flow_name": "3 routes, separate route prompts",
                         "upper_sim_bound": 0.9,
                         "lower_sim_bound": 0.3,
                         "max_sim": "0.216",
                         "max_stars": 5,
                         "routes_dict_content": {
-                            "routes_dict_name": "ROUTES_DICT_DEUTSCH_V3"
+                            "routes_dict_name": "ROUTES_DICT_DEUTSCH_M1"
                         }
                     }
                 },
                 "content": {
                     "user_question": "What should I eat for lunch?",
                     "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
+                    "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
                     "quoted_qa": "",
                     "ai_answer": "WAITING FOR LLM RESPONSE",
                     "chunks": {
@@ -558,18 +557,25 @@ TEST_REQUESTS_QRAG_LLM = {
                     }
                 }
             }
-        }
-    ],
-
-    "schema_invalid_requests": [
-        {   
-            "description": "Invalid llm_model value - Not in enum list",
+        },
+        {
+            "description": "Complete matching Portal API Gateway test with large context filename",
             "request": {
                 "metadata": {
-                    "llm_model": "gpt-3"
+                    "large_context_filename": "deutsch_large_context_v1.md"
                 }
             }
         },
+        {   
+            "description": "Test retry flag",
+            "request": {
+                "metadata": {
+                    "is_retry": True
+                }
+            }
+        }
+    ],
+    "schema_invalid_requests": [
         {
             "description": "Exceeds maxLength",
             "request": {
@@ -583,6 +589,14 @@ TEST_REQUESTS_QRAG_LLM = {
             "request": {
                 "content": {
                     "user_question": ""
+                }
+            }
+        },
+        {   
+            "description": "Invalid data types in content",
+            "request": {
+                "content": {
+                    "user_question": 12345
                 }
             }
         }
@@ -611,11 +625,11 @@ TEST_REQUESTS_QRAG_LLM = {
                 }
             }
         },
-        {   
-            "description": "Invalid data types in content",
+        {
+            "description": "Large context filename not in S3 folder",
             "request": {
-                "content": {
-                    "user_question": 12345
+                "metadata": {
+                    "large_context_filename": "not-present-filename.md"
                 }
             }
         }
@@ -867,7 +881,15 @@ LAMBDA_GLOBALS_MAPPING = {
     'send-email': 'SEND_EMAIL',
     'vrag-llm': 'VRAG_LLM'
 }
-
+LAMBDA_APIS_MAPPING = {
+    'deepgram-callback': 'lsehufc3n2',
+    'hash-store': 'wd3rapoqy7',
+    'hmac-hash': 'xusv8bpl49', 
+    'qrag-llm': 'sz901mb96d',
+    'qrag-routing': 'us05oglu51',
+    'send-email': 'lvyznjx395',
+    'vrag-llm': 'n5yjgn8jak'
+}
 LAMBDA_JWT_REQUIRED = {
     'deepgram-callback': False,
     'hash-store': False,
@@ -999,8 +1021,8 @@ def mtest_create_complete_request():
 #lambda_function='hmac-hash'      # No JWT - PASS 12-21 0540
 #lambda_function='hash-store'     # No JWT - PASS 12-21 0540
 #lambda_function='send-email'     # JWT - PASS 12-21 0723
-lambda_function='qrag-routing'   # JWT - PASS 12-21 0540
-#lambda_function='qrag-llm'       # JWT - PASS 12-21 0642
+#lambda_function='qrag-routing'   # JWT - PASS 12-21 0540
+lambda_function='qrag-llm'       # JWT - PASS 12-21 0642
 #lambda_function='vrag-llm'       # JWT - PASS 12-21 0717
 all_lambdas = ['deepgram-callback', 'hmac-hash', 'hash-store', 'send-email', 'qrag-routing', 'qrag-llm', 'vrag-llm']
 
@@ -1133,7 +1155,7 @@ def test_lambda_requests(lambda_function, stage='dev', direct_lambda=True, with_
                 api_endpoint,
                 json=request_data,
                 headers=headers,
-                timeout=10
+                timeout=180  # Changed from 10 to 180 seconds
             )
             try:
                 return response.json()
@@ -1348,6 +1370,7 @@ if __name__ == "__main__":
         jwt_token = JWT_TEST
 
     results = test_lambda_requests(lambda_function, direct_lambda=True, with_gateway=True, jwt_token=jwt_token)
+    #print(colored("TESTING the green color", "green"))
 
 def check_validation_setup(lambda_function, http_method='POST', verbose=False):
     """

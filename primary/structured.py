@@ -22,7 +22,7 @@ warnings.formatwarning = custom_formatwarning
 # USAGE: warnings.warn(f"Insert warning message here")
 
 ### BLOCK PROCESSING
-def get_blocks_from_file(qa_file_path, heading="### qa"):
+def get_blocks_from_file(file_path, heading="### qa"):
     """
     Extracts and validates blocks of text from a file.
 
@@ -33,15 +33,15 @@ def get_blocks_from_file(qa_file_path, heading="### qa"):
     from primary.fileops import get_heading
     
     block_delimiter = "\n\n"  
-    qa_text = get_heading(qa_file_path, heading)
-    if qa_text is None:
-        raise ValueError(f"Heading '{heading}' not found in file {qa_file_path}")
+    text = get_heading(file_path, heading)
+    if text is None:
+        raise ValueError(f"Heading '{heading}' not found in file {file_path}")
         
-    qa_text = re.sub(r'^#.*\n?', '', qa_text, flags=re.MULTILINE)
-    qa_text = re.sub(r'\n{3,}', '\n\n', qa_text)
+    text = re.sub(r'^#.*\n?', '', text, flags=re.MULTILINE)
+    text = re.sub(r'\n{3,}', '\n\n', text)
     blocks_list = []
 
-    blocks = qa_text.split(block_delimiter)
+    blocks = text.split(block_delimiter)
     for block in blocks:
         if block.strip():
             blocks_list.append(block.strip())
@@ -466,6 +466,118 @@ def propagate_fields_by_subheading(file_path, full_fields, required_fields, dele
 
     return new_file_path  # Return the relative file path of the new file
 
+def select_blocks_top_stars(blocks_list, num_blocks=5):
+    """
+    Selects the top num_blocks from the list based on stars count, with timestamp as a tiebreaker.
+    Blocks with no stars or equal stars are sorted by earliest timestamp.
+
+    :param blocks_list: list of text blocks to process
+    :param num_blocks: int, number of top blocks to return
+    :return: list of the top num_blocks blocks sorted by stars (desc) and timestamp (asc)
+    """
+    def get_block_sort_values(block):
+        # Get stars value, defaulting to 0 if missing or invalid
+        stars = get_field_value(block, "STARS")
+        try:
+            stars = int(stars) if stars is not None else 0
+        except (ValueError, TypeError):
+            stars = 0
+            
+        # Get timestamp value, defaulting to max value if missing or invalid
+        timestamp = get_field_value(block, "TIMESTAMP")
+        try:
+            if timestamp:
+                # Remove any markdown link formatting
+                timestamp = re.sub(r'\[([^\]]+)\].*', r'\1', timestamp)
+                seconds = convert_timestamp_to_seconds(timestamp)
+            else:
+                seconds = float('inf')
+        except (ValueError, TypeError):
+            seconds = float('inf')
+            
+        # Return tuple for sorting (stars descending, timestamp ascending)
+        return (-stars, seconds)
+            
+    return sorted(blocks_list, key=get_block_sort_values)[:num_blocks]
+def create_qa_top_stars_file(qa_file_path, suffix_new="_qa-topstars", num_blocks=5):
+    """
+    Creates a new file with the top num_blocks from the list of blocks based on the number of stars.
+    """
+    blocks_list = get_blocks_from_file(qa_file_path)
+    top_blocks = select_blocks_top_stars(blocks_list, num_blocks)
+    top_text = '\n\n'.join(top_blocks)
+    new_qa_file_path = copy_file_and_replace_suffix(qa_file_path, suffix_new)
+    set_heading(new_qa_file_path, "\n" + top_text, "### qa")
+    return new_qa_file_path
+def create_transcript_top_stars_file(qa_top_stars_file_path, suffix_orig="_vrb", suffix_new="_vrb-topstars", debug=False):
+    """
+    Creates a new transcript file containing only the speaker segments related to the top-starred QA pairs.
+
+    :param qa_top_stars_file_path: string, path to the QA top stars file
+    :param suffix_orig: string, suffix of the original transcript file
+    :param suffix_new: string, suffix for the new transcript file
+    :param debug: boolean, if True prints debug information
+    :return: string, path to the newly created transcript file
+    """
+    # Get the original transcript file path
+    transcript_file_path = sub_suffix_in_str(qa_top_stars_file_path, suffix_orig)
+    
+    # Get QA timestamps from the TIMESTAMP: lines
+    qa_blocks = get_blocks_from_file(qa_top_stars_file_path, "### qa")
+    qa_timestamps = []
+    for block in qa_blocks:
+        for line in block.split('\n'):
+            if line.startswith('TIMESTAMP:'):
+                # Get the timestamp string after "TIMESTAMP: "
+                qa_timestamp = line[len('TIMESTAMP:'):].strip()
+                if qa_timestamp:
+                    qa_timestamps.append(qa_timestamp)
+    
+    verbose_print(debug, "\nQA timestamps:", qa_timestamps)
+    verbose_print(debug, "\nAnalyzing transcript blocks:")
+    
+    # Get all transcript blocks
+    transcript_blocks = get_blocks_from_file(transcript_file_path, "### transcript")
+    
+    # Filter transcript blocks based on timestamps
+    selected_blocks = []
+    
+    for i in range(len(transcript_blocks)):
+        current_block = transcript_blocks[i]
+        next_block = transcript_blocks[i + 1] if i + 1 < len(transcript_blocks) else None
+        
+        # Get first lines of current and next blocks
+        current_first_line = current_block.split('\n')[0] if current_block else ""
+        next_first_line = next_block.split('\n')[0] if next_block else ""
+        
+        # Check if either current or next block has matching timestamp
+        current_has_match = any(timestamp in current_first_line for timestamp in qa_timestamps)
+        next_has_match = any(timestamp in next_first_line for timestamp in qa_timestamps)
+        
+        verbose_print(debug, f"\nAnalyzing block: {current_first_line}")
+        verbose_print(debug, f"  Current block has matching timestamp? {current_has_match}")
+        verbose_print(debug, f"  Next block has matching timestamp? {next_has_match}")
+        
+        if current_has_match or next_has_match:
+            verbose_print(debug, "  Keeping this block")
+            selected_blocks.append(current_block)
+    
+    verbose_print(debug, f"\nTotal blocks selected: {len(selected_blocks)}")
+    
+    # Create new file with selected blocks
+    new_transcript_file_path = copy_file_and_replace_suffix(transcript_file_path, suffix_new)
+    selected_text = '\n\n'.join(selected_blocks)
+    set_heading(new_transcript_file_path, "\n" + selected_text, "### transcript")
+    
+    return new_transcript_file_path
+def mtest_create_top_stars_files_single():
+    pass
+#if __name__ == "__main__":
+    qa_file_path = "data/deutsch/f8_done_qafixed_and_vrb/2011-08-01_On Point with Tom Ashbrook_qafixed.md"
+    qa_top_stars_file_path = create_qa_top_stars_file(qa_file_path)
+    print(f"QA top stars file: {qa_top_stars_file_path}")
+    print(f"Transcript top stars file: {create_transcript_top_stars_file(qa_top_stars_file_path)}")
+
 
 ### BLOCK VALIDATION
 def validate_stars(stars_str):
@@ -739,7 +851,7 @@ def extract_topic_counts_triples(qa_file_path, verbose=False):
     :return: string of CSV lines with each line in the format "topic, file_stem, count".
     """
     # Get the blocks from the file
-    blocks = get_blocks_from_file(qa_file_path, verbose)
+    blocks = get_blocks_from_file(qa_file_path)
     
     # Initialize a dictionary to keep track of topics and their occurrences
     topic_dict = {}
@@ -763,7 +875,6 @@ def extract_topic_counts_triples(qa_file_path, verbose=False):
     topic_counts_csv_lines = "\n".join([f"{topic}, {file_stem}, {count}" for topic, count in topic_dict.items()])
     
     return topic_counts_csv_lines
-
 def create_topics_matrix(folder_paths, target_file_path="topics_matrix.csv", suffixpat_include="_qafixed"):
     """
     Collects topics from files in specified folders and creates a CSV matrix file at the target file path.
@@ -799,7 +910,6 @@ def mtest_create_topics_matrix():
 #if __name__ == "__main__":
     cur_folder_paths = ["data/f_c7_done_early", "data/f_c8_qafixed_talks", "data/f_c6_done_after_dq", "data/f_c5_done_after_dq" ]   
     create_topics_matrix(cur_folder_paths)
-
 def change_topic_in_file(file_path, find_topic, replace_topic):
     """
     Replaces a specified topic with another in a single file.
@@ -834,7 +944,6 @@ def change_topic_in_file(file_path, find_topic, replace_topic):
         write_metadata_and_content(file_path, metadata, new_content, overwrite='yes')
     
     return replacements_in_file
-
 def change_topic_in_folders(folder_paths, find_topic, replace_topic, suffixpat_include="_qafixed"):
     """
     Replaces a specified topic with another across files in given folders.
@@ -865,7 +974,6 @@ def change_topic_in_folders(folder_paths, find_topic, replace_topic, suffixpat_i
     for file_path, count in files_with_replacements:
         file_name = os.path.basename(file_path)
         print(f"{count} {file_name}")
-
 def review_singlet_topic_SONNET(folder_paths, matrix_csv_file_path, starting_letter="a"):
     # Read the CSV file
     with open(matrix_csv_file_path, 'r') as csvfile:
@@ -916,7 +1024,6 @@ def review_singlet_topic_SONNET(folder_paths, matrix_csv_file_path, starting_let
                 print(f"Could not find file for topic '{topic}'")
 
     print("Review of singlet topics completed.")
-
 def review_singlet_topic(folder_paths, matrix_csv_file_path, starting_letter="a"):
     # Step 1: Read the CSV file and build the data structures
     topic_counts = {}  # Mapping from topic to total count
@@ -1024,6 +1131,191 @@ def review_singlet_topic(folder_paths, matrix_csv_file_path, starting_letter="a"
             new_topic = user_input
             print(f"Replacing topic '{topic}' with '{new_topic}' in file '{file_path}'")
             change_topic_in_file(file_path, topic, new_topic)
+
+
+### QA
+def compare_fields(file_path, field1, field2, print_same_exceptions=False, print_different=True):
+    """
+    Compare two fields in a file and print the differences.
+
+    :param file_path: string, the file path to process.
+    :param field1: string, the first field to compare.
+    :param field2: string, the second field to compare.
+    :param print_same_exceptions: bool, whether to print blocks that are same with exceptions.
+    :param print_different: bool, whether to print blocks that are different.
+    :return: None.
+    """
+    # Define exceptions that should be considered "same"
+    exceptions = [
+        ('same_with_quotes', lambda x, y: x.replace('"', "'") == y.replace('"', "'"))
+    ]
+    
+    # Get all blocks from the file
+    blocks = get_blocks_from_file(file_path)
+    total_blocks = len(blocks)
+    
+    # Count blocks by category
+    identical_count = 0
+    same_with_exceptions = []
+    different_blocks = []
+    
+    for i, block in enumerate(blocks, 1):
+        fields_dict = get_all_fields_dict(block)
+        value1 = fields_dict.get(field1)
+        value2 = fields_dict.get(field2)
+        
+        if value1 == value2:
+            identical_count += 1
+        else:
+            # Check if differences are due to known exceptions
+            is_exception = False
+            for exc_name, exc_func in exceptions:
+                if exc_func(value1, value2):
+                    same_with_exceptions.append((exc_name, i, value1, value2))
+                    is_exception = True
+                    break
+            
+            if not is_exception:
+                different_blocks.append((i, value1, value2))
+    
+    # Calculate counts
+    exception_count = len(same_with_exceptions)
+    different_count = len(different_blocks)
+    
+    # Print summary with aligned numbers and percentages
+    print(f"\nComparing {field1} with {field2}:")
+    print(f"{'Identical:':<22} {identical_count:>5} ({identical_count/total_blocks*100:>6.1f}%)")
+    print(f"{'Same with exceptions:':<22} {exception_count:>5} ({exception_count/total_blocks*100:>6.1f}%)")
+    print(f"{'Different:':<22} {different_count:>5} ({different_count/total_blocks*100:>6.1f}%)")
+    print(f"{'Total blocks:':<22} {total_blocks:>5}")
+
+    # Print blocks that are same with exceptions (if enabled)
+    if same_with_exceptions and print_same_exceptions:
+        print("\nBlocks that are same with exceptions:")
+        for exc_type, block_num, val1, val2 in same_with_exceptions:
+            print(f"\nQA Block {block_num} ({exc_type})")
+            print(f"{field1}: {val1}")
+            print(f"{field2}: {val2}")
+    
+    # Print differing blocks (if enabled)
+    if different_blocks and print_different:
+        print("\nDiffering blocks:")
+        for block_num, val1, val2 in different_blocks:
+            print(f"\nQA Block {block_num}")
+            print(f"{field1}: {val1}")
+            print(f"{field2}: {val2}")
+def mrun_compare_fields():
+    pass
+if __name__ == "__main__":
+    #cur_file_path = "data/misc_books/Sovereign Child/The Sovereign Child_qa-qonly.md"
+    cur_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_qa-qonly.md"
+    compare_fields(cur_file_path, "CLARIFIED QUESTION", "VERBATIM QUESTION")
+def write_blocks_to_heading(file_path, blocks, heading):
+    """
+    Write blocks of text under a specified heading in a file, converting any field containing a list of strings 
+    to a comma-separated format.
+
+    :param file_path: string, path to the file to write to
+    :param blocks: list of strings, each string being a block of text
+    :param heading: string, the heading to write under (including # markers)
+    :return: None
+    """
+    # Process each block to convert list formats if present
+    processed_blocks = []
+    for block in blocks:
+        lines = block.split('\n')
+        processed_lines = []
+        for line in lines:
+            # Check if line contains a field with a list (starts with [ after the colon)
+            if ': [' in line:
+                field_name, field_value = line.split(':', 1)
+                field_value = field_value.strip()
+                if field_value.startswith('[') and field_value.endswith(']'):
+                    # Extract values from list format and join with commas
+                    values_str = field_value[1:-1].replace("'", "").replace('"', "")
+                    processed_lines.append(f'{field_name}: {values_str.strip()}')
+                else:
+                    processed_lines.append(line)
+            else:
+                processed_lines.append(line)
+        processed_blocks.append('\n'.join(processed_lines))
+    
+    # Join blocks with double newlines to maintain block separation
+    modified_text = '\n\n'.join(processed_blocks)
+    
+    # Ensure the text ends with a newline
+    if not modified_text.endswith('\n'):
+        modified_text += '\n'
+        
+    try:
+        set_heading(file_path, modified_text, heading)
+    except Exception as e:
+        raise ValueError(f"Error writing blocks to heading: {str(e)}")
+def remap_fields(file_path, rename_fields, delete_fields=[]):
+    """
+    Remap fields in a file based on tuples of old field names to new field names.
+
+    :param file_path: string, path to the file to process
+    :param rename_fields: list of tuples (old_field, new_field) for renaming
+    :param delete_fields: list of fields to delete
+    :return: None
+    """
+    # Create case-mapping dictionaries to preserve original case
+    rename_case_map = {}
+    for old, new in rename_fields:
+        old_stripped = old.rstrip(':')
+        new_stripped = new.rstrip(':')
+        rename_case_map[old_stripped.upper()] = new_stripped
+    
+    delete_fields = [field.rstrip(':').upper() for field in delete_fields]
+    
+    # Get blocks from file
+    try:
+        blocks = get_blocks_from_file(file_path)
+    except Exception as e:
+        raise ValueError(f"Error reading blocks from file: {str(e)}")
+    
+    if not blocks:
+        raise ValueError(f"No blocks found in file: {file_path}")
+        
+    # Get the heading above the first block
+    first_block = blocks[0]
+    heading = get_heading_above(file_path, first_block)
+    if not heading:
+        raise ValueError(f"Could not find heading above blocks in file: {file_path}")
+    
+    # Process each block
+    modified_blocks = []
+    for block in blocks:
+        fields_dict = get_all_fields_dict(block)
+        
+        # Verify all old field names exist in at least one block
+        missing_fields = [old for old, _ in rename_fields if old.rstrip(':').upper() not in fields_dict]
+        if missing_fields:
+            raise ValueError(f"Fields not found in block: {', '.join(missing_fields)}")
+        
+        # Create new block with renamed and deleted fields
+        new_block_lines = []
+        for field, value in fields_dict.items():
+            # Skip deleted fields
+            if field in delete_fields:
+                continue
+                
+            # Rename field if it's in rename_fields, preserving case from new field name
+            new_field = rename_case_map.get(field, field)
+            new_block_lines.append(f"{new_field}: {value}")
+            
+        modified_blocks.append('\n'.join(new_block_lines))
+    
+    # Write the modified blocks back to the file
+    write_blocks_to_heading(file_path, modified_blocks, heading)
+def mrun_remap_fields():
+    pass
+#if __name__ == "__main__":
+    cur_file_path = "data/misc_books/Sovereign Child/The Sovereign Child_qa-qonly.md"
+    rename_fields = [("CLARIFIED QUESTION", "QUESTION"), ("VERBATIM ANSWER", "ANSWER")]
+    delete_fields = ["CLARIFIED ANSWER", "VERBATIM QUESTION", "SPEAKER QUESTION", "SPEAKER ANSWER"]
+    remap_fields(cur_file_path, rename_fields, delete_fields)
 
 
 # ===== END OF FILE primary/structured.py =====

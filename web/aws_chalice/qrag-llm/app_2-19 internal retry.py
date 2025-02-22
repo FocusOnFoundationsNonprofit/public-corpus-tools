@@ -3,7 +3,9 @@
 
 from chalice import Chalice, Response
 import json
+import os
 import traceback
+import boto3
 import time
 import threading
 
@@ -18,33 +20,31 @@ app.api.cors = True
 # Define allowed origins as a set
 ALLOWED_ORIGINS = {
     'https://www.focusonfoundations.org',
-    'https://floodlamp-8c9d00d6ef3e90c375de806594d04.webflow.io'
+    'https://floodlamp-8c9d00d6ef3e90c375de806594d04.webflow.io',
+    'http://localhost:8000'
 }
 
 # Define the server-side models and timing
-FIRST_MODEL = "o3-mini"
+SERVER_SIDE_LLM_MODEL = "o3-mini"
 FALLBACK_MODEL = "gpt-4o"
-RETRY_INITIATION_TIME = 23  # reduced from 27 to allow for overhead
-EXECUTION_TIMEOUT_TIME = 24  # seconds - time to return so that API gateway doesn't kill the lambda
-SAMPLING_INTERVAL = 1
+RETRY_INITIATION_TIME = 10  # seconds - time to initiate retry
+RETRY_TIMEOUT_TIME = 26  # seconds - time to return from retry so that API gateway doesn't kill the lambda
 INTENTIONAL_DELAY = 0  # seconds
-
+RETRY_FLAG_PARAM = "is_retry"
+SAMPLING_INTERVAL = 1  # seconds
+FUNCTION_NAME = "qrag-llm-dev"
 
 @app.route('/qrag-llm', methods=['POST'], cors=True)
 def handle_qrag_llm():
     start_time = time.time()
-    print(f"qrag-llm lambda func - last updated 2-21 0621 add intentional delay w print statements")
-    
-    # Log initial execution time immediately
-    elapsed_time = time.time() - start_time
-    print(f"Initial execution time: {elapsed_time:.1f}s")
+    print("qrag-llm lambda func - last updated 2-19 0919 with retry")
     
     # Check if this is a retry attempt
     received_request_data = app.current_request.json_body
-    is_retry = received_request_data.get('metadata', {}).get('is_retry', False)
+    is_retry = received_request_data.get('metadata', {}).get(RETRY_FLAG_PARAM, False)
     
-    # Set model based on whether this is a retry
-    current_model = FALLBACK_MODEL if is_retry else FIRST_MODEL
+    # If it's a retry, use the fallback model
+    current_model = FALLBACK_MODEL if is_retry else SERVER_SIDE_LLM_MODEL
     print(f"Using LLM model: {current_model} (retry: {is_retry})")
     
     # Get the origin from the request
@@ -88,6 +88,9 @@ def handle_qrag_llm():
         received_request_data = app.current_request.json_body
         print("Received request data:", received_request_data)
 
+        # Override model with our server-side choice
+        received_request_data['metadata']['llm_model'] = current_model
+        
         # Get large context filename from metadata
         large_context_filename = received_request_data.get('metadata', {}).get('large_context_filename')
         large_context = None
@@ -112,113 +115,140 @@ def handle_qrag_llm():
         else:
             print("No large context filename provided")
 
-        # Start monitoring thread for execution time
-        monitoring_active = threading.Event()
-        monitoring_active.set()
-        elapsed_time = 0
-        
-        def monitor_execution_time():
-            nonlocal elapsed_time
-            while monitoring_active.is_set():
-                elapsed_time = time.time() - start_time
-                print(f"Execution time: {elapsed_time:.1f}s, is_retry: {is_retry}, current_model: {current_model}")
-                # Force flush stdout to ensure logs are captured
-                import sys
-                sys.stdout.flush()
-                time.sleep(SAMPLING_INTERVAL)
-        
-        # Start monitoring thread with higher priority
-        monitor_thread = threading.Thread(target=monitor_execution_time, daemon=True)
-        monitor_thread.start()
-
-        # Log time before starting LLM worker
-        elapsed_time = time.time() - start_time
-        print(f"  *** Pre-LLM execution time: {elapsed_time:.1f}s")
-
-        # Create an Event to signal completion
-        completion_event = threading.Event()
-        result = {'response': None, 'error': None}
-        
-        def llm_worker():
-            try:
-                # Add intentional delay for testing (isolated)
-                if not is_retry:
-                    print(f"Adding {INTENTIONAL_DELAY} second intentional delay to test timeout...")
-                    time.sleep(INTENTIONAL_DELAY)
-                    elapsed = time.time() - start_time
-                    print(f"Intentional delay complete at {elapsed:.1f}s")
-                    
-                elapsed = time.time() - start_time
-                print(f"Starting LLM call with model {current_model} at {elapsed:.1f}s")
-                    
-                result['response'] = qrag_llm_call(
-                    received_request_data,
-                    llm_model=current_model,
-                    large_context=large_context,
-                    large_context_filename=large_context_filename
-                )
-                elapsed = time.time() - start_time
-                print(f"LLM call completed successfully at {elapsed:.1f}s")
-            except Exception as e:
-                elapsed = time.time() - start_time
-                print(f"LLM call failed with error at {elapsed:.1f}s: {str(e)}")
-                result['error'] = e
-            finally:
-                completion_event.set()
-        
-        # Start LLM call in separate thread
-        thread = threading.Thread(target=llm_worker)
-        thread.start()
-        
-        # Wait for completion or timeout
-        while not completion_event.wait(timeout=SAMPLING_INTERVAL):
-            if not is_retry and elapsed_time >= RETRY_INITIATION_TIME:
-                monitoring_active.clear()
-                print(f"Execution time exceeded {RETRY_INITIATION_TIME}s, initiating retry...")
-                
-                return Response(
-                    body=json.dumps({
-                        'status': 'Retry',
-                        'message': f'Main model ({current_model}) timed out after {elapsed_time:.1f}s. Switching to {FALLBACK_MODEL}.',
-                        'response': {
-                            'metadata': received_request_data['metadata'],
-                            'content': {
-                                **received_request_data['content'],
-                                'ai_answer': f'Main model ({current_model}) timed out after {elapsed_time:.1f}s. Switching to {FALLBACK_MODEL}.'
-                            }
-                        }
-                    }),
-                    status_code=200,
-                    headers=cors_headers
-                )
+        # Start the LLM call
+        try:
+            # Check if this is a retry attempt
+            received_request_data = app.current_request.json_body
+            is_retry = received_request_data.get('metadata', {}).get(RETRY_FLAG_PARAM, False)
             
-            elif elapsed_time >= EXECUTION_TIMEOUT_TIME:
-                monitoring_active.clear()
-                timeout_msg = f"Execution time limit reached ({EXECUTION_TIMEOUT_TIME}s)"
-                print(timeout_msg)
-                return Response(
-                    body=json.dumps({
-                        'error': timeout_msg,
-                        'error_type': 'ExecutionTimeout'
-                    }),
-                    status_code=500,
-                    headers=cors_headers
-                )
+            # If it's a retry, use the fallback model
+            current_model = FALLBACK_MODEL if is_retry else SERVER_SIDE_LLM_MODEL
+            print(f"Using LLM model: {current_model} (retry: {is_retry})")
 
-        # Process completion
-        if completion_event.is_set():
-            if result['error']:
-                raise result['error']
-            response_json_object = result['response']
-        
-        # Clean up monitoring thread
-        monitoring_active.clear()
-        monitor_thread.join(timeout=1.0)
+            # Start monitoring thread for execution time
+            monitoring_active = threading.Event()
+            monitoring_active.set()
+            elapsed_time = 0  # Shared variable for tracking time
+            retry_elapsed_time = 0  # Shared variable for retry tracking
+            retry_start_time = None
+            
+            def monitor_execution_time():
+                while monitoring_active.is_set():
+                    nonlocal elapsed_time, retry_elapsed_time
+                    elapsed_time = time.time() - start_time
+                    if retry_start_time:
+                        retry_elapsed_time = time.time() - retry_start_time
+                        print(f"Execution time: {elapsed_time:.2f}s (overall), {retry_elapsed_time:.2f}s (retry), is_retry: {is_retry}, current_model: {current_model}")
+                    else:
+                        print(f"Execution time: {elapsed_time:.2f}s, is_retry: {is_retry}, current_model: {current_model}")
+                    time.sleep(SAMPLING_INTERVAL)
+            
+            monitor_thread = threading.Thread(target=monitor_execution_time)
+            monitor_thread.daemon = True
+            monitor_thread.start()
 
-        print("\nPrinting JSON object with pretty_print_json_data...")
-        pretty_print_json_data(response_json_object, print_values=True)
+            # Add intentional delay for testing (isolated)
+            if not is_retry:
+                print(f"Adding {INTENTIONAL_DELAY} second intentional delay to test timeout...")
+                time.sleep(INTENTIONAL_DELAY)
+            
+            # Create an Event to signal completion
+            completion_event = threading.Event()
+            result = {'response': None, 'error': None}
+            
+            def llm_worker():
+                try:
+                    result['response'] = qrag_llm_call(
+                        received_request_data,
+                        llm_model=current_model,
+                        large_context=large_context,
+                        large_context_filename=large_context_filename
+                    )
+                except Exception as e:
+                    result['error'] = e
+                finally:
+                    completion_event.set()
+            
+            # Start LLM call in separate thread
+            thread = threading.Thread(target=llm_worker)
+            thread.start()
+            
+            # Wait for completion or timeout
+            while not completion_event.wait(timeout=SAMPLING_INTERVAL):
+                if not is_retry and elapsed_time >= RETRY_INITIATION_TIME:
+                    monitoring_active.clear()
+                    print(f"Execution time exceeded {RETRY_INITIATION_TIME}s, initiating retry...")
+                    
+                    print("=== RETRY PROCESS STARTING ===")
+                    print(f"Original request execution time: {elapsed_time:.2f}s")
+                    print(f"Original model used: {current_model}")
+                    print(f"Switching to fallback model: {FALLBACK_MODEL}")
+                    
+                    retry_start_time = time.time()
+                    received_request_data['metadata'][RETRY_FLAG_PARAM] = True
+                    received_request_data['metadata']['llm_model'] = FALLBACK_MODEL
+                    
+                    # Get the original authorization header
+                    original_auth = app.current_request.headers.get('Authorization')
+                    
+                    # Create API Gateway style event
+                    retry_event = {
+                        'body': json.dumps(received_request_data),
+                        'requestContext': {
+                            'resourcePath': '/qrag-llm',
+                            'httpMethod': 'POST',
+                            'path': '/api/qrag-llm',
+                            'protocol': 'HTTP/1.1',
+                            'stage': 'api'
+                        },
+                        'headers': {
+                            'Content-Type': 'application/json',
+                            'Authorization': original_auth  # Forward the original auth header
+                        },
+                        'multiValueQueryStringParameters': None,
+                        'queryStringParameters': None,
+                        'pathParameters': None,
+                        'stageVariables': None,
+                        'isBase64Encoded': False
+                    }
+                    
+                    print("Invoking Lambda with retry request...")
+                    lambda_client = boto3.client('lambda')
+                    response = lambda_client.invoke(
+                        FunctionName=FUNCTION_NAME,
+                        InvocationType='RequestResponse',
+                        Payload=json.dumps(retry_event)
+                    )
+                    
+                    retry_response = json.loads(response['Payload'].read())
+                    print(f"Retry response received: {retry_response}")
+                    
+                    return Response(
+                        body=retry_response.get('body', json.dumps({'error': 'Retry failed'})),
+                        status_code=retry_response.get('statusCode', 500),
+                        headers=cors_headers
+                    )
+                
+                elif is_retry and retry_elapsed_time >= RETRY_TIMEOUT_TIME:
+                    monitoring_active.clear()
+                    print(f"Retry execution time exceeded {RETRY_TIMEOUT_TIME}s")
+                    raise Exception("Retry attempt also timed out")
+            
+            # Process completion
+            if completion_event.is_set():
+                if result['error']:
+                    raise result['error']
+                response_json_object = result['response']
+            
+            # Clean up monitoring thread
+            monitoring_active.clear()
+            monitor_thread.join(timeout=1.0)
 
-        print("\nWriting JSON to file...")
+        except Exception as e:
+            print(f"Error occurred: {str(e)}")
+            raise
+
+        print("Writing JSON to file...")
         json_prefix = 'qrag-exch_'
         json_file_path = '/tmp/' + json_prefix + get_current_datetime_filefriendly() + '.json'
         write_json_file_from_json_data(response_json_object, json_file_path, overwrite="yes")

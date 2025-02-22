@@ -6,11 +6,12 @@ import os
 import json
 from chalice import Chalice, Response
 
-from chalicelib.rag import qrag_routing_call, print_qrag_display_text
+from chalicelib.rag import qrag_routing_call
 # from chalicelib.llm import simple_openai_chat_completion_request
 from chalicelib.rag_prompts_routes import *
 from chalicelib.vectordb import generate_embedding
-from chalicelib.fileops import get_current_datetime_filefriendly
+from chalicelib.fileops import get_current_datetime_filefriendly, write_json_file_from_json_data, pretty_print_json_data
+
 from chalicelib.aws import verify_jwt
 
 # not currently used langchain-layer arn:aws:lambda:us-west-2:957789311461:layer:langchain-layer:1
@@ -27,7 +28,7 @@ ALLOWED_ORIGINS = {
 
 @app.route('/qrag-routing', methods=['POST'], cors=True)
 def handle_qrag_routing():
-    print("qrag-routing lambda func - last updated 2025-01-22 added user context to qrag-routing")
+    print("qrag-routing lambda func - last updated 2025-02-15 1704 added error handling for empty user question")
     
     # Enhanced request logging
     request_headers = app.current_request.headers
@@ -117,11 +118,32 @@ def handle_qrag_routing():
         vector_index_name = received_request_data['vector_index_name']
         route_dict_name = received_request_data['route_dict_name']
         routes_bounds = received_request_data.get('routes_bounds', [0.3, 0.9])
-        llm_model = received_request_data.get('llm_model', 'gpt-4o')
         user_id = received_request_data.get('user_id', 'default')
-        qrag_version = received_request_data.get('qrag_version', '1.0')
+        qrag_version = received_request_data.get('qrag_version', '2.0')
         num_chunks = received_request_data.get('num_chunks', 2)  # Default to 2 if not provided
         
+        # After extracting parameters from the request
+        user_question = received_request_data['user_question']
+        if not user_question or not user_question.strip():
+            error_msg = "ERROR: User question cannot be empty"
+            print(error_msg)
+            return Response(
+                body={'error': error_msg},
+                status_code=400,
+                headers=cors_headers
+            )
+
+        # Validate route_dict exists in globals
+        route_dict = globals().get(route_dict_name)
+        if not route_dict:
+            error_msg = f"ERROR: Invalid route dictionary: {route_dict_name}"
+            print(error_msg)
+            return Response(
+                body={'error': error_msg},
+                status_code=400,
+                headers=cors_headers
+            )
+
         # Extract and validate date range if provided
         start_date = received_request_data.get('start_date')
         end_date = received_request_data.get('end_date')
@@ -144,22 +166,6 @@ def handle_qrag_routing():
                     headers=cors_headers
                 )
 
-        route_dict = globals().get(route_dict_name)  # Get the actual dictionary from the global namespace
-
-        if not route_dict:
-            return Response(
-                body=json.dumps({'error': f'Invalid route dictionary: {route_dict_name}'}),
-                status_code=400,
-                headers=cors_headers
-            )
-
-        if not all([user_question, route_dict, vector_index_name]):
-            return Response(
-                body=json.dumps({'error': 'Missing required parameters'}),
-                status_code=400,
-                headers=cors_headers
-            )
-        
         # Create date_range list if valid dates were provided
         date_range = [start_date, end_date] if (start_date and end_date) else None
 
@@ -183,14 +189,13 @@ def handle_qrag_routing():
             route_dict,
             date_range,
             routes_bounds,
-            llm_model,
             user_id,
             user_context,  # Pass the user context as an optional parameter
             qrag_version
         )
 
-        print("\nPrinting with print_qrag_display_text...")
-        print_qrag_display_text(response_json_object)
+        print("\nPrinting JSON object with pretty_print_json_data...")
+        pretty_print_json_data(response_json_object, print_values=True)
 
         print("Returning JSON response...")
         return Response(

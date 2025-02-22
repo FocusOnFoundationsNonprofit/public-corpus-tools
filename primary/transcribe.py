@@ -516,7 +516,7 @@ def create_youtube_md_from_file_link(md_file_path):
     yt_file_path = create_youtube_md(link, yt_file_path)  # creates and returns the same file_path so the assignment is not needed but do it in case there is a bug and a different file_path is returned
     #print(f"DEBUG: after create call {yt_file_path}")
     return yt_file_path
-def extract_feature_from_youtube_md(yt_md_file_path, feature):
+def extract_feature_from_youtube_md(yt_md_file_path, feature):  # updated 1-28-25 RT to use get_heading
     """
     Extracts a specified feature from a YouTube markdown file and returns it as a string.
 
@@ -525,25 +525,43 @@ def extract_feature_from_youtube_md(yt_md_file_path, feature):
     :return: string of the extracted text under the specified feature
     """
     try:
-        with open(yt_md_file_path, 'r', encoding='utf-8') as file:
-            lines = file.readlines()
+        # Try both heading formats
+        heading1 = f"### youtube {feature}"
+        heading2 = f"### {feature} (youtube)"
+        
+        text = get_heading(yt_md_file_path, heading1, strip_heading_line=True)
+        if text is None:
+            text = get_heading(yt_md_file_path, heading2, strip_heading_line=True)
 
-        feature_section_found = False
-        extracted_feature = ""
-        feature_heading_pattern = re.compile(r'^#+\s*' + re.escape(feature), re.IGNORECASE)  # Pattern to match any level of markdown heading for the feature
+        # Special handling for chapters if not found
+        if feature == 'chapters' and text is None:
+            # Try both description heading formats
+            desc_text = get_heading(yt_md_file_path, "### youtube description", strip_heading_line=True)
+            if desc_text is None:
+                desc_text = get_heading(yt_md_file_path, "### description (youtube)", strip_heading_line=True)
+            
+            if desc_text:
+                timestamp_block = []
+                in_timestamp_block = False
+                
+                for line in desc_text.splitlines():
+                    if re.search(r'\[\d{1,2}:\d{2}(?::\d{2})?\]', line):
+                        if not in_timestamp_block:
+                            in_timestamp_block = True
+                        timestamp_block.append(line.strip())
+                    elif in_timestamp_block:
+                        break
+                
+                if timestamp_block:
+                    print("No chapters section found. Extracted chapter timestamp links from description field.")
+                    return '\n'.join(timestamp_block) + '\n\n'
 
-        for line in lines:
-            if feature_heading_pattern.match(line) or feature_section_found:
-                if line.strip().startswith('#') and feature_section_found:
-                    break
-                feature_section_found = True
-                if not feature_heading_pattern.match(line):  # Do not include the heading line in the extracted feature
-                    extracted_feature += line
-        if not feature_section_found or extracted_feature == "":
+        if text is None:
             warnings.warn(f"Feature '{feature}' not found in YouTube markdown file.")
             return None
-        else:
-            return extracted_feature.strip() + '\n\n'
+            
+        return text.strip() + '\n\n'
+        
     except Exception as e:
         raise ValueError(f"Error extracting {feature} from {yt_md_file_path}: {e}")
 
@@ -794,6 +812,104 @@ def set_various_transcript_headings(file_path, feature, source):
         return
 
     set_heading(file_path, extracted_feature_text, "### " + feature)
+def get_transcript_speaker_lines(transcript_text):
+    """
+    Extracts speaker lines with timestamps from transcript text.
+
+    :param transcript_text: string, the full transcript text to process.
+    :return result: list of tuples, each containing (line_number, speaker_line_text).
+    """
+    from primary.fileops import get_timestamp
+
+    speaker_lines = []
+    lines = transcript_text.split('\n')
+    
+    for i, line in enumerate(lines):
+        timestamp, index = get_timestamp(line)
+        if index is not None:
+            speaker_lines.append((i, line.strip()))
+    
+    return speaker_lines
+def apply_youtube_chapters_as_section_titles(transcript_file_path):
+    """
+    Applies the YouTube chapters timestamps and titles as section headings in the transcript file.
+
+    :param transcript_file_path: string, path to the transcript markdown file
+    :return: None
+    """
+    # Get paths and content
+    yt_file_path = sub_suffix_in_str(transcript_file_path, '_yt')
+    chapters = extract_feature_from_youtube_md(yt_file_path, 'chapters').rstrip()
+    if not chapters:
+        print(f"Aborting apply_youtube_chapters_as_section_titles - No chapters found in YouTube file: {yt_file_path}")
+        return
+    chapters_lines = chapters.split('\n')
+    print(f"Extracted {len(chapters_lines)} chapters from YouTube file: {yt_file_path}")
+    
+    transcript_text = get_heading(transcript_file_path, '### transcript')
+    if not transcript_text:
+        print(f"Aborting apply_youtube_chapters_as_section_titles - No transcript found in transcript file: {transcript_file_path}")
+        return
+
+    # Get all speaker lines with their line numbers
+    speaker_lines = get_transcript_speaker_lines(transcript_text)
+    
+    # Convert speaker lines timestamps to seconds for comparison
+    speaker_times = []
+    for line_num, speaker_line in speaker_lines:
+        timestamp_match = re.search(r'\[(\d+:\d+(?::\d+)?)\]', speaker_line)
+        if timestamp_match:
+            timestamp = timestamp_match.group(1)
+            seconds = sum(int(x) * 60**i for i, x in enumerate(reversed(timestamp.split(':'))))
+            speaker_times.append((seconds, line_num, speaker_line))
+    
+    # Build list of section titles and their positions
+    section_titles = []
+    section_num = 1
+    
+    # Process each chapter line
+    for chapter_line in chapters.split('\n'):
+        # Skip empty lines
+        if not chapter_line.strip():
+            continue
+            
+        # Extract timestamp and title from chapter line
+        timestamp_match = re.match(r'\[(\d+:\d+(?::\d+)?)\]', chapter_line)
+        if not timestamp_match:
+            continue
+            
+        timestamp = timestamp_match.group(1)
+        title = chapter_line[chapter_line.find(')') + 1:].strip()
+        if not title:
+            continue
+            
+        # Convert chapter timestamp to seconds
+        chapter_seconds = sum(int(x) * 60**i for i, x in enumerate(reversed(timestamp.split(':'))))
+        
+        # Find the first speaker line that occurs after this chapter timestamp
+        for speaker_seconds, line_num, speaker_line in speaker_times:
+            if speaker_seconds >= chapter_seconds:
+                section_heading = f"#### {section_num}. {title}"
+                section_titles.append((line_num, section_heading))
+                section_num += 1
+                break
+    
+    # Insert all section titles
+    if section_titles:
+        # Split transcript into lines for modification
+        transcript_lines = transcript_text.split('\n')
+        
+        # Insert sections in reverse order to maintain line numbers
+        for line_num, heading in sorted(section_titles, reverse=True):
+            transcript_lines.insert(line_num, heading)
+        
+        # Join lines back together
+        new_transcript = '\n'.join(transcript_lines)
+        
+        # Update the transcript section in the file
+        set_heading(transcript_file_path, new_transcript, '### transcript')
+        
+        print(f"Added {len(section_titles)} section titles to transcript")
 
 ### DEEPGRAM ALTERNATIVES
 def test_deepgram_client():  # omit unittests
@@ -1845,25 +1961,34 @@ def process_deepgram_transcription_callback_presigneds3(title, link, model, outp
     :param audio_file_path: If provided, skip YouTube download and use this local file.
     :return: The path to the created waiting file.
     """
+    print(f"\nStarting process_deepgram_transcription_callback_presigneds3 for title: {title}")
+    
     waiting_prefix = "WAITING-CALLBACK_"
     suffix = DG_MODEL_SUFFIX_MAP[model]
+    print(f"Using model: {model} with suffix: {suffix}")
     
     # 1) Possibly download from YouTube
     if audio_file_path is None:
+        print("No audio file provided - downloading from YouTube...")
         audio_file_path = download_mp3_from_youtube(link, title, output_dir)
         downloaded_from_youtube = True
     else:
+        print(f"Using provided audio file: {audio_file_path}")
         downloaded_from_youtube = False
 
     # 2) Transcribe with presigned S3 callback
+    print("Starting Deepgram transcription with presigned S3 callback...")
     (callback_request_id, transcript_s3_key, base_audio_file_name, s3_bucket) = transcribe_deepgram_callback_presigneds3(
         audio_file_path,
         model
     )
+    print(f"Transcription initiated - request ID: {callback_request_id}")
 
     # 3) Create a local "waiting" file with all info needed to retrieve final transcript
     waiting_file_name = f"{waiting_prefix}{title}{suffix}.txt"
     waiting_file_path = os.path.join(output_dir, waiting_file_name)
+    print(f"Creating waiting file at: {waiting_file_path}")
+    
     with open(waiting_file_path, 'w') as f:
         f.write(f"request_id: {callback_request_id}\n")
         f.write(f"bucket: {s3_bucket}\n")
@@ -1877,9 +2002,11 @@ def process_deepgram_transcription_callback_presigneds3(title, link, model, outp
 
     # 4) If we downloaded the audio from YouTube, remove it locally
     if downloaded_from_youtube and os.path.exists(audio_file_path):
+        print(f"Cleaning up - removing downloaded audio file: {audio_file_path}")
         os.remove(audio_file_path)
         print(f"Removed downloaded audio file: {audio_file_path}")
     
+    print(f"Process completed successfully. Waiting file created at: {waiting_file_path}")
     return waiting_file_path
 def download_deepgram_callback_waiting(local_folder="data/audio_inbox", prefix="WAITING-CALLBACK_"):
     from primary.aws import download_file_from_s3

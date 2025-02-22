@@ -2,7 +2,7 @@
 // deploy: copy to all QRAG pages > Settings > Custom Code > Body section between script tags
 // contains:
 
-var fileInfoSiteBody = `webflow-fof-site-body.js   1-23 0400 fix SOURCE and QUESTION that had QUOTED`;
+var fileInfoSiteBody = `webflow-fof-site-body.js   2-18 0559 better logging of removed characters in validateAndSanitizeInput`;
 const HASH_STORE_API_ENDPOINT = 'https://wd3rapoqy7.execute-api.us-west-2.amazonaws.com/api/hash-store';
 const HASH_STORE_LOG_FILE_KEY = 'user_hash_log_2024-12-17.csv';
 const HASH_STORE_LOG_FILE_PATH = '';
@@ -136,26 +136,41 @@ async function sendEmail(event) {
   }
 }
 
-function displayTempMessage(message, type, displayDuration, element) {
-  console.log(`Display message: ${message}, Duration: ${displayDuration}ms`);
+function displayTempMessage(message, type, duration, targetElement) {
+    if (!targetElement) {
+        console.warn('displayTempMessage: Target element is null');
+        return; // Gracefully handle missing target element
+    }
 
-  const messageElement = document.createElement('div');
-  messageElement.textContent = message;
-  messageElement.classList.add('temp-message', type === 'error' ? 'temp-message-error' : 'temp-message-success');
+    const botContainer = targetElement.closest('.bot-container');
+    if (!botContainer) {
+        console.warn('displayTempMessage: Could not find bot container');
+        return;
+    }
 
-  const container = element.closest('.bot-container');
-  const shareDiv = container.querySelector('.share-div');
+    // Create or find message div
+    let messageDiv = botContainer.querySelector('.temp-message');
+    if (!messageDiv) {
+        messageDiv = document.createElement('div');
+        messageDiv.className = 'temp-message';
+        // Insert at the top of the bot container
+        botContainer.insertBefore(messageDiv, botContainer.firstChild);
+    }
 
-  // Insert the message element right after the shareDiv
-  if (shareDiv.nextSibling) {
-      container.insertBefore(messageElement, shareDiv.nextSibling);
-  } else {
-      container.appendChild(messageElement); // Fallback if no next sibling
-  }
+    // Set message and styling
+    messageDiv.textContent = message;
+    messageDiv.style.display = 'block';
+    messageDiv.style.color = type === 'error' ? 'red' : (type === 'info' ? 'blue' : 'green');
 
-  setTimeout(() => {
-      container.removeChild(messageElement);
-  }, displayDuration);
+    // Clear previous timeout if it exists
+    if (messageDiv.timeout) {
+        clearTimeout(messageDiv.timeout);
+    }
+
+    // Set new timeout to hide message
+    messageDiv.timeout = setTimeout(() => {
+        messageDiv.style.display = 'none';
+    }, duration);
 }
 
 async function callHashStore(userNiceName, userIPAddress, inputUserEmail = '', emailListSignupChecked = null, eventType, privacyConsent) {
@@ -432,7 +447,6 @@ function consoleLogSessionStorage() {
         '  End Date: ' + (endDate || 'Not set') + '\n');
 }
 
-
 function clearSiteSessionStorage() {
     // Webflow Account User info
     sessionStorage.removeItem('userEmail');
@@ -582,8 +596,16 @@ function simpleMarkdownToHtml(markdownString) {
 
   htmlContent = htmlContent
       .split('\n')
-      .map(line => line.startsWith('SOURCE') ? line : line.replace(/_(.*?)_/g, '<em>$1</em>'))
-      .join('\n');  // Convert single underscore to italic, exempting lines that start with "SOURCE"
+      .map(line => {
+          if (line.startsWith('TOPICS: [')) {
+              return line.replace(/\['|'\]|'/g, ''); // Remove ['...'] and single quotes
+          }
+          if (line.startsWith('SOURCE:')) {
+              return line; // Skip markdown processing for SOURCE lines
+          }
+          return line.replace(/_(.*?)_/g, '<em>$1</em>');
+      })
+      .join('\n');
   
   // Convert links to open in new tab
   htmlContent = htmlContent.replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank">$1</a>');
@@ -635,9 +657,11 @@ function resetButtonToInitialState(button, icon) {
 
 
 /// VALIDATION  - webflow-fof-site-body.js   12-14 0449 updated max lengths PREV 12-13 1707 email using validator library
+// Sync with API Gateway Validation Rules in primary/aws_valid.py
 var maxUserNameLength = 64;
 var maxQuestionLength = 500;
 var maxEmailLength = 254;
+var maxFileNameLength = 255;
 
 // Suspicious patterns to detect potential XSS or malicious input
 const suspiciousPatterns = [
@@ -651,16 +675,16 @@ const suspiciousPatterns = [
 // Input type validation rules
 const INPUT_TYPES = {
     INPUT_TYPE_NAME: {
-        allowedPattern: /[^\w\s.'-()]/g,  // Only letters, numbers, underscore, spaces, and hyphen
+        allowedPattern: /[^\w\s.'\-()/]/g,  // Only letters, numbers, underscore, spaces, and hyphen the backslash is an escape character
         maxLength: maxUserNameLength,
         allowNewlines: false,
-        description: 'letters, numbers, spaces, and hyphens'
+        description: 'letters, numbers, spaces, periods, hyphens, parentheses, and forward slashes'
     },
     INPUT_TYPE_PARAGRAPH: {
-        allowedPattern: /[^\w\s.,!?@#'":;\-()[\]{}\p{Emoji}]/gu,  // More permissive
+        allowedPattern: /[^\w\s.,!?@#'":;\-()[\]{}/\*_\p{Emoji}]/gu, // Added _ and * for markdown formatting
         maxLength: maxQuestionLength,
         allowNewlines: true,
-        description: 'text with basic punctuation, emojis, and formatting'
+        description: 'text with basic punctuation, markdown formatting (*, _), forward slashes, emojis, and formatting'
     },
     INPUT_TYPE_EMAIL: {
         // 12-13 1636 RT change to validator.js
@@ -668,6 +692,12 @@ const INPUT_TYPES = {
         maxLength: maxEmailLength,
         allowNewlines: false,
         description: 'valid email address characters'
+    },
+    INPUT_TYPE_FILENAME: {  // Add this new input type
+        allowedPattern: /[^\w\s.'-]/g,  // Only letters, numbers, underscore, spaces, dots, and hyphen
+        maxLength: maxFileNameLength,
+        allowNewlines: false,
+        description: 'letters, numbers, spaces, dots, and hyphens'
     }
 };
 
@@ -714,11 +744,22 @@ function validateAndSanitizeInput(input, maxLength, fieldLabel, inputType = 'INP
         // If valid email, no further character sanitization needed
         wasModified = wasTrimmed;
     } else {
-        // For non-email types, continue with existing character sanitization
+        // For non-email types, track removed characters
         const beforeCharSanitize = sanitized;
-        sanitized = sanitized.replace(rules.allowedPattern, '');
+        let removedChars = new Set();
+        sanitized = sanitized.replace(rules.allowedPattern, (char) => {
+            removedChars.add(char);
+            return '';
+        });
+        
         const charChanges = beforeCharSanitize !== sanitized;
         wasModified = wasModified || charChanges;
+
+        if (charChanges) {
+            const removedCharsArray = Array.from(removedChars);
+            console.log(`Removed characters:`, removedCharsArray);
+            messages.push(`Removed invalid characters from ${fieldLabel}: ${removedCharsArray.join(' ')}`);
+        }
         
         // Handle whitespace based on input type rules
         if (rules.allowNewlines) {

@@ -37,8 +37,9 @@ def mrun_print_site_info():
     print(f"Time Zone: {site_info.time_zone}")
     print(f"Custom Domains: {site_info.custom_domains}")
 
-DEUTSCH_INTERVIEWS_VRBS_ID = "6711b684a9e995b7c0f06e17"
+DEUTSCH_INTERVIEWS_VRBS_ID = "6711b684a9e995b7c0f06e17"  # for test one - not the real interviews collection
 FDA_C19_TOWNHALLS_ID = "6780532037b7b191793c3544"
+SOVEREIGN_CHILD_ID = "67b1eb365b3e0e9c63aa3cf5"
 
 ### WEBFLOW CMS
 def webflow_cms_get_collection_details(collection_id, debug=False, verbose=True):
@@ -114,8 +115,8 @@ def webflow_cms_get_collection_details(collection_id, debug=False, verbose=True)
 
 def mrun_get_collection_details():
     pass
-#if __name__ == "__main__":
-    cur_collection_id = FDA_C19_TOWNHALLS_ID
+if __name__ == "__main__":
+    cur_collection_id = SOVEREIGN_CHILD_ID
     collection_details = webflow_cms_get_collection_details(cur_collection_id, verbose=True)
 
 def webflow_cms_import_heading(collection_id, file_path, heading):
@@ -197,8 +198,8 @@ def webflow_cms_list_items(collection_id, include_archived=True, verbose=False):
         return None
 def mrun_webflow_cms_list_items():
     pass
-if __name__ == "__main__":
-    cur_collection_id = FDA_C19_TOWNHALLS_ID
+#if __name__ == "__main__":
+    cur_collection_id = SOVEREIGN_CHILD_ID
     items = webflow_cms_list_items(cur_collection_id, verbose=True)
 
 def webflow_cms_import_transcript_and_qa(collection_id, transcript_file_path, qa_suffix='_qa-qonly', verbose=False):

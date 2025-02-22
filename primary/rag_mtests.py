@@ -5,41 +5,55 @@ from primary.fileops import *
 from primary.llm import *
 from primary.rag import *
 from rag_prompts_routes import *
+import os
 
 if True:
     pass
 # if __name__ == "__main__":    
     cur_file_path = ""
 
-# CUR_VECTOR_INDEX_NAME = 'pv-evac-qrag-2f-20241024'
-# CUR_ROUTES_DICT = ROUTES_DICT_PV_EVAC_V1
-# CUR_QUERY = "What is the PSVD school evacuation plan?"
-# CUR_NUM_CHUNKS = 5
-# CUR_JSON_PATH = 'tests/test_manual_files/rag/qrag_routing_pv_evac_q1.json'
+CUR_VECTOR_INDEX_NAME = 'deutsch-transcript-qrag-83f-20250202'
+CUR_ROUTES_DICT = ROUTES_DICT_DEUTSCH_M1
+CUR_QUERY = "Why is Thomas Kuhn's philosophy of science taught in universities instead of Karl Popper's?"
+CUR_NUM_CHUNKS = 20
+CUR_LARGE_CONTEXT_FILENAME = 'deutsch_large_context_v1.md'
+# CUR_JSON_PATH = 'tests/test_manual_files/rag/qrag_routing_deutsch_q1.json'
 
-CUR_VECTOR_INDEX_NAME = 'fda-townhalls-qrag-4f-20250114'
-CUR_ROUTES_DICT = ROUTES_DICT_FDA_TOWNHALLS_V1
-CUR_QUERY = "What is the FDA's response to the COVID-19 pandemic?"
-CUR_NUM_CHUNKS = 5
+# CUR_VECTOR_INDEX_NAME = 'fda-townhalls-qrag-4f-20250114'
+# CUR_ROUTES_DICT = ROUTES_DICT_FDA_TOWNHALLS_M1
+# CUR_QUERY = "What is the FDA's response to the COVID-19 pandemic?"
+
+# CUR_VECTOR_INDEX_NAME = 'pv-evac-qrag-3f-20250202'
+# CUR_ROUTES_DICT = ROUTES_DICT_PV_EVAC_M1
+# CUR_QUERY = "What is the PSVD school evacuation plan?"
+# CUR_NUM_CHUNKS = 10
+
+# CUR_VECTOR_INDEX_NAME = 'sovereign-child-qrag-2f-20250208'
+# CUR_ROUTES_DICT = ROUTES_DICT_SOVEREIGN_CHILD_M1
+# CUR_QUERY = "How should I raise my child?"
+# CUR_NUM_CHUNKS = 10
+# CUR_LARGE_CONTEXT_FILENAME = '2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple_trimmed.md'
 
 
 ### RETRIEVAL
+
 def mtest_pinecone_retriever():
     pass
-if __name__ == "__main__":
+#if __name__ == "__main__":
     fetched_chunks, retrieved_ids_scores = pinecone_retriever(CUR_QUERY, CUR_VECTOR_INDEX_NAME, num_chunks=CUR_NUM_CHUNKS)
     # print("Fetched chunks:")
     # print(fetched_chunks)
-    print("Retrieved IDs and scores:")
+    print(colored("Retrieving chunks WITHOUT DATE RANGE", "blue"))
     for id, score in retrieved_ids_scores.items():
-        print(f"{id}: {score}")
+        print(f"{id}: {score:.3f}")
     
-    print(colored("Retrieving chunks with date range", "yellow"))
-    date_range = ["2020-03-01", "2020-03-29"]
+    print(colored("Retrieving chunks WITH DATE RANGE", "yellow"))
+    date_range = ["2024-09-20", "2024-10-23"]
+    #date_range = ["2023-11-15", "2024-10-23"]
     fetched_chunks, retrieved_ids_scores = pinecone_retriever(CUR_QUERY, CUR_VECTOR_INDEX_NAME, num_chunks=CUR_NUM_CHUNKS, date_range=date_range)
     print(f"Retrieved IDs and scores with date range of {date_range}:")
     for id, score in retrieved_ids_scores.items():
-        print(f"{id}: {score}")
+        print(f"{id}: {score:.3f}")
     
 
 ### VRAG
@@ -106,52 +120,73 @@ def mtest_parse_chunks():
 def mtest_qrag_routing_call():
     pass
 #if __name__ == "__main__":
-    cur_json_obj = qrag_routing_call(
+    qrag_routing_output_json_object = qrag_routing_call(
         user_question=CUR_QUERY,
         vector_index_name=CUR_VECTOR_INDEX_NAME,
         num_chunks=CUR_NUM_CHUNKS,
         routes_dict=CUR_ROUTES_DICT
     )
     # Optionally write to a JSON file
-    write_json_file_from_object(cur_json_obj, CUR_JSON_PATH, overwrite='yes')
-
-    # FOR PRINTING TO CONSOLE
-    # print("Route Preamble:")
-    # print(cur_json_obj['content']['route_preamble'])
-    # print("\nQuoted QA:")
-    # print(cur_json_obj['content']['quoted_qa'])
-    # print("\nChunks Metadata:")
-    # for chunk in cur_json_obj['content']['chunks']['chunks']:
-    #     print(chunk)
-    # print("\nAI Answer:")
-    # print(cur_json_obj['content']['ai_answer'])
-    print_qrag_display_text(cur_json_obj)
-    print(f"OPENAI_API_KEY preview: {OPENAI_API_KEY[:12]}...")
+    pretty_print_json_data(qrag_routing_output_json_object, print_values=True)
 def mtest_qrag_llm_call():
     pass
 #if __name__ == "__main__":
-    # Assuming you have already run mtest_qrag_routing_call and have cur_json_obj
-    # Alternatively, you can recreate cur_json_obj here
-    cur_json_obj = qrag_routing_call(
-        user_question=CUR_QUERY,
-        vector_index_name=CUR_VECTOR_INDEX_NAME,
-        num_chunks=CUR_NUM_CHUNKS,
-        routes_dict=CUR_ROUTES_DICT
-    )
-    # Now make the LLM call
-    cur_json_obj = qrag_llm_call(cur_json_obj)
-    print("LLM Prompt:")
-    print(cur_json_obj['content'].get('llm_prompt', ''))
-    print("\nAI Answer:")
-    print(cur_json_obj['content']['ai_answer'])
+    from primary.aws_valid import TEST_REQUESTS_QRAG_LLM
+    test_json_obj = TEST_REQUESTS_QRAG_LLM["clean_requests"][0]["request"]
+
+    llm_model = 'o3-mini'
+    large_context_filename = CUR_LARGE_CONTEXT_FILENAME
+    large_context_folder = "data/large_context_files"
+
+    print(f"Using LLM model: {llm_model}")
+    print(f"Using large context file: {large_context_filename}")
+    print("Testing qrag_llm_call with first clean request from aws_valid.py...")
+    print("\nInput JSON:")
+    pretty_print_json_data(test_json_obj, print_values=True)
+
+    # Load large context if filename provided
+    large_context = None
+    if large_context_filename:
+        large_context_path = os.path.join(large_context_folder, large_context_filename)
+        try:
+            with open(large_context_path, 'r') as file:
+                large_context = file.read()
+                print(f"Successfully loaded large context from {large_context_filename}")
+        except Exception as e:
+            print(f"Warning: Failed to load large context file: {str(e)}")
+            large_context = None
+            large_context_filename = None
+
+    try:
+        result_json = qrag_llm_call(
+            test_json_obj, 
+            llm_model=llm_model,
+            large_context=large_context,
+            large_context_filename=large_context_filename
+        )
+        print("\nqrag_llm_call returned the following output JSON:")
+        pretty_print_json_data(result_json, print_values=True)
+    except Exception as e:
+        print(f"\nError in qrag_llm_call: {str(e)}")
+        print(f"Error type: {type(e)}")
+        import traceback
+        print(f"Traceback: {traceback.format_exc()}")
+
 def mtest_qrag_2step():
     pass
 #if __name__ == "__main__":
     # cur_user_question1 = 'What is the meaning of life?'  # q1 PARTIAL MATCH
     # cur_user_question2 = 'What should I eat for lunch?'  # q2 NO MATCH
     # cur_user_question3 = 'What are computers and computation at a deep level?'  # q3 GOOD MATCH
-    qrag_2step(CUR_QUERY, CUR_ROUTES_DICT, CUR_VECTOR_INDEX_NAME)
+    #llm_model='deepseek-reasoner'
+    llm_model='o3-mini'
+    qrag_2step(CUR_QUERY, CUR_VECTOR_INDEX_NAME, CUR_NUM_CHUNKS, CUR_ROUTES_DICT, llm_model=llm_model, large_context_filename=CUR_LARGE_CONTEXT_FILENAME)
 
+def mrun_create_md_from_qrag_exchange_json():
+    pass
+if __name__ == "__main__":
+    cur_exchange_file_path = "exchanges/pv-evac/qrag-exch_2025-02-16_045335.json"
+    print(f"Created markdown file: {create_md_from_qrag_exchange_json(cur_exchange_file_path)}")
 
 # NOT WORKING - See CHAT LOGGING comments
 def mtest_run_batch_questions_on_bot_list(): 

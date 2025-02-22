@@ -6,11 +6,12 @@ import shutil
 
 from openai import OpenAI
 from pinecone import Pinecone, ServerlessSpec
-
+from datetime import datetime, timezone, timedelta
+import time
 
 # ---API KEYS AND SECRETS---
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
-PINECONE_API_KEY = os.environ["PINECONE_API_KEY"]
+# PINECONE_API_KEY = os.environ["PINECONE_API_KEY"]  # Not in chalice/config.json
 
 
 # ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
@@ -25,6 +26,48 @@ EMBEDDING_MODEL = "text-embedding-3-small"  # OpenAI 1536 dimensions and $0.02/1
 
 
 ### VECTOR DB SUPPORT
+def convert_date_to_unix(date_str, utc_offset=0):
+    """
+    Converts an ISO date string to Unix timestamp with UTC offset.
+
+    :param date_str: string, date in ISO format (e.g., '2024-01-01')
+    :param utc_offset: integer, UTC offset in hours (default: 0 for UTC)
+    :return: integer, Unix timestamp adjusted for UTC offset
+    """
+    # Create timezone object for the offset
+    tz = timezone(timedelta(hours=utc_offset))
+    
+    # Parse the date and make it timezone-aware with specified offset
+    date = datetime.strptime(date_str, '%Y-%m-%d').replace(tzinfo=tz)
+    
+    # Convert to Unix timestamp
+    return int(date.timestamp())
+def mrun_convert_date_to_unix():
+    pass
+if __name__ == "__main__":
+    #date_str = "2024-10-23"
+    date_str = "2023-04-22"
+    utc_offset = -7
+    unix_timestamp = convert_date_to_unix(date_str, utc_offset)
+    print(f"Unix timestamp for {date_str} at UTC {utc_offset}: {unix_timestamp}")
+    comp_unix_timestamp = 1682146800
+    hours_diff = (comp_unix_timestamp - unix_timestamp) / 3600
+    print(f"Comparison Unix timestamp: {comp_unix_timestamp} (UTC{hours_diff:+.0f} offset needed)")
+    #OLD WITH UTC-0 Offset
+    #Unix timestamp for 2023-04-22: 1682146800
+    #Unix timestamp for 2024-09-20: 1726815600
+    #Unix timestamp for 2024-10-23: 1729666800
+    #Unix timestamp for 2023-11-15: 1700035200
+
+    # Get local timezone info
+    local = time.localtime()
+    utc_offset_hours = local.tm_gmtoff / 3600  # Convert seconds to hours
+
+    # Current datetime with timezone info
+    now = datetime.now()
+    print(f"Current local time: {now}")
+    print(f"UTC offset: {utc_offset_hours:+.1f} hours")
+    print(f"DST active: {'Yes' if local.tm_isdst else 'No'}")
 def generate_embedding(text, model=EMBEDDING_MODEL):
     """ 
     Generates an embedding vector for the provided text using the specified OpenAI embeddings model.
@@ -40,7 +83,7 @@ def generate_embedding(text, model=EMBEDDING_MODEL):
     return embedding
 
 # TODO review the timestamp lines
-def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=True, embedding_field='QUESTION', date_from_filename=False):
+def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=False, embedding_field='QUESTION', date_from_filename=False):
     """
     Generates vectors from markdown files in the specified folder paths.
 
@@ -74,6 +117,15 @@ def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=True
     
     for folder_path in folder_paths:
         file_paths = get_files_in_folder(folder_path, suffixpat_include=suffixpat_include, include_subfolders=include_subfolders)
+        
+        # Debug print statements
+        # print("\nDEBUG: File matching details:")
+        # print(f"Folder path: {folder_path}")
+        # print(f"Suffix pattern: {suffixpat_include}")
+        # print("Found files:")
+        # for path in file_paths:
+        #     print(f"  - {path}")
+
         total_files += len(file_paths)
         for i, path in enumerate(file_paths, 1):
             file_name_with_extension = os.path.basename(path)
@@ -86,9 +138,9 @@ def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=True
             # Extract date from filename if enabled (we know it's valid at this point)
             if date_from_filename:
                 date_str = file_name_with_extension.split('_')[0]
-                file_date = datetime.strptime(date_str, '%Y-%m-%d')
-                # Convert to Unix timestamp for Pinecone metadata
-                date_timestamp_unix = int(file_date.timestamp())
+                # Use UTC-7 (PDT) to match existing vector timestamps
+                date_timestamp_unix = convert_date_to_unix(date_str, utc_offset=-7)
+                print(f"DEBUG: Converting date {date_str} to Unix timestamp: {date_timestamp_unix}")
             
             for block in blocks:
                 fields = get_all_fields_dict(block)
@@ -96,7 +148,7 @@ def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=True
                 
                 # Add date metadata as timestamp if enabled
                 if date_from_filename:
-                    fields['DATE'] = date_timestamp_unix  # Store as Unix timestamp instead of ISO string
+                    fields['DATE'] = date_timestamp_unix
                 
                 vector_id = (os.path.splitext(file_name_with_extension)[0] + "_" + str(block_num)).replace(" ", "_")
                 
@@ -518,7 +570,6 @@ def create_qrag_vectordb(folder_paths, vector_index_base, suffixpat_include=None
     vectors = generate_vectors_qa(
         folder_paths, 
         suffixpat_include,
-        include_subfolders=True,  # Explicitly name the parameter
         embedding_field=embedding_field,
         date_from_filename=date_from_filename
     )

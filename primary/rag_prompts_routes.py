@@ -2,6 +2,263 @@
 # Routes and prompts for RAG
 
 # ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
+ROUTES_DICT_SOVEREIGN_CHILD_M1 = {
+    'routes_dict_name': 'ROUTES_DICT_SOVEREIGN_CHILD_M1',
+    
+    # For the "good match" scenario
+    'prompt_initial_good_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
+        "There is a GOOD MATCH in the QUOTED QA so make sure to stay faithful to the QUOTED QA while answering the USER QUESTION.\n"
+        "Use the LARGE CONTEXT which is the book text from 'The Sovereign Child' as additional important context.\n"
+        "Use as background context your knowledge of the parenting philosophy Taking Children Seriously, as well as the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.\n\n"
+    ),
+    'route_preamble_good_match': (
+        "There is a GOOD MATCH in our extracted quotes. Below is the official source Q&A followed by an AI ANSWER that synthesizes these official sources with your specific question.\n"
+    ),
+
+    # For the "partial match" scenario
+    'prompt_initial_partial_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
+        "There is only a PARTIAL MATCH in the QUOTED QA so use the QUOTED QA while answering the USER QUESTION but also make sure to synthesize the QUOTED QA with the other context in order to answer the USER QUESTION.\n"
+        "Use the LARGE CONTEXT which is the book text from 'The Sovereign Child' as additional important context.\n"
+        "Use as background context your knowledge of the parenting philosophy Taking Children Seriously, as well as the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.\n\n"
+    ),
+    'route_preamble_partial_match': (
+        "There is a PARTIAL MATCH in our extracted quotes. Please see the Q&A below, "
+        "then do your best to synthesize an answer."
+    ),
+
+    # For the "no match" scenario
+    'prompt_initial_no_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "No match was found from so no QUOTED QA is provided.\n"
+        "Use the LARGE CONTEXT which is the book text from 'The Sovereign Child' as the primary context.\n"
+        "Use as additional background context your knowledge of the parenting philosophy Taking Children Seriously, as well as the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.\n\n"
+
+    ),
+    'route_preamble_no_match': (
+        "There is NO MATCH in the extracted quotes.\n"
+        "The AI ANSWER below is uses the book text from 'The Sovereign Child' as well as the model's background knowledge of the philosophy of Taking Children Seriously and the ideas of David Deutsch."
+    ),
+
+    # Template for formatting chunked Q&A items
+    "quoted_qa_item_template": (
+        "QUESTION: {question}\n"
+        "ANSWER: {answer}\n"
+        "SOURCE: {source}\n"
+        "TIMESTAMP: {timestamp}\n"
+        "{display}\n\n"
+    ),
+
+    # Wrapper for the entire chunked Q&A
+    "quoted_qa_template": "{quoted_qa_formatted}",
+
+    # Usually not used if we are building a multi-part prompt manually
+    'user_ai_qa': 'USER QUESTION: {user_question}\n\nAI ANSWER: '
+}
+
+ROUTES_DICT_FDA_TOWNHALLS_M1 = {
+    'routes_dict_name': 'ROUTES_DICT_FDA_TOWNHALLS_M1',
+
+    # For the "good match" scenario
+    'prompt_initial_good_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
+        "There is a GOOD MATCH in the QUOTED QA so make sure to stay faithful to the QUOTED QA while answering the USER QUESTION.\n"
+        "Use as background context your knowledge of FDA Town Hall meetings—covering test modifications, bridging studies, validation requirements, and other relevant regulatory guidelines.\n"
+        "Provide clear, concise information about any relevant FDA policies or processes referenced in the quoted material.\n\n"
+    ),
+    'route_preamble_good_match': (
+        "There is a GOOD MATCH in our extracted quotes. Below is the official FDA Q&A followed by an AI ANSWER that synthesizes these official sources with your specific question.\n"
+    ),
+
+    # For the "partial match" scenario
+    'prompt_initial_partial_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
+        "There is only a PARTIAL MATCH in the QUOTED QA so use the QUOTED QA while answering the USER QUESTION but also make sure to synthesize the QUOTED QA with the other context in order to answer the USER QUESTION.\n"
+        "Use as background context your knowledge of FDA Town Hall meetings—covering test modifications, bridging studies, validation requirements, and other relevant regulatory guidelines.\n\n"
+    ),
+    'route_preamble_partial_match': (
+        "There is a PARTIAL MATCH in our extracted quotes. Please see the Q&A below, "
+        "then do your best to synthesize an answer."
+    ),
+
+    # For the "no match" scenario
+    'prompt_initial_no_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "No match was found so no QUOTED QA is provided.\n"
+        "Your task is to identify what topic the user's question appears to be about and respond with a single sentence stating that their question appears to be about that topic and noting that it is unrelated to the FDA Town Hall corpus.\n\n"
+    ),
+    'route_preamble_no_match': (
+        "There is NO MATCH in the extracted quotes.\n"
+        "This system is designed to answer questions about FDA Town Hall content, including bridging studies, test modifications, and related regulatory processes. If your question is indeed about FDA Town Hall topics, please rephrase or clarify so we can best assist you."
+    ),
+
+    # Template for formatting chunked Q&A items
+    "quoted_qa_item_template": (
+        "CLARIFIED QUESTION: {question}\n"
+        "CLARIFIED ANSWER: {answer}\n"
+        "VERBATIM QUESTION: {verbatim_question}\n"
+        "VERBATIM ANSWER: {verbatim_answer}\n"
+        "SPEAKER FOR QUESTION: {speaker_question}\n"
+        "SPEAKER FOR ANSWER: {speaker_answer}\n"
+        "TOPICS: {topics}\n"
+        "SOURCE: {source}\n"
+        "{display}\n\n"
+    ),
+
+    # Wrapper for the entire chunked Q&A
+    "quoted_qa_template": "{quoted_qa_formatted}",
+
+    # Usually not used if we are building a multi-part prompt manually
+    'user_ai_qa': 'USER QUESTION: {user_question}\n\nAI ANSWER: '
+}
+
+ROUTES_DICT_PV_EVAC_M1 = {
+    'routes_dict_name': 'ROUTES_DICT_PV_EVAC_M1',
+
+    # For the "good match" scenario
+    'prompt_initial_good_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
+        "There is a GOOD MATCH in the QUOTED QA so make sure to stay faithful to the QUOTED QA while answering the USER QUESTION.\n"
+        "Use as background context your knowledge of Portola Valley emergency procedures and wildfire evacuation protocols.\n"
+        "Prioritize information related to Shelter in Place by placing it first in any response to a general question or one where the response includes shelter in place.\n"
+        "Take the approach to thoughtfully but frankly communicating to parents that:\n"
+        "1) Shelter-in-place is only considered in the extreme circumstances of a mandatory evacuation order\n"
+        "2) If a shelter-in-place order is issued for the schools, the WFPD will bring resources to defend the shelter-in-place facilities with the highest priority\n"
+        "3) Parents absolutely cannot pick their children up from school, and if they try to do so they will be stopped by fire and police authorities\n"
+        "4) Attempting to pick up children will put their lives, their children's lives, those of first responders, and the entire community at risk\n"
+        "DO NOT use strong adjectives in your response, such as 'comprehensive' and 'thorough', to describe plans or approaches because significantly more work is needed by both authorities and parents to prepare for emergency evacuation of the schools and especially the shelter-in-place scenario.\n\n"
+    ),
+    'route_preamble_good_match': (
+        "There is a GOOD MATCH in our extracted quotes. Below is the official source Q&A followed by an AI ANSWER that synthesizes these official sources with current evacuation protocols and your specific question.\n"
+    ),
+
+    # For the "partial match" scenario
+    'prompt_initial_partial_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
+        "There is only a PARTIAL MATCH in the QUOTED QA so use the QUOTED QA while answering the USER QUESTION but also make sure to synthesize the QUOTED QA with the other context in order to answer the USER QUESTION.\n"
+        "Use as background context your knowledge of Portola Valley emergency procedures and wildfire evacuation protocols.\n"
+        "Prioritize information related to Shelter in Place by placing it first in any response to a general question or one where the response includes shelter in place.\n"
+        "Take the approach to thoughtfully but frankly communicating to parents that:\n"
+        "1) Shelter-in-place is only considered in the extreme circumstances of a mandatory evacuation order\n"
+        "2) If a shelter-in-place order is issued for the schools, the WFPD will bring resources to defend the shelter-in-place facilities with the highest priority\n"
+        "3) Parents absolutely cannot pick their children up from school, and if they try to do so they will be stopped by fire and police authorities\n"
+        "4) Attempting to pick up children will put their lives, their children's lives, those of first responders, and the entire community at risk\n"
+        "DO NOT use strong adjectives in your response, such as 'comprehensive' and 'thorough', to describe plans or approaches because significantly more work is needed by both authorities and parents to prepare for emergency evacuation of the schools and especially the shelter-in-place scenario.\n\n"
+    ),
+    'route_preamble_partial_match': (
+        "There is a PARTIAL MATCH in our extracted quotes. Please see the Q&A below, "
+        "then do your best to synthesize an answer."
+    ),
+
+    # For the "no match" scenario
+    'prompt_initial_no_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "No match was found so no QUOTED QA is provided.\n"
+        "Your task is to identify what topic the user's question appears to be about and respond with a single sentence stating that their question appears to be about that topic and noting that it is unrelated to Portola Valley emergency procedures.\n\n"
+    ),
+    'route_preamble_no_match': (
+        "There is NO MATCH in the extracted quotes.\n"
+        "This system is designed to answer questions about Portola Valley emergency procedures and wildfire evacuation protocols only. Please rephrase your question to focus on Portola Valley emergency procedures if that was your intent."
+    ),
+
+    # Template for formatting chunked Q&A items
+    "quoted_qa_item_template": (
+        "QUESTION: {question}\n"
+        "ANSWER: {answer}\n"
+        "SOURCE: {source}\n"
+        "TIMESTAMP: {timestamp}\n"
+        "{display}\n\n"
+    ),
+
+    # Wrapper for the entire chunked Q&A
+    "quoted_qa_template": "{quoted_qa_formatted}",
+
+    # Usually not used if we are building a multi-part prompt manually
+    'user_ai_qa': 'USER QUESTION: {user_question}\n\nAI ANSWER: '
+}
+
+ROUTES_DICT_DEUTSCH_M1 = {
+    'routes_dict_name': 'ROUTES_DICT_DEUTSCH_M1',
+
+    # For the "good match" scenario
+    'prompt_initial_good_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
+        "There is a GOOD MATCH in the QUOTED QA so make sure to stay faithful to the QUOTED QA while answering the USER QUESTION.\n"
+        "Use as background context your knowledge of David Deutsch and his philosophy of deep optimism.\n\n"
+    ),
+    'route_preamble_good_match': (
+        "There is a GOOD MATCH in our extracted quotes. Below is the official source Q&A followed by an AI ANSWER that synthesizes these quotes with David Deutsch's philosophy and your specific question.\n"
+    ),
+
+    # For the "partial match" scenario
+    'prompt_initial_partial_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
+        "There is only a PARTIAL MATCH in the QUOTED QA so use the QUOTED QA while answering the USER QUESTION but also make sure to synthesize the QUOTED QA with the other context in order to answer the USER QUESTION.\n"
+        "Use as background context your knowledge of David Deutsch and his philosophy of deep optimism.\n\n"
+    ),
+    'route_preamble_partial_match': (
+        "There is a PARTIAL MATCH in our extracted quotes. Please see the Q&A below, "
+        "then do your best to synthesize an answer."
+    ),
+
+    # For the "no match" scenario
+    'prompt_initial_no_match': (
+        "Answer the USER QUESTION below the following multiple sources of context:\n"
+        "No match was found so no QUOTED QA is provided.\n"
+        "Use as background context your knowledge of David Deutsch and his philosophy of deep optimism.\n\n"
+    ),
+    'route_preamble_no_match': (
+        "There is NO MATCH in the extracted quotes.\n"
+        "The AI ANSWER below uses the model's background knowledge of David Deutsch's philosophy and ideas."
+    ),
+
+    # Template for formatting chunked Q&A items
+    "quoted_qa_item_template": (
+        "QUESTION: {question}\n"
+        "ANSWER: {answer}\n"
+        "SOURCE: {source}\n"
+        "TIMESTAMP: {timestamp}\n"
+        "{display}\n\n"
+    ),
+
+    # Wrapper for the entire chunked Q&A
+    "quoted_qa_template": "{quoted_qa_formatted}",
+
+    # Usually not used if we are building a multi-part prompt manually
+    'user_ai_qa': 'USER QUESTION: {user_question}\n\nAI ANSWER: '
+}
+
+
+# **** OLD PRE-DEEPSEEK ROUTES ****
+
+
+ROUTES_DICT_SOVEREIGN_CHILD_V1 = {
+    'routes_dict_name': 'ROUTES_DICT_SOVEREIGN_CHILD_V1',  # mirror global variable name
+    'prompt_initial_good_match': 'Answer the USER QUESTION below the following multiple sources of context:\nUse as the top priority context the QUOTED QUESTIONS AND ANSWERS which have been extracted from the sources that are the primary subject for this AI tool.\nUse as background context your knowledge of the parenting philosophy Taking Children Seriously, as well as the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.\n',
+    'route_preamble_good_match': 'There is a good match for your question in our Portola Valley evacuation documentation. See the QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these official sources with current evacuation protocols and your specific question.',
+    'prompt_initial_partial_match': 'Answer the USER QUESTION below the following multiple sources of context:\nUse as the top priority context the QUOTED QUESTIONS AND ANSWERS which have been etxracted from the sources that are the primary subject for this AI tool.\nUse as background context your knowledge of the parenting philosophy Taking Children Seriously, as well as the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.\n',
+    'route_preamble_partial_match': 'There is a partial match for your question in our Portola Valley evacuation documentation. See the QUOTED QUESTIONS AND ANSWERS below followed by an AI ANSWER that synthesizes these official sources with current evacuation protocols and your specific question.',
+    'prompt_initial_no_match': 'Answer the USER QUESTION using as background context your knowledge of the parenting philosophy Taking Children Seriously, as well as the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.\nExplicitly state in your response that no match in the source documents was found for their question and therefore you are using this background context to answer their question.',
+    'route_preamble_no_match': 'There are no matches for your question in the included documents. The AI answer below is only using background context from the AI training data specific to the parenting philosophy Taking Children Seriously and the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.',
+    "quoted_qa_item_template": (
+        "QUESTION: {question}\n"
+        "ANSWER: {answer}\n"
+        "SOURCE: {source}\n"
+        "TIMESTAMP: {timestamp}\n"
+        "{display}\n\n"
+    ),
+    "quoted_qa_template": "{quoted_qa_formatted}",  # Wraps the entire formatted chunks
+    'user_ai_qa': 'USER QUESTION: {user_question}\n\nAI ANSWER: '
+}
 
 ROUTES_DICT_FDA_TOWNHALLS_V1 = {
     'routes_dict_name': 'ROUTES_DICT_FDA_TOWNHALLS_V1',  # mirror global variable name

@@ -3,7 +3,7 @@
 <!-- contains: libraries and css styles not included in Webflow designer -->
 
 <script>
-  var fileInfo = `webflow-fof-site-head.html   1-15 1646 add date range styles`;
+  var fileInfo = `webflow-fof-site-head.html   2-21 0442 mobile margin-left`;
   console.log('CSS loaded from site head  ', fileInfo);
 </script>
 
@@ -314,6 +314,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: left;
+  margin-left: 0;  /* Added 2-22 0433 */
   }
   .email-input-address {
   display: none;
@@ -371,7 +372,8 @@
   .source-page h2,
   .source-page h3 {
       font-size: 20px;
-      margin-bottom: 0.5em;
+      margin-bottom: 0.8em;
+      line-height: 1.2; /* 2-17 Add tighter line spacing for wrapped text */
   }
   .source-page h1, 
   .source-page h2, 
@@ -527,12 +529,17 @@
   }
   @media (max-width: 600px) {
       .source-page {
-          font-size: 0.9em;
           padding: 4px;
       }
       
       .source-page h1 {
           font-size: 1.2em;
+      }
+      .share-div {
+        margin-left: 0;
+      }
+      .accordion-card {
+        margin-left: 0;
       }
   }
 </style>

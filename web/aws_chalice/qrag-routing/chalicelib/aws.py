@@ -1,3 +1,6 @@
+# ===== START OF FILE chalicelib/aws.py =====
+# Library of functions and execution code to do AWS tasks
+
 import os
 import json
 import boto3
@@ -6,6 +9,8 @@ import hashlib
 import hmac
 import pytz
 from datetime import datetime, timedelta
+import subprocess
+from time import sleep
 import jwt
 
 
@@ -449,6 +454,44 @@ def generate_presigned_s3_url(bucket, object_key, method='get', content_type=Non
             Params={'Bucket': bucket, 'Key': object_key},
             ExpiresIn=expire_seconds
         )
+
+def get_large_context_from_s3(filename):
+    s3 = boto3.client('s3')
+    try:
+        response = s3.get_object(
+            Bucket='fofsecure',
+            Key=f'large-context-files/{filename}'
+        )
+        return response['Body'].read().decode('utf-8')
+    except Exception as e:
+        print(f"Error fetching from S3: {str(e)}")
+        return None
+def mtest_get_large_context_from_s3():
+    pass
+#if __name__ == "__main__":
+    filename = '2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple_trimmed.md'
+    # filename = 'deutsch_large_context_v1.md'
+    result = get_large_context_from_s3(filename)
+    if result:
+        print(result[:500])
+def upload_large_context_files_to_s3(folder_path='data/large_context_files'):  # not tested
+    s3 = boto3.client('s3')
+    s3_folder = 'large-context-files'
+    try:
+        for file_name in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, file_name)
+            if os.path.isfile(file_path):
+                s3.upload_file(
+                    Bucket='fofsecure',
+                    Key=f'{s3_folder}/{file_name}',
+                    Filename=file_path
+                )
+    except Exception as e:
+        print(f"Error uploading to S3: {str(e)}")
+def mrun_upload_large_context_files_to_s3():
+    pass
+#if __name__ == "__main__":
+    upload_large_context_files_to_s3()
 
 ### AWS API KEYS
 def create_api_key(key_name, description="API key for Lambda function"):
@@ -1348,85 +1391,6 @@ def mrun_test_waf_limit():
     test_waf_limit(initial_rapid_requests=20, wait_minutes=2, post_wait_requests=5, verbose=False)
     # (see 12-4 cursor chat)
 
-### AWS LOGGING
-def setup_api_gateway_logging(api_names=None):
-    """
-    Set up detailed logging for API Gateway stages.
-    If api_names is None, will configure all APIs in LAMBDA_GLOBALS_MAPPING.
-    
-    :param api_names: list of str, optional list of API names to configure
-    :return: dict, results of configuration attempts
-    """
-    api_client = boto3.client('apigateway')
-    results = {}
-    
-    # Use all APIs if none specified
-    if api_names is None:
-        api_names = LAMBDA_GLOBALS_MAPPING.keys()
-    
-    for api_name in api_names:
-        try:
-            # Get API ID without needing specific method or resource
-            apis = api_client.get_rest_apis()['items']
-            api = next((api for api in apis if api['name'] == api_name), None)
-            
-            if not api:
-                results[api_name] = f"Failed to find API"
-                continue
-                
-            rest_api_id = api['id']
-            
-            # Get stages for this API
-            stages = api_client.get_stages(restApiId=rest_api_id)
-            
-            for stage in stages['item']:
-                stage_name = stage['stageName']
-                
-                # Update stage settings for detailed logging
-                api_client.update_stage(
-                    restApiId=rest_api_id,
-                    stageName=stage_name,
-                    patchOperations=[
-                        {
-                            'op': 'replace',
-                            'path': '/*/*/logging/loglevel',
-                            'value': 'INFO'
-                        },
-                        {
-                            'op': 'replace',
-                            'path': '/*/*/metrics/enabled',
-                            'value': 'true'
-                        },
-                        # Log full request/response data
-                        {
-                            'op': 'replace',
-                            'path': '/*/*/logging/dataTrace',
-                            'value': 'true'
-                        },
-                        # Include detailed validation errors
-                        {
-                            'op': 'replace',
-                            'path': '/variables/loggingLevel',
-                            'value': 'INFO'
-                        }
-                    ]
-                )
-                
-                results[f"{api_name} ({stage_name})"] = "Successfully configured logging"
-                
-        except Exception as e:
-            results[api_name] = f"Error: {str(e)}"
-    
-    return results
-def mrun_setup_api_gateway_logging():
-    pass
-#if __name__ == "__main__":
-    # Configure all APIs
-    results = setup_api_gateway_logging()
-    print("\nAPI Gateway Logging Configuration Results:")
-    for api, result in results.items():
-        print(f"{api}: {result}")
-
 ### AWS JWT
 def get_jwt_signing_key():
     """
@@ -1485,12 +1449,11 @@ def verify_jwt(token):
         return None
 def mrun_verify_jwt():
     pass
-if __name__ == "__main__":
+#if __name__ == "__main__":
     #token = os.environ["JWT_01-22"]
-    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3My45My42Mi44MSIsImlhdCI6MTczNzU5NjkwNywiZXhwIjoxNzQwMTg4OTA3fQ.9hDrqX5nXPbjAcIti1rdIsZ-JeOFcaqf4DFMo5EVyys"
+    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3My45My42Mi44MSIsImlhdCI6MTczNzYwMjMxMCwiZXhwIjoxNzQwMTk0MzEwfQ.9Xs7mdPuOrxELu1y0-b3Z8AMBYDfBCBs2Jn1DUTOawg"
     result = verify_jwt(token)
     print(f"Verification result: {result}")
-
 def mtest_generate_and_verifyjwt():
     pass
 #if __name__ == "__main__":
@@ -1501,5 +1464,7 @@ def mtest_generate_and_verifyjwt():
     # Verify the JWT token
     result = verify_jwt(token)
     print(f"Verification result: {result}")
+
+
 
 # ===== END OF FILE primary/aws.py =====
