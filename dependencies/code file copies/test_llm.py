@@ -11,6 +11,13 @@ from termcolor import colored
 from primary.fileops import *
 from primary.llm import *
 
+from dotenv import load_dotenv
+load_dotenv(override=True)  # Load environment variables from .env file
+
+from dotenv import load_dotenv
+load_dotenv(override=True)  # Load environment variables from .env file
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY_LOCAL"]
+
 ### PRINT AND TOKENS
 class TestPrettyPrintFunction(unittest.TestCase):
     def setUp(self):
@@ -344,7 +351,7 @@ class TestAPIMOCKOpenAIChatCompletionRequest(unittest.TestCase):
         self.model = OPENAI_MODEL
         self.headers = {
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + OPENAI_API_KEY_CONFIG_LLM,
+            "Authorization": "Bearer " + OPENAI_API_KEY,
         }
         self.json_data = {
             "model": self.model,
@@ -379,7 +386,7 @@ class TestAPIMOCKOpenAIChatCompletionRequest(unittest.TestCase):
         self.assertIsInstance(response, Exception)
         self.assertEqual(str(response), "API request failed")
 
-class TestAPIMOCKOpenAIChat(unittest.TestCase):
+class TestAPIMOCKTestOpenAIChat(unittest.TestCase):
     def setUp(self):
         # Mock data used for testing
         self.model = OPENAI_MODEL
@@ -389,24 +396,41 @@ class TestAPIMOCKOpenAIChat(unittest.TestCase):
     def test_openai_chat__success(self, mock_print, mock_chat_request):
         # Set up a mock response object
         mock_response = MagicMock()
-        mock_response.text = "Knock knock! Who’s there? Science joke."
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            'choices': [{
+                'message': {'content': "Knock knock! Who's there? Science joke."}
+            }]
+        }
         mock_chat_request.return_value = mock_response
         # Execute the function
         test_openai_chat(model=self.model)
         # Assertions to ensure that print was called correctly with the response
-        mock_print.assert_any_call("API chat response:", "Knock knock! Who’s there? Science joke.")
+        mock_print.assert_called_with("API chat response:", "Knock knock! Who's there? Science joke.")
         # Ensure the API request was called correctly
         mock_chat_request.assert_called_once_with([{"role": "user", "content": "Tell me a knock knock joke about science."}], model=self.model)
 
     @patch('primary.llm.openai_chat_completion_request')
     @patch('builtins.print')
-    def test_openai_chat__failure(self, mock_print, mock_chat_request):
+    def test_openai_chat__invalid_response(self, mock_print, mock_chat_request):
+        # Set up a mock response object with an invalid status code
+        mock_response = MagicMock()
+        mock_response.status_code = 400
+        mock_chat_request.return_value = mock_response
+        # Execute the function
+        test_openai_chat(model=self.model)
+        # Assertions to check that the correct error message is printed
+        mock_print.assert_called_with("Failed to get a valid response from the API")
+
+    @patch('primary.llm.openai_chat_completion_request')
+    @patch('builtins.print')
+    def test_openai_chat__error(self, mock_print, mock_chat_request):
         # Configure the mock to raise an exception when called
         mock_chat_request.side_effect = Exception("Network error")
         # Execute the function
         test_openai_chat(model=self.model)
         # Assertions to check that the exception handling prints the correct error message
-        mock_print.assert_called_with("Failed to access the OpenAI API: Network error")
+        mock_print.assert_called_with("An error occurred: Network error")
 
 class TestLLMProcessBlock(unittest.TestCase):
     @patch('primary.llm.openai_chat_completion_request')
@@ -619,7 +643,6 @@ class TestScallAppend(unittest.TestCase):
         mock_process.assert_any_call("Block 1 content", "APPEND - retain_delimiters=True Please summarize this block.", "openai")
         mock_process.assert_any_call("Block 2 content", "APPEND - retain_delimiters=True Please summarize this block.", "openai")
 
-
 class TestCreateSimpleLLMFile(unittest.TestCase):
     def setUp(self):
         self.file_path = "test_file.md"
@@ -683,65 +706,97 @@ class TestCreateSimpleLLMFile(unittest.TestCase):
 ### LLM FUNCTION CALLING
 class TestAPIMOCKOpenAiFunctionCall(unittest.TestCase):
     def setUp(self):
-        # Common setup for all tests, including defining prompt, content, and tools
         self.prompt_system = "System prompt message"
         self.content = "User content message"
-        self.tools = [{"name": "Tool1", "function": "Function1"}]
+        # Update tools to match the structure of TOOLS_FCALL_TEST_RHYME
+        self.tools = [{
+            "type": "function",
+            "function": {
+                "name": "test_fcall_rhyme",
+                "description": "Extract the timestamp and generate a two sentence rhyme",
+                "strict": True,
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "rhyme": {
+                            "type": "string",
+                            "description": "Create a two-line rhyming poem based on the content",
+                        },
+                        "timestamp": {
+                            "type": "string",
+                            "description": "The timestamp from the text",
+                        },
+                    },
+                    "required": ["rhyme", "timestamp"],
+                    "additionalProperties": False
+                },
+            },
+        }]
+        self.model = "gpt-4o-mini"
         self.verbose = True
-        self.model = "gpt-4o-mini"  # Add a default model for testing
-        self.mock_response = MagicMock()
 
+    @patch('builtins.print')
     @patch('primary.llm.openai_chat_completion_request')
-    def test_openai_function_call__successful_response(self, mock_chat_completion_request):
-        # Create a mock response object
-        mock_response = Mock()
+    def test_openai_function_call__success(self, mock_chat_request, mock_print):
+        # Create mock response with function call structure
+        mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {
-            'choices': [{
-                'message': "This is the simulated assistant's message based on the prompt and content."
+            "choices": [{
+                "message": {
+                    "role": "assistant",
+                    "content": None,
+                    "tool_calls": [{
+                        "id": "call_ihxJCRj8L75tI8rup6dbeCiH",
+                        "type": "function",
+                        "function": {
+                            "name": "test_fcall_rhyme",
+                            "arguments": '{"rhyme": "Hello, world!\\nThis message has been told!", "timestamp": "0:00"}'
+                        }
+                    }],
+                    "refusal": None
+                }
             }]
         }
+        mock_chat_request.return_value = mock_response
+
+        # Call the function
+        assistant_message = openai_function_call(
+            self.prompt_system,
+            self.content,
+            self.tools,
+            model=self.model,
+            verbose=self.verbose
+        )
+
+        # Verify the mock was called with correct arguments
+        mock_chat_request.assert_called_once()
+        args, kwargs = mock_chat_request.call_args
         
-        mock_chat_completion_request.return_value = mock_response
+        # Check the arguments match what we expect
+        expected_messages = [
+            {"role": "system", "content": self.prompt_system},
+            {"role": "user", "content": self.content}
+        ]
+        self.assertEqual(kwargs['messages'], expected_messages)
+        self.assertEqual(kwargs['tools'], self.tools)
+        self.assertEqual(kwargs['model'], self.model)
+        
+        # Check the returned message contains the function call response
+        self.assertEqual(assistant_message["role"], "assistant")
+        self.assertIsNone(assistant_message["content"])
+        self.assertIsNone(assistant_message["refusal"])
+        self.assertEqual(len(assistant_message["tool_calls"]), 1)
+        tool_call = assistant_message["tool_calls"][0]
+        self.assertEqual(tool_call["type"], "function")
+        self.assertEqual(tool_call["function"]["name"], "test_fcall_rhyme")
+        self.assertIn("rhyme", json.loads(tool_call["function"]["arguments"]))
+        self.assertIn("timestamp", json.loads(tool_call["function"]["arguments"]))
 
-        # Update the function call to include the model parameter
-        assistant_message = openai_function_call("System prompt", "User content", [], model=self.model, verbose=self.verbose)
+        # Verify print wasn't called (unless verbose was True)
+        if not self.verbose:
+            mock_print.assert_not_called()
 
-        # Assert that the response is as expected
-        expected_message = "This is the simulated assistant's message based on the prompt and content."
-        self.assertEqual(assistant_message, expected_message)
-
-    @patch('primary.llm.pretty_print_function')
-    @patch('primary.llm.openai_chat_completion_request')
-    def test_openai_function_call__successful_processing_response(self, mock_openai_chat_completion_request, mock_pretty_print):
-        # Setup the mock response from openai_chat_completion_request
-        self.mock_response.json.return_value = {"choices": [{"message": "Hello, world!"}]}
-        self.mock_response.status_code = 200
-        mock_openai_chat_completion_request.return_value = self.mock_response
-        # Call the function with updated parameters
-        assistant_message = openai_function_call(self.prompt_system, self.content, self.tools, model=self.model, verbose=self.verbose)
-        # Get the arguments with which openai_chat_completion_request was called
-        args, kwargs = mock_openai_chat_completion_request.call_args
-        expected_messages = [{"role": "system", "content": self.prompt_system},
-                             {"role": "user", "content": self.content}]
-        expected_tools = self.tools
-        # Assert the returned message is correct
-        self.assertEqual(assistant_message, "Hello, world!")
-        # This test code should be correct but unittest has a quirk in which apparently 
-        # emulates calls after the block and keeps a reference, so the 'messages' variable
-        # of openai_chat_completion_request gets updated with
-        # messages.append({"role": "assistant", "content": assistant_message})
-        # So this test fails:
-        # mock_openai_chat_completion_request.assert_called_once_with(
-        #     [{"role": "system", "content": self.prompt_system},
-        #      {"role": "user", "content": self.content}],
-        #     tools=self.tools
-        # )
-        # This test should be ok, because 'messages' is local in openai_function_call
-        self.assertTrue(expected_messages[0] in args[0] and expected_messages[1] in args[0])
-        self.assertEqual(kwargs['tools'], expected_tools)
-        # Verify pretty_print_function was called
-        mock_pretty_print.assert_called_once()
 
     @patch('primary.llm.pretty_print_function')
     @patch('primary.llm.openai_chat_completion_request')
@@ -753,7 +808,7 @@ class TestAPIMOCKOpenAiFunctionCall(unittest.TestCase):
         mock_response.json.side_effect = Exception("Failed to parse JSON")
         mock_openai_chat_completion_request.return_value = mock_response
         # Execute the function under test with updated parameters
-        assistant_message = openai_function_call(self.prompt_system, self.content, self.tools, model=self.model, verbose=self.verbose)
+        assistant_message = openai_function_call(self.prompt_system, self.content, self.tools, model=self.model)
         # Assert no message is returned because an exception was raised during json parsing
         self.assertIsNone(assistant_message)
         # Ensure pretty_print_function was not called since an exception occurs before it in the call flow
@@ -764,8 +819,8 @@ class TestAPIMOCKOpenAiFunctionCall(unittest.TestCase):
 class TestAPIMOCKCreateQaFileSelectSpeaker(unittest.TestCase):
     def setUp(self):
         # Setup method to find the given test file
-        self.test_filepath = "tests/test_manual_files/llm_test_files/create_qa_test_files/1900-01-01_Test file for do qa_prepqa.md"
-        self.ref_filepath = "tests/test_manual_files/llm_test_files/create_qa_test_files/1900-01-01_Test file for do qa_prepqa_qaREF.md"
+        self.test_filepath = "tests/test_manual_files/llm_test_files/create_qa_test_files/1900-01-01_TF_p.md"
+        self.ref_filepath = "tests/test_manual_files/llm_test_files/create_qa_test_files/1900-01-01_TF_p_qaREF.md"
 
     def tearDown(self):
         # Teardown method to remove the QA file after each test case

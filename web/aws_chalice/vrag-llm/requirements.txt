@@ -3,7 +3,7 @@ beautifulsoup4
 boto3
 requests
 openai
-pinecone-client
+pinecone
 pytz
 tiktoken
 termcolor

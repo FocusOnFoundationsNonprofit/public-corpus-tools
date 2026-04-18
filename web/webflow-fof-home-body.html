@@ -3,8 +3,10 @@
 <!-- contains: user session and authentication handling code -->
 
 <script>
-    var fileInfo = 'webflow-fof-home.html 12-20 0526 remove x-api-key from all API calls';
-    console.log('BODY of File loaded: ', fileInfo);
+    var fileInfo = 'webflow-fof-home.html 4-7 0722 url at top, PREV 12-20 0526 remove x-api-key from all API calls';
+    console.log('Loading JavaScript for Home Page Body: ', fileInfo);
+
+    const HMAC_HASH_API_ENDPOINT_URL = 'https://xusv8bpl49.execute-api.us-west-2.amazonaws.com/api/generate-hash';
 
     // Ensure the SA5 library is initialized
     window.sa5 = window.sa5 || [];
@@ -109,7 +111,7 @@
     // Function to generate and store email hash
     function generateAndStoreEmailHash(email) {
         console.log('Attempting to generate hash for email:', email);
-        return fetch('https://xusv8bpl49.execute-api.us-west-2.amazonaws.com/api/generate-hash', {
+        return fetch(HMAC_HASH_API_ENDPOINT_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

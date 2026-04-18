@@ -1,3 +1,5 @@
+# ===== START OF FILE docs/vis/codebase_graph_vis.py =====
+
 import os
 import json
 from pyvis.network import Network
@@ -77,7 +79,7 @@ X_SPACING = 300
 Y_SPACING = 50
 
 # Styling constants
-COLOR_SCHEME = {
+COLOR_SCHEME = {  # Comment out modules to not display in the current graph
     'fileops.py': '#76b7b2',  # Cyan
     'transcribe.py': '#f28e2c',  # Orange
     'llm.py': '#edc948',  # Yellow
@@ -85,14 +87,17 @@ COLOR_SCHEME = {
     'rag.py': '#ff9da7',  # Pink
     'conversion.py': '#e15759',  # Red
     'docwork.py': '#59a14f',  # Green
-    'aws.py': '#D2B48C',  # Tan
     'structured.py': '#b07aa1',  # Purple
     'corpuses.py': '#4e79a7',  # Blue
+    'webflow_api.py': '#ba55d3',  # Medium Orchid
+    'video.py': '#bab0ac',  # Gray
+    'aws.py': '#D2B48C',  # Tan
+    'aws_valid.py': '#98FB98',  # Pale Green
     #'rag_prompts_routes.py': '#bab0ac'   # Gray
 }
 #COLUMN_WRAP_SUBMODULES = ['MISC FILE', 'FIND AND REPLACE', 'NUMERAL CONVERT', 'LLM FUNCTION CALLING']
-COLUMN_WRAP_SUBMODULES = ['MISC FILE', 'FIND AND REPLACE', 'NUMERAL CONVERT', 'LLM PROCESSING']
-NO_WRAP_MODULES = ['docwork.py', 'corpuses.py', 'aws.py']
+COLUMN_WRAP_SUBMODULES = ['MISC FILE', 'FIND AND REPLACE', 'NUMERAL CONVERT', 'LLM PROCESSING', 'QA BY SECTIONS - Q ONLY']
+NO_WRAP_MODULES = ['rag.py', 'docwork.py']
 
 BACKGROUND_COLOR = "#000000"  # Hex for black: #000000, Hex for white: #FFFFFF
 FONT_COLOR = "black"
@@ -307,31 +312,30 @@ def create_module_based_network(input_json_file, output_html_file, input_js_file
         node_positions[module_id] = (pos_x, pos_y)
         
         # Sort nodes by line number
-        nodes.sort(key=lambda n: n['line'])
+        nodes.sort(key=lambda node: node.get('line', float('inf')) or float('inf'))
         row += 1  # for row directly under the modules
 
         for node in nodes:
-            # Check and add submodule node if different from the last
+            # Handle submodule nodes
             if node['submodule'] != last_submodule:
                 if node['submodule'] in COLUMN_WRAP_SUBMODULES:
-                    row = 2  # Reset row offset to the first row - not sure why 2 works instead of
-                    column += 1  # Move to the next column
-                    print(f"Starting new column at submodule '{node['submodule']}' at column: {column}, pos_x: {column * X_SPACING}, pos_y: {row * Y_SPACING}")
-                module_noext = module.rsplit('.', 1)[0]  # Remove extension, e.g., fileops.py -> fileops
+                    row = 2
+                    column += 1
+                    pos_x = column * X_SPACING
+                module_noext = module.rsplit('.', 1)[0]
                 submodule_id = f"{module_noext}.{node['submodule']}"
-                pos_x = column * X_SPACING
                 pos_y = row * Y_SPACING
                 net.add_node(submodule_id, label=node['submodule'], x=pos_x, y=pos_y, group='submodule', module=module)
                 node_positions[submodule_id] = (pos_x, pos_y)
                 last_submodule = node['submodule']
-                row += 1  # Reset row offset for new submodule
+                row += 1
 
-            # Increment y position for the actual node
             pos_y = row * Y_SPACING
-            net.add_node(node['id'], label=node['label'], group=node['group'], title=f"{node['def']}\n\n{node['docstring']}",
-                         x=pos_x, y=pos_y, module=node['module'], submodule=node['submodule'], line=node['line'])
+            net.add_node(node['id'], label=node['label'], group=node['group'], 
+                        title=f"{node['def']}\n\n{node['docstring']}", x=pos_x, y=pos_y, 
+                        module=node['module'], submodule=node['submodule'], line=node['line'])
             node_positions[node['id']] = (pos_x, pos_y)
-            row += 1  # Increment relative y offset for the next node       
+            row += 1
 
     # Add edges to the network with custom routing
     for edge in graph_data['edges']:
@@ -686,3 +690,4 @@ def create_physics_enabled_network(network_data, output_html_file):
 
 #     print(f"Combined view with switch button has been saved to {output_combined_html}")
 
+# ===== END OF FILE docs/vis/codebase_graph_vis.py =====

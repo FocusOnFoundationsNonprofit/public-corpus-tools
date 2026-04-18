@@ -88,16 +88,21 @@ def get_suffix(file_str, delimiter='_'):
     # Find the last occurrence of the file extension delimiter (.)
     extension_index = file_base.rfind('.')
 
-    # Check if the delimiter is found and before the extension, or if there is no extension
-    if delimiter_index != -1 and (extension_index == -1 or delimiter_index < extension_index):
+    # Check if the delimiter is found
+    if delimiter_index != -1:
         # Check if the part of the file string preceding the delimiter is a date in the format 'YYYY-MM-DD'
         preceding_str = file_base[:delimiter_index]
         #print(f"DEBUG preceeding_str: {preceding_str}")
         if re.match(r'\d{4}-\d{2}-\d{2}$', preceding_str):
             return None  # Return None if the preceding part is a date
 
-        # Extract and return the suffix including the delimiter
-        suffix_end_index = extension_index if extension_index != -1 else len(file_base)
+        # Determine suffix end: if delimiter is after the period, the period is part of the filename, not an extension
+        if extension_index == -1 or delimiter_index < extension_index:
+            suffix_end_index = extension_index if extension_index != -1 else len(file_base)
+        else:
+            # delimiter is after the period, so period is part of filename, not extension
+            suffix_end_index = len(file_base)
+        
         suffix = file_base[delimiter_index:suffix_end_index]
         # Throw a ValueError if the extracted suffix contains invalid characters
         if not all(char.isalnum() or char == '-' for char in suffix.strip(delimiter)):
@@ -163,11 +168,17 @@ def remove_all_suffixes_in_str(file_str, delimiter='_'): # DS, cat 1, unitests 7
     """
     # Find the last occurrence of the file extension delimiter (.)
     extension_index = file_str.rfind('.')
-    # Extract the extension if it exists
-    extension = file_str[extension_index:] if extension_index != -1 else ''
+    delimiter_index = file_str.rfind(delimiter)
     
-    # Remove the extension from the file string to avoid removing it as a suffix
-    file_str_without_extension = file_str[:extension_index] if extension_index != -1 else file_str
+    # If delimiter is after the period, the period is part of the filename, not an extension
+    if extension_index != -1 and delimiter_index > extension_index:
+        extension = ''
+        file_str_without_extension = file_str
+    else:
+        # Extract the extension if it exists
+        extension = file_str[extension_index:] if extension_index != -1 else ''
+        # Remove the extension from the file string to avoid removing it as a suffix
+        file_str_without_extension = file_str[:extension_index] if extension_index != -1 else file_str
     
     # Continuously strip suffixes until no more can be stripped
     while True:
@@ -932,6 +943,44 @@ def move_files_with_suffix(source_folder, destination_folder, suffixpat_include,
     """
     # Use apply_to_folder to move files
     return apply_to_folder(move_file, source_folder, destination_folder, suffixpat_include=suffixpat_include, include_subfolders=False, verbose=verbose)
+def copy_file(file_path, destination_folder):
+    """
+    Copies a file to the specified destination folder.
+
+    :param file_path: string, the path to the file to be copied.
+    :param destination_folder: string, the path to the destination folder.
+    :return: string, the new file path after copying, or an error if the operation fails.
+    """
+    # Check if the original file exists
+    if not os.path.isfile(file_path):
+        raise ValueError(f"The file path does not exist or is invalid for {file_path}.")
+
+    # Check if the destination folder exists, if not, create it
+    if not os.path.isdir(destination_folder):
+        os.makedirs(destination_folder)
+
+    # Create the new file path with the destination folder
+    file_name = os.path.basename(file_path)
+    new_file_path = os.path.join(destination_folder, file_name)
+
+    # Copy the original file to the new file path
+    try:
+        shutil.copy2(file_path, new_file_path)
+        return new_file_path  # Return the new file path if the file was successfully copied
+    except OSError as e:
+        return e  # Return the exception if an error occurred
+def copy_files_with_suffix(source_folder, destination_folder, suffixpat_include, verbose=False):
+    """
+    Copies all files in a given folder that end with a specified suffix to the destination folder.
+
+    :param source_folder: string, the path to the source folder where files are to be copied from.
+    :param destination_folder: string, the path to the destination folder where files are to be copied to.
+    :param suffixpat_include: string, the suffix pattern of the files to be copied.
+    :param verbose: boolean, if True, the function will print verbose messages. Default is False.
+    :return: list, the new file paths after copying, or an error if the operation fails.
+    """
+    # Use apply_to_folder to copy files
+    return apply_to_folder(copy_file, source_folder, destination_folder, suffixpat_include=suffixpat_include, include_subfolders=False, verbose=verbose)
 def tune_title(title):
     """
     Removes any special characters from the given title.
@@ -1585,7 +1634,31 @@ def add_timestamp_links_to_content(content, base_link):
             line_with_link = line
         processed_lines.append(line_with_link)
     return '\n'.join(processed_lines)+"\n"  # explicitly add extra newline to avoid stripping one
-def add_timestamp_links(file_path):
+def get_link_from_metadata(file_path):
+    """
+    Retrieves a link from metadata, first trying 'link' field, then any field starting with 'link'.
+    
+    :param file_path: string, the path to the file to read metadata from.
+    :return: string, the link value found, or None if no link field is found.
+    """
+    # First try the simple 'link' field
+    _, base_link = read_metadata_field_from_file(file_path, "link")
+    if base_link is not None:
+        return base_link
+    
+    # If that fails, look for any field starting with 'link'
+    metadata, _ = read_metadata_and_content(file_path)
+    metadata_lines = metadata.split('\n')
+    
+    for line in metadata_lines:
+        line = line.strip()
+        if line.startswith('link ') and ':' in line:
+            # Extract the value after the colon
+            colon_index = line.find(':')
+            return line[colon_index + 1:].strip()
+    
+    return None
+def  add_timestamp_links(file_path):
     """
     Adds markdown timestamp links and overwrites the file.
 
@@ -1593,7 +1666,11 @@ def add_timestamp_links(file_path):
     :return: none
     """
     metadata, content = read_metadata_and_content(file_path)
-    _, base_link = read_metadata_field_from_file(file_path, "link")
+    base_link = get_link_from_metadata(file_path)
+    
+    if base_link is None:
+        print(f"Warning: No link field found in metadata for {file_path}")
+        return
     
     # First, remove any existing timestamp links from the content
     content_without_links = remove_timestamp_links_from_content(content)
@@ -1649,6 +1726,200 @@ def count_num_instances(file_path, find_str):
     count = complete_text.count(find_str)
     print(f"Number instances: {count} of {find_str} found in {file_path}")
     return count
+def _find_and_replace_pairs_core(metadata, content, find_replace_pairs, debug=False, use_regex=False, include_metadata=False):
+    """
+    Applies multiple find and replace pairs to metadata and content text.
+
+    :param metadata: string or none, the metadata section if present.
+    :param content: string, the content section to update.
+    :param find_replace_pairs: list, the find and replace pairs to apply.
+    :param debug: boolean, whether to print debug information.
+    :param use_regex: boolean, whether to treat find strings as regex patterns.
+    :param include_metadata: boolean, whether to apply replacements to metadata.
+    :return: tuple, the updated metadata, updated content, per-pair counts, and total replacements.
+    """
+    updated_metadata = metadata
+    updated_content = content
+    total_replacements = 0
+    pair_counts = []
+    for find_str, replace_str in find_replace_pairs:
+        verbose_print(debug, f"  Looking for: '{find_str}'")
+        verbose_print(debug, f"  Replace with: '{replace_str}'")
+        pair_total = 0
+        if use_regex:
+            regex = re.compile(find_str, re.DOTALL)
+            if include_metadata and updated_metadata is not None:
+                updated_metadata, meta_count = regex.subn(replace_str, updated_metadata)
+                pair_total += meta_count
+                verbose_print(debug, f"  Metadata replacements made: {meta_count}")
+            updated_content, count = regex.subn(replace_str, updated_content)
+            pair_total += count
+            verbose_print(debug, f"  Content replacements made: {count}")
+        else:
+            # First escape all regex special characters
+            safe_find_str = re.escape(find_str)
+            # Then unescape the URL-safe characters we want to match literally
+            url_safe_chars = '/: .'
+            for char in url_safe_chars:
+                safe_find_str = safe_find_str.replace('\\' + char, char)
+            verbose_print(debug, f"  Search pattern after escaping: '{safe_find_str}'")
+            safe_replace_str = replace_str.replace('\\', '\\\\')
+            if include_metadata and updated_metadata is not None:
+                updated_metadata, meta_count = re.subn(safe_find_str, safe_replace_str, updated_metadata, flags=re.DOTALL)
+                pair_total += meta_count
+                verbose_print(debug, f"  Metadata replacements made: {meta_count}")
+            updated_content, count = re.subn(safe_find_str, safe_replace_str, updated_content, flags=re.DOTALL)
+            pair_total += count
+            verbose_print(debug, f"  Content replacements made: {count}")
+        total_replacements += pair_total
+        pair_counts.append({'find_str': find_str, 'replace_str': replace_str, 'num_replacements': pair_total})
+    return updated_metadata, updated_content, pair_counts, total_replacements
+def _get_find_and_replace_logs_folder():
+    """
+    Returns the default folder used for find and replace run logs.
+
+    :return logs_folder: string, the absolute path to the find and replace logs folder.
+    """
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(repo_root, "logs", "find and replace logs")
+def _prompt_to_keep_updated_file(file_path):
+    """
+    Prompts the user to keep or reject an updated file.
+
+    :param file_path: string, the path to the updated file being reviewed.
+    :return keep_file: boolean, true if the updated file should be kept.
+    """
+    while True:
+        user_input = input(f"Keep updated file for {file_path}? [Y/yes, N/no]: ").strip().lower()
+        if user_input.startswith("y"):
+            return True
+        if user_input.startswith("n"):
+            return False
+        print("Invalid input. Please enter 'Y' for yes or 'N' for no.")
+def _copy_file_to_find_and_replace_backup(file_path, folder_path, backup_folder_path):
+    """
+    Copies a changed file into the run backup folder while preserving relative paths.
+
+    :param file_path: string, the original file path being backed up.
+    :param folder_path: string, the root folder used for the find and replace run.
+    :param backup_folder_path: string, the destination folder for backups.
+    :return backup_file_path: string, the full path to the saved backup file.
+    """
+    relative_file_path = os.path.relpath(file_path, start=folder_path)
+    backup_file_path = os.path.join(backup_folder_path, relative_file_path)
+    os.makedirs(os.path.dirname(backup_file_path), exist_ok=True)
+    shutil.copy2(file_path, backup_file_path)
+    return backup_file_path
+def _build_find_and_replace_pairs_in_folder_log(folder_path, find_replace_pairs, suffixpat_include, include_subfolders, include_metadata, use_regex, prompt_to_keep_updated_file, save_backups_of_changed_files, files_scanned, changed_files, rejected_files, total_replacements, backup_folder_path):
+    """
+    Builds the markdown log text for a folder-level find and replace run.
+
+    :param folder_path: string, the folder processed during the run.
+    :param find_replace_pairs: list, the find and replace pairs used for the run.
+    :param suffixpat_include: string or none, the suffix filter used for included files.
+    :param include_subfolders: boolean, whether subfolders were included.
+    :param include_metadata: boolean, whether metadata was included in replacements.
+    :param use_regex: boolean, whether regex matching was enabled.
+    :param prompt_to_keep_updated_file: boolean, whether the run prompted after each changed file.
+    :param save_backups_of_changed_files: boolean, whether backups were saved for changed files.
+    :param files_scanned: int, the total number of files scanned.
+    :param changed_files: dict, the kept changed files and their replacement details.
+    :param rejected_files: dict, the rejected changed files and their replacement details.
+    :param total_replacements: int, the total replacements kept after prompts.
+    :param backup_folder_path: string or none, the backup folder path for the run.
+    :return log_text: string, the formatted markdown log text.
+    """
+    pair_totals = []
+    for index, (find_str, replace_str) in enumerate(find_replace_pairs):
+        num_replacements = 0
+        for file_result in changed_files.values():
+            num_replacements += file_result['pair_counts'][index]['num_replacements']
+        pair_totals.append({'find_str': find_str, 'replace_str': replace_str, 'num_replacements': num_replacements})
+    lines = []
+    lines.append("## Find And Replace Run")
+    lines.append(f"- folder_path: {folder_path}")
+    lines.append(f"- suffixpat_include: {suffixpat_include}")
+    lines.append(f"- include_subfolders: {include_subfolders}")
+    lines.append(f"- include_metadata: {include_metadata}")
+    lines.append(f"- use_regex: {use_regex}")
+    lines.append(f"- prompt_to_keep_updated_file: {prompt_to_keep_updated_file}")
+    lines.append(f"- save_backups_of_changed_files: {save_backups_of_changed_files}")
+    lines.append(f"- files_scanned: {files_scanned}")
+    lines.append(f"- files_changed: {len(changed_files)}")
+    lines.append(f"- files_rejected: {len(rejected_files)}")
+    lines.append(f"- total_replacements: {total_replacements}")
+    lines.append(f"- backup_folder_path: {backup_folder_path}")
+    lines.append("")
+    lines.append("")
+    lines.append("## Find And Replace Pairs")
+    if find_replace_pairs:
+        for find_str, replace_str in find_replace_pairs:
+            lines.append(f"- find: {find_str} | replace: {replace_str}")
+    else:
+        lines.append("- none")
+    lines.append("")
+    lines.append("")
+    lines.append("## Pair Totals")
+    if pair_totals:
+        for pair_total in pair_totals:
+            lines.append(f"- find: {pair_total['find_str']} | replace: {pair_total['replace_str']} | replacements: {pair_total['num_replacements']}")
+    else:
+        lines.append("- none")
+    lines.append("")
+    lines.append("")
+    lines.append("## Kept Changes")
+    if changed_files:
+        for file_path, file_result in changed_files.items():
+            lines.append(f"### {os.path.relpath(file_path, start=folder_path)}")
+            lines.append(f"- total_replacements: {file_result['total_replacements']}")
+            lines.append(f"- backup_path: {file_result['backup_path']}")
+            for pair_count in file_result['pair_counts']:
+                lines.append(f"- find: {pair_count['find_str']} | replace: {pair_count['replace_str']} | replacements: {pair_count['num_replacements']}")
+    else:
+        lines.append("- none")
+    lines.append("")
+    lines.append("")
+    lines.append("## Rejected Changes")
+    if rejected_files:
+        for file_path, file_result in rejected_files.items():
+            lines.append(f"### {os.path.relpath(file_path, start=folder_path)}")
+            lines.append(f"- total_replacements: {file_result['total_replacements']}")
+            lines.append(f"- backup_path: {file_result['backup_path']}")
+            for pair_count in file_result['pair_counts']:
+                lines.append(f"- find: {pair_count['find_str']} | replace: {pair_count['replace_str']} | replacements: {pair_count['num_replacements']}")
+    else:
+        lines.append("- none")
+    return '\n'.join(lines) + '\n'
+def _print_find_and_replace_pairs_in_folder_summary(folder_path, find_replace_pairs, files_scanned, changed_files, rejected_files, total_replacements, log_file_path):
+    """
+    Prints a compact summary for a folder-level find and replace run.
+
+    :param folder_path: string, the folder processed during the run.
+    :param find_replace_pairs: list, the find and replace pairs used for the run.
+    :param files_scanned: int, the total number of files scanned.
+    :param changed_files: dict, the kept changed files and their replacement details.
+    :param rejected_files: dict, the rejected changed files and their replacement details.
+    :param total_replacements: int, the total replacements kept after prompts.
+    :param log_file_path: string, the path to the markdown log file for the run.
+    :return: none, this function prints the summary.
+    """
+    print(f"\n=== FIND AND REPLACE SUMMARY ===")
+    print(f"Folder: {folder_path}")
+    print(f"Files checked: {files_scanned}")
+    print(f"Files changed: {len(changed_files)}")
+    print(f"Files rejected: {len(rejected_files)}")
+    print(f"Total replacements kept: {total_replacements}")
+    print(f"Log file: {log_file_path}")
+    for index, (find_str, replace_str) in enumerate(find_replace_pairs):
+        print(f"\nFind: '{find_str}' -> Replace: '{replace_str}'")
+        pair_has_matches = False
+        for file_path, file_result in changed_files.items():
+            num_replacements = file_result['pair_counts'][index]['num_replacements']
+            if num_replacements > 0:
+                print(f"{num_replacements} {os.path.relpath(file_path, start=folder_path)}")
+                pair_has_matches = True
+        if not pair_has_matches:
+            print("none")
 def find_and_replace_pairs(file_path, find_replace_pairs, debug=False, use_regex=False, include_metadata=False):
     """
     Finds and replaces multiple specified strings or regex patterns in the file and overwrites the original file.
@@ -1658,50 +1929,77 @@ def find_and_replace_pairs(file_path, find_replace_pairs, debug=False, use_regex
     :param find_replace_pairs: list of tuples, each containing a string or regex pattern to be found and a string to replace it with.
     :param debug: boolean, whether to print debug information.
     :param use_regex: boolean for whether to use regex patterns for finding. Default is False (use exact string matching).
-    :param include_metadata: boolean for whether to search and replace in metadata section. Default is True.
+    :param include_metadata: boolean for whether to search and replace in metadata section. Default is False.
     :return: int, the total number of replacements made.
     """
     metadata, content = read_file_flex(file_path)
     verbose_print(debug, f"\nProcessing file: {file_path}")
-
-    total_replacements = 0
-    for find_str, replace_str in find_replace_pairs:
-        verbose_print(debug, f"  Looking for: '{find_str}'")
-        verbose_print(debug, f"  Replace with: '{replace_str}'")
-        
-        if use_regex:
-            regex = re.compile(find_str, re.DOTALL)
-            if include_metadata and metadata is not None:
-                metadata, meta_count = regex.subn(replace_str, metadata)
-                total_replacements += meta_count
-                verbose_print(debug, f"  Metadata replacements made: {meta_count}")
-            content, count = regex.subn(replace_str, content)
-            total_replacements += count
-            verbose_print(debug, f"  Content replacements made: {count}")
-        else:
-            # First escape all regex special characters
-            safe_find_str = re.escape(find_str)
-            
-            # Then unescape the URL-safe characters we want to match literally
-            url_safe_chars = '/: .'
-            for char in url_safe_chars:
-                safe_find_str = safe_find_str.replace('\\' + char, char)
-            verbose_print(debug, f"  Search pattern after escaping: '{safe_find_str}'")
-            
-            if include_metadata and metadata is not None:
-                metadata, meta_count = re.subn(safe_find_str, replace_str.replace('\\', '\\\\'), metadata, flags=re.DOTALL)
-                total_replacements += meta_count
-                verbose_print(debug, f"  Metadata replacements made: {meta_count}")
-            content, count = re.subn(safe_find_str, replace_str.replace('\\', '\\\\'), content, flags=re.DOTALL)
-            total_replacements += count
-            verbose_print(debug, f"  Content replacements made: {count}")
-
+    metadata, content, pair_counts, total_replacements = _find_and_replace_pairs_core(metadata, content, find_replace_pairs, debug=debug, use_regex=use_regex, include_metadata=include_metadata)
     if metadata is None:
         write_complete_text(file_path, content, overwrite='yes')
     else:
         write_metadata_and_content(file_path, metadata, content, overwrite='yes')
-
+    verbose_print(debug, f"  Pair counts: {pair_counts}")
     return total_replacements
+def find_and_replace_pairs_in_folder(folder_path, find_replace_pairs, suffixpat_include=None, include_subfolders=False, include_metadata=False, use_regex=False, prompt_to_keep_updated_file=False, save_backups_of_changed_files=False, show_summary=True, verbose=False):
+    """
+    Applies multiple find and replace pairs across files in a folder and logs the run.
+
+    :param folder_path: string, the folder containing files to process.
+    :param find_replace_pairs: list of tuples, each containing a find string or regex pattern and its replacement string.
+    :param suffixpat_include: string or none, the suffix pattern that included files must have.
+    :param include_subfolders: boolean, whether to include files from subfolders.
+    :param include_metadata: boolean, whether to apply replacements to metadata sections.
+    :param use_regex: boolean, whether to treat find strings as regex patterns.
+    :param prompt_to_keep_updated_file: boolean, whether to prompt after each changed file to keep or reject the update.
+    :param save_backups_of_changed_files: boolean, whether to save backups of files before changing them.
+    :param show_summary: boolean, whether to print a compact summary at the end of the run.
+    :param verbose: boolean, whether to print verbose messages.
+    :return results: dict, the run summary including log path, backup path, and changed file details.
+    """
+    verbose_print(verbose, f"\nRUNNING find_and_replace_pairs_in_folder on {folder_path}")
+    file_paths = get_files_in_folder(folder_path, suffixpat_include=suffixpat_include, include_subfolders=include_subfolders)
+    file_paths.sort()
+    logs_folder = _get_find_and_replace_logs_folder()
+    os.makedirs(logs_folder, exist_ok=True)
+    timestamp = get_current_datetime_filefriendly()
+    log_file_path = os.path.join(logs_folder, f"{timestamp}_find_and_replace_pairs_in_folder.md")
+    backup_folder_path = None
+    if save_backups_of_changed_files:
+        backup_folder_path = os.path.join(logs_folder, f"{timestamp}_find_and_replace_backups")
+        os.makedirs(backup_folder_path, exist_ok=True)
+    changed_files = {}
+    rejected_files = {}
+    total_replacements = 0
+    for file_path in file_paths:
+        original_complete_text = read_complete_text(file_path)
+        metadata, content = read_file_flex(file_path)
+        verbose_print(verbose, f"\nProcessing file: {file_path}")
+        metadata_updated, content_updated, pair_counts, file_total_replacements = _find_and_replace_pairs_core(metadata, content, find_replace_pairs, debug=verbose, use_regex=use_regex, include_metadata=include_metadata)
+        if file_total_replacements == 0:
+            continue
+        backup_path = None
+        if save_backups_of_changed_files:
+            backup_path = _copy_file_to_find_and_replace_backup(file_path, folder_path, backup_folder_path)
+        if metadata_updated is None:
+            write_complete_text(file_path, content_updated, overwrite='yes')
+        else:
+            write_metadata_and_content(file_path, metadata_updated, content_updated, overwrite='yes')
+        file_result = {'total_replacements': file_total_replacements, 'pair_counts': pair_counts, 'backup_path': backup_path}
+        if prompt_to_keep_updated_file and not _prompt_to_keep_updated_file(file_path):
+            write_complete_text(file_path, original_complete_text, overwrite='yes')
+            rejected_files[file_path] = file_result
+            verbose_print(verbose, f"Rejected updated file: {file_path}")
+            continue
+        changed_files[file_path] = file_result
+        total_replacements += file_total_replacements
+        verbose_print(verbose, f"Kept updated file: {file_path}")
+    log_text = _build_find_and_replace_pairs_in_folder_log(folder_path, find_replace_pairs, suffixpat_include, include_subfolders, include_metadata, use_regex, prompt_to_keep_updated_file, save_backups_of_changed_files, len(file_paths), changed_files, rejected_files, total_replacements, backup_folder_path)
+    with open(log_file_path, 'w', encoding='utf-8') as log_file:
+        log_file.write(log_text)
+    if show_summary:
+        _print_find_and_replace_pairs_in_folder_summary(folder_path, find_replace_pairs, len(file_paths), changed_files, rejected_files, total_replacements, log_file_path)
+    return {'log_file_path': log_file_path, 'backup_folder_path': backup_folder_path, 'files_scanned': len(file_paths), 'files_changed': changed_files, 'files_rejected': rejected_files, 'total_replacements': total_replacements}
 def parse_csv_for_find_replace(csv_file):
     """
     Parses a CSV file to extract find and replace pairs.

@@ -3,13 +3,14 @@
 
 import os
 from datetime import datetime
-from pinecone import Pinecone
+from pinecone import Pinecone  # This is correct - imports the Pinecone class
+import pinecone  # Add this - imports the module for version info
 
 from chalicelib.vectordb import generate_embedding, convert_date_to_unix
 from chalicelib.llm import simple_openai_chat_completion_request, deepseek_chat_completion_request_sdk, openai_chat_completion_request_sdk
 from chalicelib.llm import get_call_cost_from_response, TOKEN_PRICE_DICT
 from chalicelib.rag_prompts_routes import *
-from chalicelib.fileops import convert_data_object_to_json_data
+from chalicelib.fileops import convert_data_object_to_json_data, verbose_print
 
 # ---API KEYS AND SECRETS---
 PINECONE_API_KEY = os.environ["PINECONE_API_KEY"]
@@ -17,10 +18,9 @@ PINECONE_API_KEY = os.environ["PINECONE_API_KEY"]
 # ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
 
 ### RETRIEVAL
-def pinecone_retriever(query, vector_index_name, num_chunks, date_range=None):
-    """ 
+def pinecone_retriever(query, vector_index_name, num_chunks, date_range=None, debug=False):
+    """
     Retrieves relevant question chunks from a Pinecone index based on the input question.
-
     :param query: string of the input question to search for.
     :param vector_index_name: string of the name of the Pinecone index to query.
     :param num_chunks: integer specifying the number of chunks to retrieve.
@@ -28,17 +28,21 @@ def pinecone_retriever(query, vector_index_name, num_chunks, date_range=None):
     :return: tuple containing fetched question chunks and a dictionary of retrieved IDs with their scores.
     """
     pinecone_client = Pinecone(api_key=PINECONE_API_KEY)
-    print(f"DEBUG: Starting pinecone_retriever with date_range={date_range}")
+    verbose_print(debug, "DEBUG: Pinecone version:", pinecone.__version__)
+    verbose_print(debug, f"DEBUG: Starting pinecone_retriever with date_range={date_range}")
+    verbose_print(debug, f"DEBUG: Connecting to index: {vector_index_name}")
 
     vectorized_query = generate_embedding(query)
-    index = pinecone_client.Index(vector_index_name)
+    verbose_print(debug, f"DEBUG: Generated embedding of length: {len(vectorized_query)}")
     
-    # Prepare query parameters
+    index = pinecone_client.Index(vector_index_name)
+    verbose_print(debug, f"DEBUG: Successfully connected to index")
+    
+    # Prepare query parameters for v6
     query_params = {
-        "namespace": "",
         "vector": vectorized_query,
         "top_k": num_chunks,
-        "include_values": False
+        "include_metadata": True  # Changed from include_values
     }
     
     # Add date range filter if provided
@@ -51,9 +55,9 @@ def pinecone_retriever(query, vector_index_name, num_chunks, date_range=None):
             start_date_timestamp_unix = convert_date_to_unix(date_range[0], utc_offset)
             end_date_timestamp_unix = convert_date_to_unix(date_range[1], utc_offset)
             
-            print(f"DEBUG: Converting dates (UTC-7/PDT):")
-            print(f"  Input dates: {date_range[0]} to {date_range[1]}")
-            print(f"  Unix timestamps: {start_date_timestamp_unix} to {end_date_timestamp_unix}")
+            verbose_print(debug,f"DEBUG: Converting dates (UTC-7/PDT):")
+            verbose_print(debug,f"  Input dates: {date_range[0]} to {date_range[1]}")
+            verbose_print(debug,f"  Unix timestamps: {start_date_timestamp_unix} to {end_date_timestamp_unix}")
             
             query_params["filter"] = {
                 "DATE": {
@@ -65,22 +69,113 @@ def pinecone_retriever(query, vector_index_name, num_chunks, date_range=None):
             # Create a copy of query_params with truncated vector for logging
             log_params = query_params.copy()
             log_params['vector'] = f"[{log_params['vector'][0]:.4f}, ... {len(log_params['vector'])} values]"
-            print(f"DEBUG: Final query_params: {log_params}")
+            verbose_print(debug,f"DEBUG: Final query_params: {log_params}")
         except Exception as e:
-            print(f"DEBUG: Error in date conversion: {str(e)}")
+            verbose_print(debug,f"DEBUG: Error in date conversion: {str(e)}")
             raise
     
-    retrieved_qchunks = index.query(**query_params)
+    # Execute query with v6 API
+    verbose_print(debug, "DEBUG: Executing query...")
+    query_response = index.query(**query_params)
+    verbose_print(debug, f"DEBUG: Query response type: {type(query_response)}")
+    verbose_print(debug, f"DEBUG: Query response attributes: {dir(query_response)}")
+    # Add full response printing for debugging - outside the hasattr check
+    verbose_print(debug, f"DEBUG: Full query response: {query_response}")
+    verbose_print(debug, f"DEBUG: Full query response __dict__: {query_response.__dict__}")
     
-    # Extract the IDs from the retrieved question chunks
-    retrieved_ids_scores = {vector['id']: vector['score'] for vector in retrieved_qchunks['matches']}
+    # Print just IDs and scores from matches, not full metadata
+    if hasattr(query_response, 'matches'):
+        matches_summary = [{'id': m.id, 'score': m.score} for m in query_response.matches]
+        verbose_print(debug, f"DEBUG: Query response matches (ids and scores): {matches_summary}")
     
-    # Fetch the question chunks using the IDs
+    # Extract matches using v6 object attributes
+    retrieved_ids_scores = {
+        match.id: match.score 
+        for match in query_response.matches
+    }
+    verbose_print(debug, f"DEBUG: Retrieved IDs and scores: {retrieved_ids_scores}")
+    
+    # Fetch chunks using v6 API
     ids = list(retrieved_ids_scores.keys())
-    fetched_chunks = index.fetch(ids=ids, namespace="")
+    verbose_print(debug, f"DEBUG: Fetching chunks for IDs: {ids}")
+    fetch_response = index.fetch(ids=ids)
+    verbose_print(debug, f"DEBUG: Fetch response type: {type(fetch_response)}")
+    verbose_print(debug, f"DEBUG: Fetch response attributes: {dir(fetch_response)}")
+    
+    # Convert fetch response to expected format
+    fetched_chunks = {
+        id: {
+            'metadata': vector.metadata if hasattr(vector, 'metadata') else {},
+            'values': vector.values if hasattr(vector, 'values') else None
+        }
+        for id, vector in fetch_response.vectors.items()
+    }
 
-    return fetched_chunks, retrieved_ids_scores
+    # Wrap the fetched chunks in a dictionary with key "vectors" because of changes in Pinecone v6 (2-25 RT ugly troubleshooting)
+    print("Wrapping fetched chunks in a dictionary with key 'vectors'")
+    return {"vectors": fetched_chunks}, retrieved_ids_scores
 
+def filter_same_block_chunks(fetched_chunks, retrieved_ids_scores, num_chunks_keep=None):
+    """
+    Filters chunks that come from the same QA block, keeping only the one with the highest similarity score.
+    This handles cases where multiple questions from the same block are retrieved due to semantic overlap.
+    When num_chunks_keep is None, returns all unique chunks (one per block) sorted by similarity score.
+    When num_chunks_keep is specified, returns only the top N chunks by similarity score.
+
+    :param fetched_chunks: dictionary containing fetched chunks from Pinecone with 'vectors' key.
+    :param retrieved_ids_scores: dictionary of retrieved IDs with their similarity scores.
+    :param num_chunks_keep: optional integer specifying the maximum number of chunks to keep after filtering.
+    :return: tuple containing filtered chunks dictionary and updated retrieved_ids_scores dictionary.
+    """
+    # Group chunks by their block ID (everything before the last underscore)
+    block_groups = {}
+    for chunk_id in fetched_chunks['vectors'].keys():
+        # Extract the block ID prefix (everything before the last underscore)
+        block_id_prefix = chunk_id.rsplit('_', 1)[0]
+        
+        if block_id_prefix not in block_groups:
+            block_groups[block_id_prefix] = []
+        block_groups[block_id_prefix].append((chunk_id, retrieved_ids_scores.get(chunk_id, 0)))
+
+    # For each group, keep only the chunk with highest similarity score
+    filtered_chunks = {'vectors': {}}
+    filtered_ids_scores = {}
+    
+    # Process each group and add the best chunk to filtered results
+    for group in block_groups.values():
+        # Sort by similarity score (descending) and get the highest scoring chunk
+        best_chunk_id, best_score = max(group, key=lambda x: x[1])
+        
+        # Add the best chunk to the filtered results
+        filtered_chunks['vectors'][best_chunk_id] = fetched_chunks['vectors'][best_chunk_id]
+        filtered_ids_scores[best_chunk_id] = best_score
+    
+    # Sort the filtered_ids_scores by score in descending order
+    sorted_ids_scores = dict(sorted(filtered_ids_scores.items(), key=lambda item: item[1], reverse=True))
+    
+    # If num_chunks_keep is specified, limit the results to the top N chunks
+    if num_chunks_keep is not None and num_chunks_keep > 0:
+        # Get the top chunk_ids
+        top_chunk_ids = list(sorted_ids_scores.keys())[:num_chunks_keep]
+        
+        # Create new dictionaries with only the top chunks
+        limited_ids_scores = {chunk_id: sorted_ids_scores[chunk_id] for chunk_id in top_chunk_ids}
+        limited_chunks = {'vectors': {}}
+        
+        for chunk_id in top_chunk_ids:
+            if chunk_id in filtered_chunks['vectors']:
+                limited_chunks['vectors'][chunk_id] = filtered_chunks['vectors'][chunk_id]
+        
+        # Replace the full dictionaries with the limited ones
+        sorted_ids_scores = limited_ids_scores
+        sorted_chunks = limited_chunks
+    else:
+        # Create a new filtered_chunks dictionary with chunks in the same order as sorted_ids_scores
+        sorted_chunks = {'vectors': {}}
+        for chunk_id in sorted_ids_scores.keys():
+            sorted_chunks['vectors'][chunk_id] = filtered_chunks['vectors'][chunk_id]
+    
+    return sorted_chunks, sorted_ids_scores
 
 ### VRAG
 def print_vrag_display_text(vrag_json_object, show_prompt=False):
@@ -155,19 +250,19 @@ def vrag_llm_call(user_question, vector_index_name, num_chunks, vrag_preamble=VR
  
 
 ### QRAG
-def sort_chunks_by_stars(fetched_qa_chunks, retrieved_ids_scores, num_chunks):
+def transform_and_sort_chunks_by_stars(retrieved_qa_chunks, retrieved_ids_scores, num_chunks):
     """
     Sorts chunks primarily by star rating and then by similarity score, returning the top `num_chunks`.
     Converts 'STARS' to integer and sets to 0 if blank.
 
-    :param fetched_qa_chunks: dictionary of fetched question chunks from Pinecone.
+    :param retrieved_qa_chunks: dictionary of fetched question chunks from Pinecone.
     :param retrieved_ids_scores: dictionary of retrieved IDs with their similarity scores.
     :param num_chunks: integer specifying the number of chunks to return.
     :return: list of sorted chunks.
     """
     # Extract chunks and their metadata
     chunks = []
-    for chunk_id, chunk_data in fetched_qa_chunks['vectors'].items():
+    for chunk_id, chunk_data in retrieved_qa_chunks['vectors'].items():
         metadata = chunk_data['metadata']
         metadata['id'] = chunk_id
         metadata['sim_score'] = retrieved_ids_scores.get(chunk_id, 0)
@@ -181,19 +276,19 @@ def sort_chunks_by_stars(fetched_qa_chunks, retrieved_ids_scores, num_chunks):
     # Return the top `num_chunks` chunks
     return sorted_chunks[:num_chunks]
 
-def sort_chunks_by_sim(fetched_qa_chunks, retrieved_ids_scores, num_chunks):
+def transform_and_sort_chunks_by_sim(retrieved_qa_chunks, retrieved_ids_scores, num_chunks):
     """
     Sorts chunks primarily by similarity score and returns the top `num_chunks`.
     Converts 'STARS' to integer and sets to 0 if blank, but doesn't use it for sorting.
 
-    :param fetched_qa_chunks: dictionary of fetched question chunks from Pinecone.
+    :param retrieved_qa_chunks: dictionary of fetched question chunks from Pinecone.
     :param retrieved_ids_scores: dictionary of retrieved IDs with their similarity scores.
     :param num_chunks: integer specifying the number of chunks to return.
     :return: list of sorted chunks.
     """
     # Extract chunks and their metadata
     chunks = []
-    for chunk_id, chunk_data in fetched_qa_chunks['vectors'].items():
+    for chunk_id, chunk_data in retrieved_qa_chunks['vectors'].items():
         metadata = chunk_data['metadata']
         metadata['id'] = chunk_id
         metadata['sim_score'] = retrieved_ids_scores.get(chunk_id, 0)
@@ -207,19 +302,18 @@ def sort_chunks_by_sim(fetched_qa_chunks, retrieved_ids_scores, num_chunks):
     # Return the top `num_chunks` chunks
     return sorted_chunks[:num_chunks]
 
-def parse_chunks(chunks, simscores):
+def parse_chunks(chunks):
     """ 
     Parses a list of chunks and returns a list of dictionaries containing formatted chunk information.
     Maps QA block fields (CLARIFIED_QUESTION/ANSWER) to standard QUESTION/ANSWER fields.
 
     :param chunks: list of chunk metadata dictionaries.
-    :param simscores: dictionary of similarity scores keyed by chunk id.
     :return: list of parsed chunk dictionaries.
     """
     parsed_chunks = []
     for chunk in chunks:
         chunk_id = chunk['id']
-        sim_score = simscores.get(chunk_id, 0)
+        sim_score = chunk['sim_score']  # Get sim_score directly from the chunk
 
         # Map CLARIFIED_QUESTION/ANSWER fields to QUESTION/ANSWER fields if present
         question = (
@@ -276,16 +370,19 @@ def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict,
     routes_flow_name = "3 routes, separate route prompts"
 
     # Retrieve chunks from Pinecone
-    fetched_chunks, retrieved_ids_scores = pinecone_retriever(user_question, vector_index_name, num_chunks, date_range)
+    chunk_retrieval_multiplier = 4  # factor to account for duplicates that will be filtered out
+    retrieved_chunks, retrieved_ids_scores = pinecone_retriever(user_question, vector_index_name, 
+                                                            num_chunks * chunk_retrieval_multiplier, 
+                                                            date_range)
 
-    # Select and sort chunks by similarity
-    selected_chunks = sort_chunks_by_sim(fetched_chunks, retrieved_ids_scores, num_chunks)
+    # Filter out duplicate questions from same chunks, keeping highest similarity
+    filtered_chunks, filtered_ids_scores = filter_same_block_chunks(retrieved_chunks, retrieved_ids_scores)
 
-    # Parse the selected chunks
-    parsed_chunks = parse_chunks(selected_chunks, retrieved_ids_scores)
+    # Transform and sort chunks by sim score (descending)
+    transformed_chunks = transform_and_sort_chunks_by_sim(filtered_chunks, filtered_ids_scores, num_chunks)
 
-    # Retrieve the item template from routes_dict
-    quoted_qa_item_template = routes_dict.get('quoted_qa_item_template', "")
+    # Parse the filtered chunks
+    parsed_chunks = parse_chunks(transformed_chunks)
 
     # Construct the quoted_qa by iterating over parsed chunks
     # This duplicated text is provided for ease of use by downstream web javascript code
@@ -361,8 +458,8 @@ def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict,
             "route_preamble": route_preamble,
             "prompt_initial": prompt_initial,
             "quoted_qa": quoted_qa,
-            "ai_answer": "WAITING FOR AI ANSWER...",
-            "chunks": {
+            "ai_answer": "WAITING FOR AI ANSWER - using high quality reasoning model so it may take 30-60 seconds...",
+            "retrieved_content": {
                 "max_sim": "{:.3f}".format(max_sim),
                 "max_stars": max_stars,
                 "chunks": chunks_metadata
@@ -376,8 +473,8 @@ def qrag_routing_call(user_question, vector_index_name, num_chunks, routes_dict,
     
     return qrag_routing_output_json_object
 
-LLM_MODEL_OPTIONS_QRAG_LLM_CALL = ["gpt-4o", "gpt-4o-mini", "o3-mini", "deepseek-reasoner"]  # sync these with aws_valid.LLM_MODEL_OPTIONS
-def qrag_llm_call(qrag_json_object, llm_model='o3-mini', large_context=None, large_context_filename=None):
+LLM_MODEL_OPTIONS_QRAG_LLM_CALL = ["gpt-5.4", "gpt-4o", "gpt-4o-mini", "o3-mini", "deepseek-reasoner"]  # sync these with aws_valid.LLM_MODEL_OPTIONS
+def qrag_llm_call(qrag_json_object, llm_model='gpt-5.4', large_context=None, large_context_filename=None, reasoning_effort='medium'):
     """ 
     Generates an AI answer for a given JSON object containing question and context information.
 
@@ -385,6 +482,7 @@ def qrag_llm_call(qrag_json_object, llm_model='o3-mini', large_context=None, lar
     :param llm_model: str, name of the language model to use.
     :param large_context: str, optional text content of the large context file.
     :param large_context_filename: str, optional filename of the large context file.
+    :param reasoning_effort: str, optional reasoning effort level ('low', 'medium', 'high').
     :return: dictionary with the updated JSON object including the AI-generated answer.
     """
     # Check that large_context and large_context_filename are either both present or both None
@@ -427,20 +525,37 @@ def qrag_llm_call(qrag_json_object, llm_model='o3-mini', large_context=None, lar
         llm_response = deepseek_chat_completion_request_sdk(llm_messages, model=llm_model)
         qrag_json_object['content']['reasoning_steps'] = llm_response.choices[0].message.reasoning_content
     elif llm_model in LLM_MODEL_OPTIONS_QRAG_LLM_CALL:
-        llm_response = openai_chat_completion_request_sdk(messages=llm_messages, model=llm_model)
+        llm_response = openai_chat_completion_request_sdk(messages=llm_messages, model=llm_model, reasoning_effort=reasoning_effort)
     else:
         raise ValueError("Currently only the following LLM models are supported for qrag_llm_call: " + ", ".join(LLM_MODEL_OPTIONS_QRAG_LLM_CALL))
     
     # Store only selected parts of the response in the json object
     qrag_json_object['content']['ai_answer'] = llm_response.choices[0].message.content
     
+    # Store token counts from response
+    if hasattr(llm_response, 'usage') and llm_response.usage:
+        qrag_json_object['content']['input_tokens'] = getattr(llm_response.usage, 'prompt_tokens', 0)
+        qrag_json_object['content']['output_tokens'] = getattr(llm_response.usage, 'completion_tokens', 0)
+        if hasattr(llm_response.usage, 'completion_tokens_details') and llm_response.usage.completion_tokens_details:
+            reasoning_tokens = getattr(llm_response.usage.completion_tokens_details, 'reasoning_tokens', 0)
+            if reasoning_tokens:
+                qrag_json_object['content']['reasoning_tokens'] = reasoning_tokens
+        if hasattr(llm_response.usage, 'prompt_tokens_details') and llm_response.usage.prompt_tokens_details:
+            cached_input_tokens = getattr(llm_response.usage.prompt_tokens_details, 'cached_tokens', 0)
+            if cached_input_tokens:
+                qrag_json_object['content']['cached_input_tokens'] = cached_input_tokens
+    
+    # Store reasoning_effort in metadata if provided
+    if reasoning_effort:
+        qrag_json_object['metadata']['reasoning_effort'] = reasoning_effort
+    
     cost_pennies_mycalc = get_call_cost_from_response(llm_response, llm_model, TOKEN_PRICE_DICT, verbose=False)
     qrag_json_object['content']['cost_pennies_mycalc'] = cost_pennies_mycalc
 
     return qrag_json_object
 
-def qrag_2step(user_question, vector_index_name, num_chunks, routes_dict, 
-               date_range=None, llm_model='o3-mini', large_context_filename=None, 
+def qrag_2step(user_question, vector_index_name, num_chunks, routes_dict,
+               date_range=None, llm_model='gpt-5.4', large_context_filename=None,
                large_context_folder="data/large_context_files", verbose=False):
     """ 
     Performs a two-step question-answering process using QRAG (Question Retrieval Augmented Generation).

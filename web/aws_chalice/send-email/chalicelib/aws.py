@@ -50,7 +50,7 @@ def mtest_generate_hmac_hash():
         print("Hash verification failed.")
 
 ### AWS S3
-def upload_file_to_s3(file_path, bucket='fofpublic', object_name=None, s3_path=None):
+def upload_file_to_s3(file_path, bucket='fofpublic', object_name=None, s3_path=None, prompt_overwrite=False):
     """
     Upload a file to an S3 bucket
 
@@ -58,9 +58,9 @@ def upload_file_to_s3(file_path, bucket='fofpublic', object_name=None, s3_path=N
     :param bucket: Name of the S3 bucket, default is 'fofpublic', others: 'fofsecure', 'deutsch-audio'
     :param object_name: S3 object name. If not specified, the file name is used
     :param s3_path: S3 folder path where the file will be stored, e.g. 'podcasts/'
-    :return: The object name of the file in S3
+    :param prompt_overwrite: If True, prompts for confirmation before overwriting existing files
+    :return: The object name of the file in S3, or None if upload was cancelled or failed
     """
-
     # Create an S3 client
     s3_client = boto3.client('s3')
 
@@ -73,15 +73,35 @@ def upload_file_to_s3(file_path, bucket='fofpublic', object_name=None, s3_path=N
         object_name = os.path.join(s3_path, object_name)
 
     try:
+        # Check if file exists
+        if prompt_overwrite:
+            try:
+                s3_client.head_object(Bucket=bucket, Key=object_name)
+                # File exists, prompt for confirmation
+                response = input(f"\n⚠️ Warning: {object_name} already exists in {bucket}. Overwrite? (y/n): ")
+                if response.lower() != 'y':
+                    print("Upload cancelled")
+                    return None
+            except ClientError as e:
+                # File doesn't exist, continue with upload
+                if e.response['Error']['Code'] != '404':
+                    # Some other error occurred
+                    raise
+
         # Upload the file
         s3_client.upload_file(file_path, bucket, object_name)
-        print(f"uploaded {object_name} to {bucket}")
+        print(f"Uploaded to S3 bucket: {bucket}  object: {object_name}")
         return object_name
 
     except FileNotFoundError:
+        print(f"Local file not found: {file_path}")
         return None
     except NoCredentialsError:
         print("Credentials not available")
+        return None
+    except ClientError as e:
+        print(f"Error uploading to S3: {str(e)}")
+        return None
 
 def rename_s3_object(bucket, old_key, new_key, s3_path=None):
     """
@@ -110,7 +130,7 @@ def rename_s3_object(bucket, old_key, new_key, s3_path=None):
     print(f"Renamed {old_key} to {new_key} in bucket {bucket}")
     return
 
-def get_s3_object(bucket, key, s3_path, parse_json=True):
+def get_s3_object(bucket, key, s3_path=None, parse_json=True, verbose=False):
     """
     Retrieve an object from an S3 bucket.
 
@@ -118,18 +138,23 @@ def get_s3_object(bucket, key, s3_path, parse_json=True):
     :param key: The key (path) of the object in the S3 bucket
     :param s3_path: Optional S3 folder path to prepend to the key
     :param parse_json: Whether to parse the object content as JSON (default: True)
+    :param verbose: Whether to print verbose output (default: False)
     :return: The object content (parsed as JSON if parse_json is True) if found, otherwise None
     """
     s3 = boto3.client('s3', region_name='us-west-2')
 
     # Adjust key if s3_path is provided
     if s3_path:
-        key = f"{s3_path}/{key}"
+        # Remove trailing slash from s3_path and leading slash from key
+        full_key = f"{s3_path.rstrip('/')}/{key.lstrip('/')}"
+    else:
+        full_key = key
 
-    print(f"Function get_s3_object is attempting to access key: {key} in bucket: {bucket}")
+    if verbose:
+        print(f"Function get_s3_object is attempting to access key: {full_key} in bucket: {bucket}")
 
     try:
-        response = s3.get_object(Bucket=bucket, Key=key)
+        response = s3.get_object(Bucket=bucket, Key=full_key)
         content = response['Body'].read().decode('utf-8')
         if parse_json:
             return json.loads(content)
@@ -137,14 +162,14 @@ def get_s3_object(bucket, key, s3_path, parse_json=True):
     except ClientError as e:
         error_code = e.response['Error']['Code']
         if error_code == 'NoSuchKey':
-            print(f"Error: No such key: {key} in bucket: {bucket}")
+            print(f"Error: No such key: {full_key} in bucket: {bucket}")
         elif error_code == 'NoSuchBucket':
             print(f"Error: No such bucket: {bucket}")
         else:
             print(f"Error: {e}")
         return None
     except Exception as e:
-        print(f"Error: Failed to retrieve {key} from {bucket}: {str(e)}")
+        print(f"Error: Failed to retrieve {full_key} from {bucket}: {str(e)}")
         return None
 def mtest_get_s3_object():
     pass
@@ -195,8 +220,10 @@ def list_s3_files(bucket, s3_path, file_extension='.json'):
         print(f"Error listing S3objects in bucket '{bucket}' with path '{s3_path}': {e}")
         return []
 def mtest_list_s3_files():
+    pass
+#if __name__ == "__main__":
     bucket = 'fofsecure'
-    s3_path = 's3-qrag-deutsch-v3/'
+    s3_path = 's3-qrag-deutsch/'
     file_extension = '.json'  # Specify the file extension
     files = list_s3_files(bucket, s3_path, file_extension)
     num_files = len(files)
@@ -204,7 +231,6 @@ def mtest_list_s3_files():
     if num_files > 0:
         print(f"First item: {files[0]}")
         print(f"Last item:  {files[-1]}")
-        return files
     else:
         print("No files found in S3 bucket and folder.")
 
@@ -396,6 +422,116 @@ def mrun_S3_mtests():
     mtest_remove_from_file_list()
     mtest_download_new_s3_files()
 
+def generate_presigned_s3_url(bucket, object_key, method='get', content_type=None, expire_seconds=1800):
+    """
+    Generate a presigned URL for 'get' or 'put' to allow temporary access to S3 objects.
+
+    :param bucket: S3 bucket name
+    :param object_key: Full S3 key, e.g. "audio/filename.mp3"
+    :param method: 'get' or 'put'
+    :param content_type: Set this if you're generating a PUT URL for JSON or other media
+    :param expire_seconds: How many seconds this URL remains valid (default 30 min)
+    :return: The presigned URL string
+    """
+    from botocore.client import Config
+
+    s3_client = boto3.client('s3', config=Config(signature_version='s3v4'))
+
+    if method.lower() == 'put':
+        # For PUT, specify the ContentType so S3 stores the object type correctly.
+        return s3_client.generate_presigned_url(
+            'put_object',
+            Params={
+                'Bucket': bucket,
+                'Key': object_key,
+                'ContentType': content_type or 'application/json',
+            },
+            ExpiresIn=expire_seconds
+        )
+    else:
+        # Default is GET
+        return s3_client.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': bucket, 'Key': object_key},
+            ExpiresIn=expire_seconds
+        )
+
+def get_large_context_from_s3(filename):
+    """
+    Fetch large context file from S3.
+
+    :param filename: str, name of the file to fetch from large-context-files folder
+    :return: str, content of the file
+    :raises: ClientError with specific error details
+    """
+    s3 = boto3.client('s3')
+    bucket = 'fofsecure'
+    key = f'large-context-files/{filename}'
+    
+    try:
+        response = s3.get_object(Bucket=bucket, Key=key)
+        return response['Body'].read().decode('utf-8')
+    except ClientError as e:
+        error_code = e.response['Error']['Code']
+        if error_code == 'NoSuchKey':
+            print(f"File not found: {filename}")
+            return None
+        elif error_code == 'AccessDenied':
+            print(f"Access denied to s3://{bucket}/{key}. Check IAM permissions.")
+            return None
+        else:
+            print(f"AWS Error: {str(e)}")
+            return None
+def mtest_get_large_context_from_s3():
+    pass
+#if __name__ == "__main__":
+    # Test valid file
+    try:
+        filename = 'deutsch_large_context_v1.md'
+        print(f"\nTesting get_large_context_from_s3 with file:{filename}")
+        content = get_large_context_from_s3(filename)
+        if content:
+            print(f"Successfully retrieved file. First 100 chars: {content[:100]}")
+        else:
+            print("Error: No content returned")
+    except ClientError as e:
+        print(f"AWS Error: {str(e)}")
+        print(f"Error Code: {e.response['Error']['Code']}")
+        print(f"Error Message: {e.response['Error']['Message']}")
+
+    # Test non-existent file
+    try:
+        filename = 'nonexistent_file.txt'
+        print(f"\nTesting with non-existent file: {filename}")
+        content = get_large_context_from_s3(filename)
+    except ClientError as e:
+        print(f"Expected error for non-existent file: {str(e)}")
+
+def upload_large_context_files_to_s3(folder_path='data/large_context_files'):  # not tested
+    s3 = boto3.client('s3')
+    s3_folder = 'large-context-files'
+    uploaded_count = 0
+    try:
+        for file_name in os.listdir(folder_path):
+            file_path = os.path.join(folder_path, file_name)
+            if os.path.isfile(file_path):
+                s3.upload_file(
+                    Bucket='fofsecure',
+                    Key=f'{s3_folder}/{file_name}',
+                    Filename=file_path
+                )
+                uploaded_count += 1
+        print(f"Successfully uploaded {uploaded_count} files to S3")
+    except Exception as e:
+        print(f"Error uploading to S3: {str(e)}")
+def mrun_upload_large_context_files_to_s3():
+    pass
+#if __name__ == "__main__":
+    upload_large_context_files_to_s3()
+
+
+# ===== API GATEWAY SECTION OF FILE primary/aws.py =====
+
 ### AWS API KEYS
 def create_api_key(key_name, description="API key for Lambda function"):
     """
@@ -527,13 +663,14 @@ def mrun_create_api_key_and_associate_with_usage_plan():
     else:
         print("Failed to create API key")
 
-def associate_usage_plan_with_api_gateway(usage_plan_id, rest_api_id, stage='api'):
+# NOTE: changed 3-26 for 'dev' stage instead of old 'api' stage
+def associate_usage_plan_with_api_gateway(usage_plan_id, rest_api_id, stage):
     """
     Associate a usage plan with an API Gateway stage.
     
     :param usage_plan_id: ID of the usage plan
     :param rest_api_id: ID of the REST API Gateway
-    :param stage: API stage name (default: 'api')
+    :param stage: API stage name (dev or prod)
     :return: True if successful, False otherwise
     """
     api_client = boto3.client('apigateway')
@@ -592,57 +729,332 @@ def mrun_enable_api_key_requirement():
     http_method = "GET"
     enable_api_key_requirement(rest_api_id, resource_id, http_method)
 
-def get_api_gateway_ids(api_name, http_method, verbose=True):
+def get_api_gateway_and_resource_ids(api_gateway_name, http_method='POST', verbose=False):
     """
-    Get REST API ID and resource ID from API Gateway using the API name and HTTP method.
+    Get API Gateway ID and resource ID.
+    Finds the API Gateway by name, not by hardcoded ID.
     
-    :param api_name: Name of the API Gateway (e.g., 'testapp')
-    :param http_method: HTTP method to find (e.g., 'GET', 'POST')
-    :param stage: API stage name (default: 'dev')
-    :return: Tuple of (rest_api_id, resource_id) or (None, None) if not found
+    :param api_gateway_name: str, name of the API Gateway
+    :param http_method: str, HTTP method to check
+    :param verbose: bool, if True prints diagnostic information
+    :return tuple: (rest_api_id, resource_id)
+    """
+    api_client = boto3.client('apigateway')
+    
+    # Get all APIs
+    apis = api_client.get_rest_apis()
+    if verbose:
+        print(f"Found {len(apis['items'])} API Gateways")
+    
+    # Find the API by name
+    matching_apis = [api for api in apis['items'] if api['name'] == api_gateway_name]
+    
+    if not matching_apis:
+        print(f"No API Gateway found with name: {api_gateway_name}")
+        return None, None
+    
+    if len(matching_apis) > 1:
+        print(f"Multiple API Gateways found with name '{api_gateway_name}':")
+        for api in matching_apis:
+            print(f"  ID: {api['id']}, Created: {api.get('createdDate', 'unknown')}")
+        raise ValueError(f"Multiple API Gateways found with name '{api_gateway_name}'. Please ensure unique names.")
+    
+    rest_api_id = matching_apis[0]['id']
+    
+    if verbose:
+        print(f"Using API Gateway '{api_gateway_name}' with ID: {rest_api_id}")
+    
+    # Get resources
+    resources = api_client.get_resources(restApiId=rest_api_id)
+    
+    # Find the resource for the root path (typically /api/{lambda-name})
+    resource_id = None
+    for resource in resources['items']:
+        # Look for /api/{lambda-name} or just /
+        path = resource.get('path', '')
+        if path == f"/api/{api_gateway_name}" or path.endswith(f"/{api_gateway_name}"):
+            resource_id = resource['id']
+            break
+    
+    if not resource_id:
+        # If no specific resource was found, try to find the root resource 
+        # that has a POST method
+        for resource in resources['items']:
+            try:
+                api_client.get_method(
+                    restApiId=rest_api_id,
+                    resourceId=resource['id'],
+                    httpMethod=http_method
+                )
+                resource_id = resource['id']
+                break
+            except:
+                continue
+    
+    if not resource_id:
+        print(f"No resource found with {http_method} method for API: {api_gateway_name}")
+        return rest_api_id, None
+    
+    return rest_api_id, resource_id
+def mrun_get_api_gateway_and_resource_ids():
+    pass
+#if __name__ == "__main__":
+    api_gateway_name = "hmac-hash"
+    print(get_api_gateway_and_resource_ids(api_gateway_name))
+
+def rename_api_gateway(rest_api_id, new_name):
+    """
+    Rename an API Gateway.
+    
+    :param rest_api_id: str, ID of the REST API
+    :param new_name: str, New name for the API Gateway
+    """
+    api_client = boto3.client('apigateway')
+    api_client.update_rest_api(
+        restApiId=rest_api_id,
+        patchOperations=[
+            {
+                'op': 'replace',
+                'path': '/name',
+                'value': new_name
+            }
+        ]
+    )
+    
+    # Lookup the name after rename to confirm the change
+    response = api_client.get_rest_api(restApiId=rest_api_id)
+    current_name = response.get('name', 'unknown')
+    print(f"API Gateway renamed: ID {rest_api_id} is now named '{current_name}'")
+def mrun_rename_api_gateway():
+    pass
+if __name__ == "__main__":
+    rename_api_gateway("d3aaq3eeyj", "hash-store-prod")
+def rename_api_gateway_stage(rest_api_id, old_stage_name, new_stage_name):
+    """
+    Rename a stage of an API Gateway.
+    
+    :param rest_api_id: str, ID of the REST API
+    :param old_stage_name: str, Current name of the stage
+    :param new_stage_name: str, New name for the stage
+    :return: bool, True if successful, False otherwise
     """
     api_client = boto3.client('apigateway')
     
     try:
-        # Get all REST APIs
-        apis = api_client.get_rest_apis()['items']
-        verbose_print(verbose, f"Found {len(apis)} API Gateways")
+        # Get the current stage to copy its configuration
+        response = api_client.get_stage(
+            restApiId=rest_api_id,
+            stageName=old_stage_name
+        )
         
-        # Find the API by name
-        api = next((api for api in apis if api['name'] == api_name), None)
-        if not api:
-            verbose_print(verbose, f"No API found with name: {api_name}")
-            return None, None
+        # Extract the current deployment ID and other settings
+        deployment_id = response.get('deploymentId')
         
-        rest_api_id = api['id']
-        verbose_print(verbose, f"Found API '{api_name}' with ID: {rest_api_id}")
+        # Build parameters for create_stage
+        params = {
+            'restApiId': rest_api_id,
+            'stageName': new_stage_name,
+            'deploymentId': deployment_id,
+            'description': response.get('description', f'Renamed from {old_stage_name}'),
+            'variables': response.get('variables', {})
+        }
         
-        # Get all resources for this API
-        resources = api_client.get_resources(restApiId=rest_api_id)['items']
+        # Only include cache parameters if caching is enabled
+        if response.get('cacheClusterEnabled', False):
+            params['cacheClusterEnabled'] = True
+            params['cacheClusterSize'] = response.get('cacheClusterSize', '0.5')
+        else:
+            params['cacheClusterEnabled'] = False
         
-        # Find the resource that has the specified HTTP method
-        for resource in resources:
-            if 'resourceMethods' in resource and http_method in resource['resourceMethods']:
-                return rest_api_id, resource['id']
+        # Create a new stage with the same deployment ID and settings
+        api_client.create_stage(**params)
         
-        verbose_print(verbose, f"No resource found with {http_method} method for API: {api_name}")
-        return None, None
+        # Delete the old stage
+        api_client.delete_stage(
+            restApiId=rest_api_id,
+            stageName=old_stage_name
+        )
         
-    except ClientError as e:
-        verbose_print(verbose, f"Error getting API Gateway IDs: {e}")
-        return None, None
-def mtest_get_api_gateway_ids():
+        print(f"API Gateway stage renamed: '{old_stage_name}' to '{new_stage_name}' for API {rest_api_id}")
+        return True
+        
+    except Exception as e:
+        print(f"Error renaming API Gateway stage: {e}")
+        return False
+def mrun_rename_api_gateway_stage():
     pass
-if __name__ == "__main__":
-    api_gateway_name = "deepgram-callback"
-    print(get_api_gateway_ids(api_gateway_name, "POST"))
+#if __name__ == "__main__":
+    rename_api_gateway_stage("2hk294prkd", "api", "prod")
 
-def create_deployment(rest_api_id, stage_name='api'):
+### DEPRECATED OLD LOGGING FUNCTIONS 4-6-25
+def generate_deployment_log(api_gateway_name, stage, deployment_type, validation_logger=None):
+    """
+    Generate a comprehensive deployment log that includes validation results and API state.
+    
+    :param api_gateway_name: str, name of the API Gateway
+    :param stage: str, deployment stage ('dev' or 'prod')
+    :param validation_logger: ValidationLogger object or None
+    :param deployment_type: str, type of deployment
+    :return: str, path to the generated log file
+    """
+    # Create directory structure
+    base_log_dir = "logs/aws_deployments"
+    stage_log_dir = f"{base_log_dir}/{stage}"
+    os.makedirs(stage_log_dir, exist_ok=True)
+    
+    # Create timestamp
+    timestamp = get_current_datetime_filefriendly()
+    log_file = f"{stage_log_dir}/{api_gateway_name}_{timestamp}.md"
+    
+    with open(log_file, 'w', encoding='utf-8') as f:
+        # Write header
+        f.write(f"# Deployment: {api_gateway_name} - {stage}\n")
+        f.write(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"Type: {deployment_type}\n\n")
+        
+        # Add validation results if available
+        if validation_logger:
+            f.write("## Validation Changes\n")
+            f.write("```\n")
+            f.write(validation_logger.get_summary())
+            f.write("\n```\n\n")
+        
+        # Generate API state report
+        f.write("## API State After Deployment\n\n")
+        
+        # Get REST API ID
+        api_client = boto3.client('apigateway')
+        rest_api_id = None
+        try:
+            apis = api_client.get_rest_apis()
+            api_matches = [api for api in apis['items'] if api['name'] == api_gateway_name]
+            if api_matches:
+                rest_api_id = api_matches[0]['id']
+        except Exception as e:
+            f.write(f"Error getting API ID: {str(e)}\n\n")
+        
+        if rest_api_id:
+            # Get deployment info
+            deployment_info = get_api_stage_current_config(rest_api_id, stage)
+            
+            # Write deployment info
+            f.write(f"### Active Deployment\n")
+            deployment = deployment_info['deployment']
+            f.write(f"ID: {deployment.get('id', 'None')}\n")
+            f.write(f"Date: {deployment.get('date', 'Unknown')}\n")
+            f.write(f"Description: {deployment.get('description', 'None')}\n\n")
+            
+            # Write Lambda info
+            lambda_info = deployment_info['lambda']
+            f.write(f"### Lambda Function\n")
+            if lambda_info.get('name'):
+                f.write(f"Name: {lambda_info.get('name')}\n")
+                f.write(f"Runtime: {lambda_info.get('runtime', 'Unknown')}\n")
+                f.write(f"Memory: {lambda_info.get('memory', 'Unknown')} MB\n")
+                f.write(f"Timeout: {lambda_info.get('timeout', 'Unknown')}s\n")
+                if 'last_updated' in lambda_info:
+                    f.write(f"Last Updated: {lambda_info['last_updated']}\n")
+            else:
+                f.write("No Lambda function found\n")
+            f.write("\n")
+            
+            # Add validation models
+            validation_models = get_api_validation_models(rest_api_id)
+            f.write(f"### Request Validation Models: {len(validation_models)}\n")
+            if not validation_models:
+                f.write("No models configured\n\n")
+            else:
+                for model_name, schema, content_type, used_by in validation_models:
+                    f.write(f"#### Model: {model_name}\n")
+                    if used_by:
+                        f.write(f"Used by: {', '.join(used_by)}\n")
+                    f.write(f"Content Type: {content_type}\n")
+                    f.write("```json\n")
+                    try:
+                        formatted_schema = json.dumps(schema, indent=2)
+                        f.write(formatted_schema)
+                    except (TypeError, ValueError):
+                        if isinstance(schema, str):
+                            f.write(schema)
+                    f.write("\n```\n\n")
+        else:
+            f.write("API Gateway not found or could not retrieve state information.\n\n")
+    
+    print(f"Comprehensive deployment log written to: {log_file}")
+    return log_file
+def log_deployment_to_history(api_gateway_name, stage, deployment_type="API Gateway deployment", detailed_log_path=None):
+    """
+    Log a deployment to the deployment history file with a link to the detailed log.
+    
+    :param api_gateway_name: str, name of the API Gateway
+    :param stage: str, deployment stage ('dev' or 'prod')
+    :param deployment_type: str, type of deployment (for documentation)
+    :param detailed_log_path: str, path to the detailed log file (optional)
+    :return: bool, True if successful, False otherwise
+    """
+    try:
+        # Create logs directory if it doesn't exist
+        log_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        log_file = os.path.join(log_dir, "web/aws_chalice/chalicelib_mirror_deploy_log.md")
+        
+        # Ensure the log file exists with proper headings
+        if not os.path.exists(log_file):
+            with open(log_file, 'w') as f:
+                f.write("# prod\n\n# dev\n\n")
+        
+        # Format timestamp
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Read existing content
+        with open(log_file, 'r') as f:
+            content = f.read()
+        
+        # Prepare the log entry
+        log_entry = f"{timestamp}  {api_gateway_name}  ({deployment_type})"
+        
+        # Add link to detailed log if provided
+        if detailed_log_path:
+            # Create a relative path from the log file to the detailed log
+            rel_path = os.path.relpath(detailed_log_path, os.path.dirname(log_file))
+            log_entry += f" [Details]({rel_path})"
+        
+        # Insert new entry after the appropriate heading
+        if stage.lower() == 'prod':
+            marker = "# prod"
+        else:
+            marker = "# dev"
+            
+        # Find the marker position and insert after it
+        marker_pos = content.find(marker)
+        if marker_pos >= 0:
+            insert_pos = marker_pos + len(marker) + 1  # +1 for newline
+            new_content = content[:insert_pos] + f"{log_entry}\n" + content[insert_pos:]
+            
+            # Write updated content
+            with open(log_file, 'w') as f:
+                f.write(new_content)
+                
+            print(f"Deployment logged to history: {log_file}")
+            return True
+        else:
+            print(f"⚠️ Warning: Could not find section marker '{marker}' in log file")
+            return False
+            
+    except Exception as e:
+        print(f"Warning: Could not log deployment to history: {e}")
+        return False
+def mtest_log_deployment_to_history():
+    pass
+#if __name__ == "__main__":
+    log_deployment_to_history("fake-out", "dev", "API deployment test") 
+
+
+def create_api_gateway_deployment(rest_api_id, stage, description=""):  # updated 3-29 for dev/prod
     """
     Create a deployment for the API Gateway to apply changes.
     
     :param rest_api_id: ID of the REST API
-    :param stage_name: Name of the stage to deploy to (default: 'api')
+    :param stage: Name of the stage to deploy to, i.e. 'dev' or 'prod'
     :return: True if successful, False otherwise
     """
     api_client = boto3.client('apigateway')
@@ -650,43 +1062,60 @@ def create_deployment(rest_api_id, stage_name='api'):
     try:
         api_client.create_deployment(
             restApiId=rest_api_id,
-            stageName=stage_name
+            stageName=stage
         )
-        print(f"Created new deployment for stage: {stage_name}")
+        print(f"Created new deployment for stage: {stage}")
+
         return True
     except ClientError as e:
-        print(f"Error creating deployment: {e}")
+        error_code = e.response["Error"]["Code"]
+        error_msg = e.response["Error"]["Message"]
+        
+        if error_code == "BadRequestException":
+            print(f"Invalid request parameters: {error_code} - {error_msg}")
+        elif error_code == "UnauthorizedException":
+            print(f"Not authorized to create deployment: {error_code} - {error_msg}")
+        elif error_code == "NotFoundException":
+            print(f"API Gateway or stage not found: {error_code} - {error_msg}")
+        elif error_code == "TooManyRequestsException":
+            print(f"API request throttled (try again later): {error_code} - {error_msg}")
+        elif error_code == "ConflictException":
+            print(f"Deployment conflict: {error_code} - {error_msg}")
+        else:
+            print(f"Error creating deployment: {error_code} - {error_msg}")
         return False
-def mrun_create_deployment():
+def mrun_create_api_gateway_deployment():  # NEED TO TRY updated 3-16 for dev/prod
     pass
 #if __name__ == "__main__":
-    rest_api_id = "xusv8bpl49"
-    create_deployment(rest_api_id)
+    rest_api_id, _ = get_api_gateway_and_resource_ids("hmac-hash")
+    stage = "dev"
+    create_api_gateway_deployment(rest_api_id, stage)
 
-def setup_api_security(lambda_function_base_name, api_key_id=None, usage_plan_name=USAGE_PLAN_NAME_DEMO, stage='-dev', http_method='POST'):
+# NOTE: changed 3-16 for 'dev' stage instead of old 'api' stage
+def setup_api_security(api_gateway_name, api_key_id=None, usage_plan_name=USAGE_PLAN_NAME_DEMO, stage='dev', http_method='POST'):  # NEED TO TEST updated 3-16 for dev/prod
     """
-    Set up API security for a Lambda function.
+    Set up API security for a Lambda function. Assumes the stage is 'dev'.
     
     Assumes:
     - API Gateway name matches the lambda_function_base_name
-    - Full Lambda function name is {lambda_function_base_name}{stage}
-    - Example: lambda_function_base_name='testapp', stage='-dev' → Lambda name='testapp-dev'
+    - Full Lambda function name is {lambda_function_base_name}-{stage}
+    - Example: api_gateway_name='testapp', stage='dev' → Lambda name='testapp-dev'
     
-    :param lambda_function_base_name: Base name of the Lambda function (e.g., 'testapp')
+    :param api_gateway_name: Base name of the Lambda function (e.g., 'testapp')
     :param usage_plan_name: Name of the usage plan to associate with the API key (default: USAGE_PLAN_NAME_DEMO)
-    :param stage: Stage suffix for Lambda function name (default: '-dev')
+    :param stage: Stage suffix for Lambda function name (default: 'dev')
     :param http_method: HTTP method to secure (default: 'POST')
     :param api_key_id: Optional existing API key ID to use
     :return: Dictionary containing API key and usage plan details
     """
     # Get REST API ID and resource ID programmatically
-    rest_api_id, resource_id = get_api_gateway_ids(lambda_function_base_name, http_method)
+    rest_api_id, resource_id = get_api_gateway_and_resource_ids(api_gateway_name, http_method)
     
     if not rest_api_id or not resource_id:
-        print(f"Failed to get API Gateway IDs for {lambda_function_base_name}")
+        print(f"Failed to get API Gateway IDs for {api_gateway_name}")
         return None
         
-    print(f"Found API Gateway IDs for {lambda_function_base_name}:")
+    print(f"Found API Gateway IDs for {api_gateway_name}:")
     print(f"REST API ID: {rest_api_id}")
     print(f"Resource ID: {resource_id}")
     
@@ -696,7 +1125,7 @@ def setup_api_security(lambda_function_base_name, api_key_id=None, usage_plan_na
         api_key = {'id': api_key_id}
     else:
         # Full Lambda function name
-        lambda_function_name = lambda_function_base_name + stage
+        lambda_function_name = api_gateway_name + '-' + stage
         
         # Create API key
         api_key_name = f"{lambda_function_name}_key_{get_current_datetime_filefriendly()}"
@@ -721,7 +1150,7 @@ def setup_api_security(lambda_function_base_name, api_key_id=None, usage_plan_na
         return None
     
     # Associate usage plan with API Gateway stage
-    if not associate_usage_plan_with_api_gateway(usage_plan_id, rest_api_id, 'api'):
+    if not associate_usage_plan_with_api_gateway(usage_plan_id, rest_api_id, stage):
         print("Failed to associate usage plan with API Gateway stage")
         return None
    
@@ -731,7 +1160,7 @@ def setup_api_security(lambda_function_base_name, api_key_id=None, usage_plan_na
         return None
     
     # Create a new deployment to apply changes
-    if not create_deployment(rest_api_id):
+    if not create_api_gateway_deployment(rest_api_id):
         print("Error: Failed to deploy API changes")
         return None
     
@@ -739,11 +1168,12 @@ def setup_api_security(lambda_function_base_name, api_key_id=None, usage_plan_na
         'api_key': api_key,
         'usage_plan_id': usage_plan_id
     }
+# NOTE: changed 3-16 for 'dev' stage instead of old 'api' stage
 def mrun_setup_api_security():
     pass
 #if __name__ == "__main__":
-    lambda_function_base_name = "hash-store"
-    result = setup_api_security(lambda_function_base_name)
+    api_gateway_name = "hash-store"
+    result = setup_api_security(api_gateway_name)
     
     if result:
         print("API security setup successful!")
@@ -1026,7 +1456,8 @@ def mtest_test_api_key():
     print("\nAPI Test Result:")
     print(json.dumps(result, indent=2))
 
-def detach_usage_plan_from_api(usage_plan_id, api_id, stage='api'):
+# NOTE: changed 3-26 for 'dev' stage instead of old 'api' stage
+def detach_usage_plan_from_api(usage_plan_id, api_id, stage):
     """
     Remove an API stage from a usage plan.
     
@@ -1067,7 +1498,7 @@ def mrun_detach_usage_plan_from_api():
         'wd3rapoqy7',  # hash-store
     ]
     for api_id in apis_to_detach:
-        detach_usage_plan_from_api(usage_plan_id, api_id)
+        detach_usage_plan_from_api(usage_plan_id, api_id, stage='dev')
     list_api_keys()
 
 ### AWS WAF
@@ -1294,85 +1725,6 @@ def mrun_test_waf_limit():
     test_waf_limit(initial_rapid_requests=20, wait_minutes=2, post_wait_requests=5, verbose=False)
     # (see 12-4 cursor chat)
 
-### AWS LOGGING
-def setup_api_gateway_logging(api_names=None):
-    """
-    Set up detailed logging for API Gateway stages.
-    If api_names is None, will configure all APIs in LAMBDA_GLOBALS_MAPPING.
-    
-    :param api_names: list of str, optional list of API names to configure
-    :return: dict, results of configuration attempts
-    """
-    api_client = boto3.client('apigateway')
-    results = {}
-    
-    # Use all APIs if none specified
-    if api_names is None:
-        api_names = LAMBDA_GLOBALS_MAPPING.keys()
-    
-    for api_name in api_names:
-        try:
-            # Get API ID without needing specific method or resource
-            apis = api_client.get_rest_apis()['items']
-            api = next((api for api in apis if api['name'] == api_name), None)
-            
-            if not api:
-                results[api_name] = f"Failed to find API"
-                continue
-                
-            rest_api_id = api['id']
-            
-            # Get stages for this API
-            stages = api_client.get_stages(restApiId=rest_api_id)
-            
-            for stage in stages['item']:
-                stage_name = stage['stageName']
-                
-                # Update stage settings for detailed logging
-                api_client.update_stage(
-                    restApiId=rest_api_id,
-                    stageName=stage_name,
-                    patchOperations=[
-                        {
-                            'op': 'replace',
-                            'path': '/*/*/logging/loglevel',
-                            'value': 'INFO'
-                        },
-                        {
-                            'op': 'replace',
-                            'path': '/*/*/metrics/enabled',
-                            'value': 'true'
-                        },
-                        # Log full request/response data
-                        {
-                            'op': 'replace',
-                            'path': '/*/*/logging/dataTrace',
-                            'value': 'true'
-                        },
-                        # Include detailed validation errors
-                        {
-                            'op': 'replace',
-                            'path': '/variables/loggingLevel',
-                            'value': 'INFO'
-                        }
-                    ]
-                )
-                
-                results[f"{api_name} ({stage_name})"] = "Successfully configured logging"
-                
-        except Exception as e:
-            results[api_name] = f"Error: {str(e)}"
-    
-    return results
-def mrun_setup_api_gateway_logging():
-    pass
-#if __name__ == "__main__":
-    # Configure all APIs
-    results = setup_api_gateway_logging()
-    print("\nAPI Gateway Logging Configuration Results:")
-    for api, result in results.items():
-        print(f"{api}: {result}")
-
 ### AWS JWT
 def get_jwt_signing_key():
     """
@@ -1429,15 +1781,23 @@ def verify_jwt(token):
     except jwt.InvalidTokenError as e:
         print(f"Invalid token: {e}")
         return None
-def mtest_generate_and_verifyjwt():
+def mrun_verify_jwt():
+    pass
+#if __name__ == "__main__":
+    #token = os.environ["JWT_01-22"]
+    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3My45My42Mi44MSIsImlhdCI6MTczNzYwMjMxMCwiZXhwIjoxNzQwMTk0MzEwfQ.9Xs7mdPuOrxELu1y0-b3Z8AMBYDfBCBs2Jn1DUTOawg"
+    result = verify_jwt(token)
+    print(f"Verification result: {result}")
+def mrun_generate_and_verifyjwt():
     pass
 #if __name__ == "__main__":
     # Generate a JWT token
-    token = generate_jwt("test-subject", 1)
+    token = generate_jwt("api-gateway-test", 90)
     print(f"Generated JWT: {token}")
 
     # Verify the JWT token
     result = verify_jwt(token)
     print(f"Verification result: {result}")
+
 
 # ===== END OF FILE primary/aws.py =====

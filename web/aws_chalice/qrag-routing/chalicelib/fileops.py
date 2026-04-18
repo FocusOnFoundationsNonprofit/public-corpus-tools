@@ -2095,6 +2095,45 @@ def get_heading_above(file_path, search_text):
                 return stripped
     
     return None
+def scale_headings(full_text, scale_factor):
+    """
+    Scales the level of all headings in the text by a specified amount.
+
+    :param full_text: string, the text containing the headings to be scaled.
+    :param scale_factor: int, the amount to scale the heading levels by (positive to increase level, negative to decrease).
+    :return: string, the text with scaled heading levels.
+    :raises ValueError: if scaling would result in invalid heading levels (< 1 or > 6).
+    """
+    if not full_text:
+        return full_text
+
+    lines = full_text.splitlines()
+    scaled_lines = []
+    
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith('#'):
+            # Verify it's a valid markdown heading (# followed by space)
+            if ' ' in stripped and stripped.index(' ') == stripped.count('#'):
+                current_level = get_heading_level(stripped)
+                new_level = current_level + scale_factor
+                
+                # Check if new level would be valid
+                if new_level > 6:
+                    raise ValueError(f"Scaling heading '{stripped}' by {scale_factor} would exceed maximum level of 6")
+                if new_level < 1:
+                    raise ValueError(f"Scaling heading '{stripped}' by {scale_factor} would result in level below 1")
+                
+                # Replace the heading markers while preserving the heading text
+                heading_text = stripped[current_level:].lstrip()
+                scaled_line = '#' * new_level + ' ' + heading_text
+                scaled_lines.append(scaled_line)
+            else:
+                scaled_lines.append(line)
+        else:
+            scaled_lines.append(line)
+    
+    return '\n'.join(scaled_lines)
 
 ### METADATA
 def set_metadata_field(metadata, field, value):

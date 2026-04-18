@@ -4,59 +4,17 @@
 //           API calls to AWS Lambda endpoints, dynamic UI updates, 
 //           markdown processing, and sharing features (download/email)
 
-var fileInfoPageBody = 'webflow-rag-devpage.js  2-19 1024 implement retry for qragLlm';
+var fileInfo = 'webflow-rag-devpage.js  2026-03-28 network timeout error';
 const showEmailListSignup = true;  // Set this to true to enable the email list signup option
 
-// Add near the top after existing constants
-const QRAG_ROUTING_API_URL = 'https://us05oglu51.execute-api.us-west-2.amazonaws.com/api/qrag-routing';
-const QRAG_LLM_API_URL = 'https://sz901mb96d.execute-api.us-west-2.amazonaws.com/api/qrag-llm';
-const VRAG_LLM_API_URL = 'https://n5yjgn8jak.execute-api.us-west-2.amazonaws.com/api/vrag-llm';
+const QRAG_ROUTING_API_URL = 'https://va6mkwd7p3.execute-api.us-west-2.amazonaws.com/prod/qrag-routing';
+const QRAG_LLM_API_URL = 'https://48jjmxdbg2.execute-api.us-west-2.amazonaws.com/prod/qrag-llm';
+const VRAG_LLM_API_URL = 'https://wxehiew7od.execute-api.us-west-2.amazonaws.com/prod/vrag-llm';
 
-// Maps submit button IDs to their corresponding RAG parameters and configuration
-const buttonParamsMapping = {
-    'submitButton_deutsch-demo_qrag': {  // Bot container id=container_deutsch-demo_qrag
-        displayType: 'quoted-qa-then-ai-answer',
-        ragFunction: 'qragRouting, qragLLM', 
-        vector_index_name: 'deutsch-transcript-qrag-83f-20250202', 
-        route_dict_name: 'ROUTES_DICT_DEUTSCH_M1',
-        large_context_filename: 'deutsch_large_context_v1.md',
-        botTitle: 'QRAG demo over David Deutsch Interview Corpus'
-    },
-    'submitButton_deutsch-demo_vrag': { 
-        displayType: 'ai-answer-only',
-        ragFunction: 'vragLLM', 
-        vector_index_name: 'dd-transcripts-vrag-80f-20240727',
-        large_context_filename: 'deutsch_large_context_v1.md',
-        botTitle: 'VRAG demo over David Deutsch Interview Corpus'
-    },
-    'submitButton_pv-evac-demo_qrag': {  // Bot container id=container_pv-evac-demo_qrag
-        displayType: 'quoted-qa-then-ai-answer',
-        ragFunction: 'qragRouting, qragLLM', 
-        vector_index_name: 'pv-evac-qrag-3f-20250202', 
-        route_dict_name: 'ROUTES_DICT_PV_EVAC_M1',
-        large_context_filename: null,  // Explicitly set to null
-        botTitle: 'QRAG demo over PVSD Evacuation Preparedness Meeting'
-    },
-    'submitButton_fda-townhalls-demo_qrag': {  // Bot container id=container_fda-townhalls-demo_qrag
-        displayType: 'quoted-qa-then-ai-answer',
-        ragFunction: 'qragRouting, qragLLM', 
-        vector_index_name: 'fda-townhalls-qrag-100f-20250114', 
-        route_dict_name: 'ROUTES_DICT_FDA_TOWNHALLS_M1',
-        large_context_filename: null,  // Explicitly set to null
-        botTitle: 'QRAG demo over 100 FDA COVID-19 Diagnostics Virtual Town Halls'
-    },
-    'submitButton_sovereign-child-demo_qrag': {  // Bot container id=container_sovereign-child-demo_qrag
-        displayType: 'quoted-qa-then-ai-answer',
-        ragFunction: 'qragRouting, qragLLM', 
-        vector_index_name: 'sovereign-child-qrag-2f-20250208', 
-        route_dict_name: 'ROUTES_DICT_SOVEREIGN_CHILD_M1',
-        large_context_filename: '2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple.md',
-        botTitle: 'QRAG demo over The Sovereign Child book'
-    }
-};
+// Moved buttonParamsMapping to webflow-fof-site-body.js 9-23-25
 
 document.addEventListener("DOMContentLoaded", function() {
-    console.log('Loading JavaScript for Page Body: ', fileInfoPageBody);
+    console.log('Loading JavaScript for Page Body: ', fileInfo);
 
     // Use Webflow's push method to run code after the page and Webflow scripts have loaded
     window.Webflow.push(function () {
@@ -216,7 +174,7 @@ function initializeNumChunksComponent(component) {  // Don't think this is used
     });
 
     // Set default selection
-    const defaultButton = buttons[1]; // Selecting the second button (3 chunks) as default
+    const defaultButton = buttons[1]; // Selecting the second button as default (need to coordinate with value which is currently 10)
     if (defaultButton) {
         defaultButton.click();
     }
@@ -296,6 +254,7 @@ function getBotContainerFromSubmitButtonId(submitButtonId) {
 
 function submitInputRag(event) {
     event.preventDefault(); 
+    let submissionSucceeded = false;
 
     // Add consent check at the start
     if (!checkPrivacyConsent()) {
@@ -396,9 +355,24 @@ function submitInputRag(event) {
     })
     .then(finalJsonData => {
         console.log("submitInputRag - Received final json data:", finalJsonData);
-        if (params.displayType === 'ai-answer-only') {
-            replaceAccordionItem(finalJsonData, submitButtonId);
+        submissionSucceeded = true;
+        
+        // Handle both success and error cases
+        if (finalJsonData.status === 'Error') {
+            // Show error message at the top (permanently)
+            if (errorElement) {
+                errorElement.style.display = 'block';
+                errorElement.innerHTML = finalJsonData.message;
+            }
+            // Use the response object which contains the content
+            replaceAccordionItem(finalJsonData.response, submitButtonId);
         } else {
+            // On success, show scroll message and update accordion
+            if (errorElement) {
+                errorElement.style.display = 'block';
+                errorElement.innerHTML = '✨ AI answer ready - scroll down to view ✨';
+            }
+            // For success case, finalJsonData is already the response object
             replaceAccordionItem(finalJsonData, submitButtonId);
         }
     })
@@ -408,11 +382,11 @@ function submitInputRag(event) {
 
         // Show appropriate error message to user
         if (errorElement) {
-            let errorMessage;
-            if (error.message.includes('Both models timed out')) {
-                errorMessage = 'Both AI models timed out. Please try again with a simpler question, or email contact@focusonfoundations.org if you would like to be notified when performance is improved.';
-            } else {
-                errorMessage = 'Apologies - an error occurred. We have been notified and will look into it. Please try again later or email contact@focusonfoundations.org if you would like to be notified when it is fixed.';
+            let errorMessage = 'Apologies - an error occurred. We have been notified and will look into it. Please try again later or email contact@focusonfoundations.org if you would like to be notified when it is fixed.';
+            if (error.message.includes('NETWORK_CHANGED_OR_UNREACHABLE')) {
+                errorMessage = 'Your network connection changed while the request was being sent. Please try again.';
+            } else if (error.message.includes('401') || error.message.includes('Invalid or expired JWT token') || error.message.includes('Missing Authorization header') || error.message.includes('Invalid Authorization header format')) {
+                errorMessage = 'Your session token is missing or expired. Please refresh the page, re-enter your name, and try again.';
             }
             
             errorElement.style.display = 'block';
@@ -434,15 +408,13 @@ function submitInputRag(event) {
         resetButtonToInitialState(submitButton, submitIcon);
         const userInputField = document.getElementById(userInputId);
 
-        // Reset the input field and button to initial state
-        userInputField.value = ''; // Clear input field after sending
-        
-        // Temporarily reset the textarea height to a single line
-        adjustTextareaHeight(userInputField, 1, 20);
-
-        // Ensure the textarea can expand again on user input
-        userInputField.style.height = ''; // Clear any inline height style
-        adjustTextareaHeight(userInputField, 8, 20); // Reapply the initial maxRows setting
+        if (submissionSucceeded) {
+            // Reset the input field only after a successful submission.
+            userInputField.value = '';
+            adjustTextareaHeight(userInputField, 1, 20);
+            userInputField.style.height = '';
+        }
+        adjustTextareaHeight(userInputField, 8, 20);
     });
 }
 
@@ -506,9 +478,14 @@ function qragRouting(userInput, vector_index_name, route_dict_name, numChunksVal
     })
     .then(httpResponse => {
         if (!httpResponse.ok) {
-            const errorMessage = `qrag-routing - API Error (${httpResponse.status}): ${httpResponse.statusText}`;
-            console.error(errorMessage);
-            throw new Error(errorMessage);
+            return httpResponse.json()
+                .catch(() => null)
+                .then(errorData => {
+                    const apiErrorDetail = errorData && errorData.error ? `: ${errorData.error}` : '';
+                    const errorMessage = `qrag-routing - API Error (${httpResponse.status}): ${httpResponse.statusText}${apiErrorDetail}`;
+                    console.error(errorMessage);
+                    throw new Error(errorMessage);
+                });
         }
         return httpResponse.json();
     })
@@ -518,11 +495,17 @@ function qragRouting(userInput, vector_index_name, route_dict_name, numChunksVal
             throw new Error('qrag-routing - No data in API Response');
         }
         return apiResponse.response;
+    })
+    .catch(error => {
+        if (error instanceof TypeError && error.message === 'Failed to fetch') {
+            throw new Error('NETWORK_CHANGED_OR_UNREACHABLE');
+        }
+        throw error;
     });
 }
 
 // returns the complete json data if api call returns success
-const MAX_QRAG_LLM_RETRIES = 1;
+const MAX_QRAG_LLM_RETRIES = 3;
 function qragLLM(routingJsonData, large_context_filename) {
     console.log("qrag-llm - Calling Lambda function with routing JSON data:", routingJsonData);
     console.log("qrag-llm - Using large context filename:", large_context_filename);
@@ -540,12 +523,27 @@ function qragLLM(routingJsonData, large_context_filename) {
     // Set is_retry based on retry count
     routingJsonData.metadata.is_retry = routingJsonData.metadata.retry_count > 0;
 
+    // Show initial waiting message in error area
+    const errorElement = document.querySelector(`[id^="submitError_"]`);
+    if (errorElement && !routingJsonData.metadata.is_retry) {
+        errorElement.style.display = 'block';
+        errorElement.innerHTML = routingJsonData.content.ai_answer;
+    }
+
     // Check if we've exceeded max retries (should only happen after a retry attempt)
     if (routingJsonData.metadata.retry_count > MAX_QRAG_LLM_RETRIES) {
         console.log(`qrag-llm - Both models timed out after ${MAX_QRAG_LLM_RETRIES + 1} attempts`);
+        const timeoutMessage = `Sorry, the AI models failed to respond after ${MAX_QRAG_LLM_RETRIES + 1} attempts. We've been notified about this issue and will look into it. If you want to try again, copy your question, refresh the webpage, and paste your question back in.`;
+        
+        // Update the AI answer in the response data
+        routingJsonData.content.ai_answer = timeoutMessage;
+
+        // Notify about the retry failure
+        notifyUserAction('Retry Failure', `Question: ${routingJsonData.content.user_question}\nError: ${timeoutMessage}`);
+        
         return Promise.resolve({
             status: 'Error',
-            message: 'Both models timed out. Please try again with a simpler question.',
+            message: timeoutMessage,
             response: routingJsonData
         });
     }
@@ -578,9 +576,19 @@ function qragLLM(routingJsonData, large_context_filename) {
             throw new Error('qrag-llm - No data in API Response');
         }
         
-        // Check if this is a retry response
+        // Check if this is a retry response and update UI
         if (apiResponse.status === 'Retry') {
-            console.log("qrag-llm - Received retry response, initiating retry with fallback model");
+            console.log("qrag-llm - Received retry response, updating UI and initiating retry with fallback model");
+            
+            // Show the timeout message in both error area and accordion
+            const errorElement = document.querySelector(`[id^="submitError_"]`);
+            if (errorElement) {
+                errorElement.style.display = 'block';
+                errorElement.innerHTML = apiResponse.response.content.ai_answer;
+            }
+            
+            // Update the accordion
+            replaceAccordionItem(apiResponse.response, document.querySelector('[id^="submitButton_"]').id);
             
             // Increment retry count and make new request
             routingJsonData.metadata.retry_count += 1;
@@ -619,8 +627,9 @@ function vragLLM(userInput, vector_index_name) {
 function generateDropdownContent(jsonData, displayType) {
     let dropdownContent = '';
     if (displayType === 'ai-answer-only') {
-        if (jsonData.content.ai_answer === "WAITING FOR AI ANSWER...") {
-            dropdownContent += `<div class="accordion-dropdown-text" style="color: red; font-style: italic;">WAITING FOR AI ANSWER...</div>`;
+        if (jsonData.content.ai_answer && jsonData.content.ai_answer.startsWith("WAITING FOR AI ANSWER") || 
+            jsonData.content.ai_answer && jsonData.content.ai_answer.startsWith("STILL WAITING FOR AI ANSWER")) {
+            dropdownContent += `<div class="accordion-dropdown-text accordion-dropdown-text-waiting">${jsonData.content.ai_answer}</div>`;
         } else {
             dropdownContent += `<div class="accordion-dropdown-text" style="color: red;">AI ANSWER:<br>${simpleMarkdownToHtml(jsonData.content.ai_answer)}</div>`;
         }
@@ -631,10 +640,13 @@ function generateDropdownContent(jsonData, displayType) {
         if (jsonData.content.quoted_qa) {
             dropdownContent += `<div class="accordion-dropdown-text">${simpleMarkdownToHtml(jsonData.content.quoted_qa)}</div>`;
         }
-        if (jsonData.content.ai_answer && jsonData.content.ai_answer !== "WAITING FOR AI ANSWER...") {
-            dropdownContent += `<div class="accordion-dropdown-text accordion-dropdown-text-ai-answer">AI ANSWER:<br>${simpleMarkdownToHtml(jsonData.content.ai_answer)}</div>`;
+        if (jsonData.content.ai_answer && (
+            jsonData.content.ai_answer.startsWith("WAITING FOR AI ANSWER") || 
+            jsonData.content.ai_answer.startsWith("STILL WAITING FOR AI ANSWER")
+        )) {
+            dropdownContent += `<div class="accordion-dropdown-text accordion-dropdown-text-waiting">${jsonData.content.ai_answer}</div>`;
         } else {
-            dropdownContent += `<div class="accordion-dropdown-text accordion-dropdown-text-waiting">WAITING FOR AI ANSWER...</div>`;
+            dropdownContent += `<div class="accordion-dropdown-text accordion-dropdown-text-ai-answer">AI ANSWER:<br>${simpleMarkdownToHtml(jsonData.content.ai_answer)}</div>`;
         }
     }
     return dropdownContent;
@@ -946,11 +958,53 @@ function appendMarkdownToHiddenDiv(jsonData, botContainer) {
     hiddenDiv.textContent = initialText.substring(0, insertionPoint) + markdownContent + initialText.substring(insertionPoint);
     console.log('appendMarkdownToHiddenDiv - Markdown content inserted at the correct position in the hidden div');
 }
-
 function downloadMarkdown(botContainer) {
     // Get the markdown content from the hidden div within the specified bot container
     let hiddenDiv = botContainer.querySelector('.hidden-div');
     let markdownContent = hiddenDiv.textContent;
+
+    // Get current date and time in Pacific Time
+    const now = new Date();
+    const options = { 
+        timeZone: 'America/Los_Angeles',
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    };
+    
+    // Format the date and time parts
+    const formatter = new Intl.DateTimeFormat('en-US', options);
+    const parts = formatter.formatToParts(now);
+    
+    // Create a map for easy access to date parts
+    const dateMap = {};
+    parts.forEach(part => {
+        dateMap[part.type] = part.value;
+    });
+    
+    // Format date as YYYY-MM-DD_HHMMSS
+    const dateStr = `${dateMap.year}-${dateMap.month}-${dateMap.day}_${dateMap.hour}${dateMap.minute}${dateMap.second}`;
+    
+    // Determine which bot/corpus is being used
+    let botType = "QRag";
+    const containerId = botContainer.id;
+    
+    if (containerId.includes('deutsch')) {
+        botType = "QRAG-Deutsch";
+    } else if (containerId.includes('pv-evac')) {
+        botType = "QRAG-PV-EPC";
+    } else if (containerId.includes('fda-townhalls')) {
+        botType = "QRAG-FDATownHalls";
+    } else if (containerId.includes('sovereign-child')) {
+        botType = "QRAG-SovereignChild";
+    }
+    
+    // Create filename with date, time and bot type
+    const filename = `FOF_AI-Tool_${dateStr}_${botType}.md`;
 
     // Create a Blob from the markdown content with proper encoding
     let blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8' });
@@ -958,7 +1012,7 @@ function downloadMarkdown(botContainer) {
     // Create a link element
     let link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'questions_and_answers.md';
+    link.download = filename;
 
     // Programmatically click the link to trigger the download
     link.click();

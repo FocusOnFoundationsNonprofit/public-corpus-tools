@@ -16,6 +16,10 @@ import xml.etree.ElementTree as ET
 import html
 from bs4 import BeautifulSoup
 from markdownify import markdownify
+import requests
+from urllib.parse import urlparse
+import datetime
+import tempfile
 
 # from IPython.display import Markdown, display
 
@@ -723,8 +727,317 @@ def combine_md_files_in_folder(folder_path, target_filename='combined.md', numbe
 def mrun_combine_md_files():
     pass
 #if __name__ == "__main__":
-    folder_path = "data/deutsch/books/FOR chapters"
+    folder_path = "data/deutsch/f8__"
     combine_md_files_in_folder(folder_path)
+
+
+### OPENAI CHAT TO MD
+### CHATGPT SHARE: HTML -> MARKDOWN
+def _extract_text_md_from_html(html_fragment):
+    """
+    Convert an HTML fragment to Markdown using markdownify with sane defaults.
+    Keeps code blocks, tables, and links readable.
+    """
+    # Tweaked settings: ATX headings, keep line breaks, and fence code blocks
+    return markdownify(
+        html_fragment,
+        heading_style="ATX",
+        bullets="*",
+        strip=["style", "script", "noscript"]
+    ).strip()
+def _guess_title_and_date(soup):
+    """
+    Try multiple strategies to get the thread title and date from a ChatGPT shared HTML page.
+    Returns (title, date_str) where unknowns may be empty strings.
+    """
+    title = ""
+    date_str = ""
+
+    # 1) <meta property="og:title"> or <title>
+    og_title = soup.find("meta", attrs={"property": "og:title"})
+    if og_title and og_title.get("content"):
+        title = og_title["content"].strip()
+
+    if not title and soup.title and soup.title.string:
+        title = soup.title.string.strip()
+
+    # 2) Any prominent H1/H2 in header
+    if not title:
+        hdr = soup.find(["header"])
+        if hdr:
+            h = hdr.find(["h1", "h2"])
+            if h and h.get_text(strip=True):
+                title = h.get_text(strip=True)
+
+    if not title:
+        h1 = soup.find("h1")
+        if h1 and h1.get_text(strip=True):
+            title = h1.get_text(strip=True)
+
+    # 3) Date often appears in <time> or in small/caption text near header
+    t = soup.find("time")
+    if t and (t.get("datetime") or t.get_text(strip=True)):
+        date_str = (t.get("datetime") or t.get_text(strip=True)).strip()
+
+    if not date_str:
+        # Look for elements with 'date' in class/name
+        date_like = soup.find(lambda tag: tag.name in ["span", "div", "p", "time"]
+                                        and any(("date" in (c or "").lower() or "time" in (c or "").lower())
+                                                for c in (tag.get("class") or [""])))
+        if date_like and date_like.get_text(strip=True):
+            date_str = date_like.get_text(strip=True)
+
+    # Final normalization
+    title = title or "Untitled Chat"
+    date_str = date_str or "Unknown Date"
+    return title, date_str
+def _iter_messages(soup):
+    """
+    Yield (role, content_html) for each message in order.
+    Attempts multiple selectors to be resilient to markup changes.
+    role is 'user' or 'assistant' (fallbacks default unknown to assistant).
+    """
+    candidates = []
+
+    # Strategy A: elements carrying an explicit author/role attribute
+    for tag in soup.find_all(True):
+        role = None
+        # Common attributes we may see
+        for attr in ["data-message-author", "data-author", "data-role", "data-testid"]:
+            val = tag.get(attr)
+            if isinstance(val, str) and val:
+                v = val.lower()
+                if "assistant" in v or "bot" in v or "gpt" in v:
+                    role = "assistant"
+                elif "user" in v or "you" in v:
+                    role = "user"
+        # Class-based heuristics
+        classes = " ".join(tag.get("class") or []).lower()
+        if not role:
+            if "assistant" in classes or "bot" in classes or "gpt" in classes:
+                role = "assistant"
+            elif "user" in classes or "author-user" in classes:
+                role = "user"
+
+        # Message content-ish: often includes prose, markdown, code, etc.
+        if role and (
+            tag.name in ["article", "section", "div"] and
+            (
+                "message" in classes or
+                "prose" in classes or
+                "markdown" in classes or
+                "content" in classes
+            )
+        ):
+            # Try to avoid duplicates by requiring some textual content
+            textish = tag.get_text(strip=True)
+            if textish and len(textish) > 0:
+                candidates.append((role, str(tag)))
+    if candidates:
+        # De-duplicate while preserving order (some parents/children can both match)
+        seen = set()
+        pruned = []
+        for role, html_block in candidates:
+            key = (role, html_block[:200])  # short hash
+            if key in seen:
+                continue
+            seen.add(key)
+            pruned.append((role, html_block))
+        return pruned
+
+    # Strategy B: find obvious message containers by class keywords, then infer role from nearby labels
+    blocks = soup.find_all(lambda t:
+        t.name in ["article", "div", "section"]
+        and any(k in " ".join((t.get("class") or [])).lower() for k in ["message", "prose", "markdown", "chat", "content"])
+    )
+    out = []
+    for b in blocks:
+        role = None
+        # Look upward for a label like "You" or "ChatGPT"
+        label = b.find_previous(lambda t: t.name in ["span", "div", "strong"] and t.get_text(strip=True) in ["You", "User", "ChatGPT", "Assistant"])
+        if label:
+            txt = label.get_text(strip=True).lower()
+            if "chatgpt" in txt or "assistant" in txt:
+                role = "assistant"
+            elif "you" in txt or "user" in txt:
+                role = "user"
+        role = role or "assistant"
+        out.append((role, str(b)))
+    return out
+def _pair_exchanges(messages):
+    """
+    Pair messages into user->assistant exchanges.
+    If the sequence starts with assistant, we'll create an exchange with empty user.
+    If there are multiple assistants in a row, they are concatenated.
+    Returns a list of dicts: {"user_html": "...", "assistant_html": "..."}
+    """
+    exchanges = []
+    cur_user = ""
+    cur_assistant_chunks = []
+
+    def flush():
+        nonlocal cur_user, cur_assistant_chunks
+        if cur_user or cur_assistant_chunks:
+            exchanges.append({
+                "user_html": cur_user,
+                "assistant_html": "".join(cur_assistant_chunks)
+            })
+        cur_user = ""
+        cur_assistant_chunks = []
+
+    for role, html_block in messages:
+        if role == "user":
+            # Starting a new exchange
+            if cur_user or cur_assistant_chunks:
+                flush()
+            cur_user = html_block
+        else:  # assistant
+            cur_assistant_chunks.append(html_block)
+
+    flush()
+    return exchanges
+def convert_chatgpt_share_html_to_md(html_file_path, suffix_new="_chatmd"):
+    """
+    Convert a ChatGPT 'Share' HTML page into Markdown with the following shape:
+
+    # <DATE> — <TITLE>
+    ## 1. User
+    <prompt md>
+    ## 1. Assistant
+    <response md>
+    ## 2. User
+    ...
+    
+    :param html_file_path: str, path to the saved shared HTML page
+    :param suffix_new: str, suffix for the output .md file
+    :return: str, path to the output markdown file
+    """
+    # Read HTML
+    with open(html_file_path, "r", encoding="utf-8") as f:
+        html_text = f.read()
+
+    soup = BeautifulSoup(html_text, "html.parser")
+
+    title, date_str = _guess_title_and_date(soup)
+    msgs = _iter_messages(soup)
+    if not msgs:
+        print("Warning: No messages detected; falling back to full-page conversion.")
+        # Fallback: whole page to md
+        md_content = _extract_text_md_from_html(html_text)
+        base = os.path.splitext(html_file_path)[0]
+        md_path = base + suffix_new + ".md"
+        with open(md_path, "w", encoding="utf-8") as out:
+            out.write(f"# {date_str} — {title}\n\n")
+            out.write(md_content + "\n")
+        print(f"Completed ChatGPT share HTML→MD (fallback) for: {html_file_path}")
+        return md_path
+
+    exchanges = _pair_exchanges(msgs)
+
+    # Build Markdown
+    md_lines = []
+    md_lines.append(f"# {date_str} — {title}\n")
+
+    for i, ex in enumerate(exchanges, start=1):
+        user_md = _extract_text_md_from_html(ex.get("user_html", "")) if ex.get("user_html") else ""
+        asst_md = _extract_text_md_from_html(ex.get("assistant_html", "")) if ex.get("assistant_html") else ""
+
+        # Normalize whitespace a bit to avoid accidental triple blank lines
+        if user_md:
+            md_lines.append(f"## {i}. User\n")
+            md_lines.append(user_md.strip() + "\n")
+        else:
+            # Even if missing user (share pages sometimes start with assistant)
+            md_lines.append(f"## {i}. User\n\n_(no user message captured)_\n")
+
+        if asst_md:
+            md_lines.append(f"## {i}. Assistant\n")
+            md_lines.append(asst_md.strip() + "\n")
+        else:
+            md_lines.append(f"## {i}. Assistant\n\n_(no assistant message captured)_\n")
+
+    # Write file
+    md_file_path = os.path.splitext(html_file_path)[0] + suffix_new + ".md"
+    with open(md_file_path, "w", encoding="utf-8") as md_file:
+        md_file.write("\n".join(md_lines).strip() + "\n")
+
+    print(f"Completed ChatGPT share HTML→MD for: {html_file_path}")
+    return md_file_path
+def convert_chatgpt_share_url_to_md(chat_url, output_dir="data/chat_converts"):
+    """
+    Convert a ChatGPT share URL into Markdown and save both HTML and MD files.
+    
+    :param chat_url: str, URL of the ChatGPT share page
+    :param output_dir: str, directory to save the output files (default: "data/chat_converts")
+    :return: tuple, (html_path, md_path) paths to the saved HTML and markdown files
+    """
+    # Create output directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Download the HTML page
+    html_text = requests.get(chat_url).text
+    soup = BeautifulSoup(html_text, "html.parser")
+    title, date_str = _guess_title_and_date(soup)
+    
+    # Generate a clean filename based on title, date, and URL
+    clean_title = re.sub(r'[^\w\s-]', '', title).strip()
+    clean_title = re.sub(r'[-\s]+', '-', clean_title)[:50]  # Limit length
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Extract a short identifier from the URL
+    url_id = urlparse(chat_url).path.split('/')[-1][:8] if urlparse(chat_url).path else "unknown"
+    base_filename = f"{timestamp}_{clean_title}_{url_id}"
+    
+    # Save HTML file
+    html_output_path = os.path.join(output_dir, f"{base_filename}.html")
+    with open(html_output_path, "w", encoding="utf-8") as f:
+        f.write(html_text)
+    
+    # Create a temporary HTML file to use with the existing convert function
+    import tempfile
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.html', delete=False, encoding='utf-8') as temp_file:
+        temp_file.write(html_text)
+        temp_html_path = temp_file.name
+    
+    try:
+        # Use the existing convert function to create markdown
+        temp_md_path = convert_chatgpt_share_html_to_md(temp_html_path, suffix_new="_chatmd")
+        
+        # Move the markdown file to the desired location with our filename
+        md_output_path = os.path.join(output_dir, f"{base_filename}_chatmd.md")
+        
+        # Read the temporary markdown and add source URL, then write to final location
+        with open(temp_md_path, 'r', encoding='utf-8') as f:
+            md_content = f.read()
+        
+        # Add source URL after the title
+        lines = md_content.split('\n')
+        if lines:
+            lines.insert(1, f"Source URL: {chat_url}")
+            lines.insert(2, "")  # Add blank line
+        
+        with open(md_output_path, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(lines))
+        
+        # Clean up temporary files
+        os.unlink(temp_html_path)
+        os.unlink(temp_md_path)
+        
+    except Exception as e:
+        # Clean up temporary file in case of error
+        if os.path.exists(temp_html_path):
+            os.unlink(temp_html_path)
+        raise e
+    
+    print(f"Completed ChatGPT share URL→MD for: {chat_url}")
+    print(f"Saved HTML: {html_output_path}")
+    print(f"Saved MD: {md_output_path}")
+    return html_output_path, md_output_path
+def mrun_convert_chatgpt_share_html_to_md():
+    pass
+#if __name__ == "__main__":
+    chat_url = "https://chatgpt.com/share/68ea6e42-ba60-8006-ad86-c2e9ef7c76e1"
+    print(convert_chatgpt_share_url_to_md(chat_url))
 
 ### SCRAPING
 def format_date_for_filename(date_str):
@@ -866,33 +1179,141 @@ def wrap_qa_blocks_in_details(html_file_path, question_field, answer_field):
       {full_block}</details>
   </details>'''
     else:
-        # No block IDs - simple Q&A format
-        qa_block_pattern = (
+        # Check for multi-question format (like Gad Saad file)
+        multi_question_pattern = (
             r'<p>\s*'
-            + f'{question_field}:\s*(.*?)\s*<br\s*/?>\s*'
-            + r'(?:.*?<br\s*/?>\s*)*?'  # Match any intermediate lines non-greedily
-            + f'{answer_field}:\s*(.*?)(?=\s*<br|</p>)'
-            + r'.*?</p>'
+            r'<strong>\s*'
+            r'QUESTION 1:\s*(.*?)\s*'
+            r'</strong>\s*'
+            r'<br\s*/?>\s*'
+            r'((?:QUESTION \d+:.*?<br\s*/?>\s*)*)'  # Capture additional questions
+            r'(?:.*?<br\s*/?>\s*)*?'  # Match any intermediate lines
+            r'ANSWER:\s*(.*?)\s*<br\s*/?>\s*'
+            r'(?:.*?)</p>'
         )
         
-        def wrap_qa_block(match):
+        def wrap_multi_question_block(match):
             full_block = match.group(0)
-            question = match.group(1)
-            answer = match.group(2).strip()
+            first_question = match.group(1).strip()
+            additional_questions = match.group(2).strip() if match.group(2) else ""
+            answer = match.group(3).strip()
             
             return f'''  <details>
+    <summary>{first_question}</summary>
+    {full_block}
+  </details>'''
+        
+        # Try multi-question pattern first
+        matches = list(re.finditer(multi_question_pattern, content, flags=re.DOTALL))
+        
+        if matches:
+            print(f"Found {len(matches)} multi-question blocks to wrap")
+            modified_content = re.sub(multi_question_pattern, wrap_multi_question_block, content, flags=re.DOTALL)
+        else:
+            # Fall back to simple Q&A format
+            qa_block_pattern = (
+                r'<p>\s*'
+                + f'{question_field}:\s*(.*?)\s*<br\s*/?>\s*'
+                + r'(?:.*?<br\s*/?>\s*)*?'  # Match any intermediate lines non-greedily
+                + f'{answer_field}:\s*(.*?)(?=\s*<br|</p>)'
+                + r'.*?</p>'
+            )
+            
+            def wrap_qa_block(match):
+                full_block = match.group(0)
+                question = match.group(1)
+                answer = match.group(2).strip()
+                
+                return f'''  <details>
     <summary>{question}</summary>
     {full_block}
+  </details>'''
+            
+            matches = list(re.finditer(qa_block_pattern, content, flags=re.DOTALL))
+            
+            if not matches:
+                print("\nPattern not matching. Debug info:")
+                print(f"Pattern used: {qa_block_pattern}")
+                print("\nContent sample:")
+                print(content[:500])
+                return
+            
+            modified_content = re.sub(qa_block_pattern, wrap_qa_block, content, flags=re.DOTALL)
+    
+    # Write the modified content back
+    with open(html_file_path, 'w', encoding='utf-8') as file:
+        file.write(modified_content)
+
+def has_section_titles(md_file_path, heading="### transcript"):
+    """
+    Detects if a markdown file has section titles (h4 headings) in the specified heading.
+    
+    :param md_file_path: string, path to the markdown file to check
+    :param heading: string, heading section to check for h4 elements
+    :return: bool, True if h4 headings are found, False otherwise
+    """
+    content = get_heading(md_file_path, heading)
+    if not content:
+        return False
+    
+    # Look for h4 headings (#### )
+    import re
+    h4_pattern = r'^\s*####\s+.+'  
+    matches = re.findall(h4_pattern, content, re.MULTILINE)
+    return len(matches) > 0
+
+def wrap_qa_blocks_in_details_enhanced(html_file_path, question_field, answer_field):
+    """
+    Enhanced version that handles both old QA BLOCK format and new multi-question format.
+    
+    :param html_file_path: string, path to the HTML file to modify
+    :param question_field: string, field name for questions
+    :param answer_field: string, field name for answers
+    :return: None
+    """
+    with open(html_file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+    
+    # Check if content has old-style QA BLOCK IDs 
+    if 'QA BLOCK:' in content or 'QA Block' in content:
+        # Use existing logic for old format
+        wrap_qa_blocks_in_details(html_file_path, question_field, answer_field)
+        return
+    
+    # New multi-question format - look for numbered questions
+    # Pattern matches: QUESTION: text<br>ANSWER: text<br>optional_other_fields</p>
+    qa_block_pattern = (
+        r'<p>\s*'
+        + f'{question_field}:\s*(.*?)\s*<br\s*/?>\s*'
+        + f'{answer_field}:\s*(.*?)\s*<br\s*/?>\s*'
+        + r'(?:.*?)</p>'  # Capture any additional fields
+    )
+    
+    def wrap_qa_block(match):
+        full_block = match.group(0)
+        question = match.group(1).strip()
+        answer = match.group(2).strip()
+        
+        # For new format, just wrap question with answer nested inside
+        return f'''  <details>
+    <summary>{question}</summary>
+    <details>
+      <summary>{answer}</summary>
+      {full_block}
+    </details>
   </details>'''
     
     # Find all matches before replacing
     matches = list(re.finditer(qa_block_pattern, content, flags=re.DOTALL))
     
     if not matches:
-        print("\nPattern not matching. Debug info:")
+        print(f"\nNo QA blocks found in {html_file_path}")
         print(f"Pattern used: {qa_block_pattern}")
         print("\nContent sample:")
         print(content[:500])
+        return
+    
+    print(f"Found {len(matches)} QA blocks to wrap")
     
     # Replace QA blocks with wrapped versions
     modified_content = re.sub(qa_block_pattern, wrap_qa_block, content, flags=re.DOTALL)
@@ -1205,6 +1626,41 @@ def mrun_convert_markdown_to_html():
     css_file_path = "transcript-with-section-titles.css"
     html_file_path = convert_markdown_to_html(md_file_path, heading="### transcript", css_file_path=css_file_path)
     h_tune_html_file(html_file_path, "COVID-19 Diagnostics FDA", 1)
+def convert_html_to_png(html_file_path, css_selector=None, viewport_width=1500, viewport_height=900):
+    """
+    Converts an HTML file to a PNG screenshot using Playwright headless Chromium.
+
+    :param html_file_path: string, path to the HTML file to convert.
+    :param css_selector: string or none, CSS selector to screenshot a specific element (screenshots full page if none).
+    :param viewport_width: int, browser viewport width in pixels.
+    :param viewport_height: int, browser viewport height in pixels.
+    :return png_file_path: string, path to the output PNG file.
+    """
+    from playwright.sync_api import sync_playwright
+    from pathlib import Path
+
+    html_path = Path(html_file_path).resolve()
+    png_file_path = str(html_path.with_suffix(".png"))
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page(viewport={"width": viewport_width, "height": viewport_height})
+        page.goto(f"file://{html_path}")
+        page.wait_for_load_state("networkidle")
+        if css_selector:
+            element = page.locator(css_selector)
+            element.screenshot(path=png_file_path)
+        else:
+            page.screenshot(path=png_file_path, full_page=True)
+        browser.close()
+
+    print(f"Completed HTML to PNG conversion: {png_file_path}")
+    return png_file_path
+def mrun_convert_html_to_png():
+    pass
+#if __name__ == "__main__":
+    html_file_path = "data/floodlamp/regulatory/irb/_clin-study-diagram.html"
+    convert_html_to_png(html_file_path, css_selector=".diagram-container")
 
 
 ### OCR IMAGES
@@ -1345,5 +1801,198 @@ def mtest_create_md_ocr_on_image_folder():
 #if __name__ == "__main__":
     folder_path = 'data/education/mentava/screenshots'
     print(create_md_ocr_on_image_folder(folder_path)) 
+
+# FOR FL PATENT CONVERSION
+def convert_numbering_format_fix_number(file_path):
+    """
+    Converts numbered list items from "1. " format to "[0001] " format in the "## fix number" section.
+
+    :param file_path: string, path to the input file.
+    :return: string, path to the output file with numbering format converted.
+    """
+    # Read the entire file
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+    
+    # Find the "## fix number" section
+    fix_number_pattern = r'(## fix number\s*\n)(.*?)(?=\n## |\Z)'
+    match = re.search(fix_number_pattern, content, re.DOTALL)
+    
+    if not match:
+        print(f"Warning: '## fix number' section not found in {file_path}")
+        # Still create output file with same content
+        output_file_path = file_path.rsplit('.', 1)[0] + '_fixednumber.' + file_path.rsplit('.', 1)[1]
+        with open(output_file_path, 'w', encoding='utf-8') as file:
+            file.write(content)
+        return output_file_path
+    
+    # Extract the section content
+    section_header = match.group(1)
+    section_content = match.group(2)
+    
+    # Convert numbered items in the section
+    # Pattern matches lines starting with a number followed by period and space
+    def replace_number(match_obj):
+        number = int(match_obj.group(1))
+        rest_of_line = match_obj.group(2)
+        return f"[{number:04d}] {rest_of_line}"
+    
+    # Replace numbered items (e.g., "1. " -> "[0001] ")
+    converted_content = re.sub(
+        r'^(\d+)\.\s+(.*)$',
+        replace_number,
+        section_content,
+        flags=re.MULTILINE
+    )
+    
+    # Reconstruct the file with converted section
+    before_section = content[:match.start()]
+    after_section = content[match.end():]
+    modified_content = before_section + section_header + converted_content + after_section
+    
+    # Create output file path with suffix
+    file_dir = os.path.dirname(file_path)
+    file_name = os.path.basename(file_path)
+    name_parts = file_name.rsplit('.', 1)
+    if len(name_parts) == 2:
+        output_file_name = name_parts[0] + '_fixednumber.' + name_parts[1]
+    else:
+        output_file_name = file_name + '_fixednumber'
+    output_file_path = os.path.join(file_dir, output_file_name)
+    
+    # Write the modified content
+    with open(output_file_path, 'w', encoding='utf-8') as file:
+        file.write(modified_content)
+    
+    print(f"Completed numbering format conversion for file: {file_path}")
+    return output_file_path
+def increment_numbering_format_fix_number(file_path):
+    """
+    Increments all numbered items in "[####] " format by 1 in the "## fix number" section.
+
+    :param file_path: string, path to the input file.
+    :return: string, path to the output file with numbering incremented.
+    """
+    # Read the entire file
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+    
+    # Find the "## fix number" section
+    fix_number_pattern = r'(## fix number\s*\n)(.*?)(?=\n## |\Z)'
+    match = re.search(fix_number_pattern, content, re.DOTALL)
+    
+    if not match:
+        print(f"Warning: '## fix number' section not found in {file_path}")
+        # Still create output file with same content
+        output_file_path = file_path.rsplit('.', 1)[0] + '_incremented.' + file_path.rsplit('.', 1)[1]
+        with open(output_file_path, 'w', encoding='utf-8') as file:
+            file.write(content)
+        return output_file_path
+    
+    # Extract the section content
+    section_header = match.group(1)
+    section_content = match.group(2)
+    
+    # Convert numbered items in the section
+    # Pattern matches lines starting with [####] format
+    def increment_number(match_obj):
+        number = int(match_obj.group(1))
+        rest_of_line = match_obj.group(2)
+        incremented_number = number + 1
+        return f"[{incremented_number:04d}] {rest_of_line}"
+    
+    # Replace numbered items (e.g., "[0130] " -> "[0131] ")
+    converted_content = re.sub(
+        r'^\[(\d+)\]\s+(.*)$',
+        increment_number,
+        section_content,
+        flags=re.MULTILINE
+    )
+    
+    # Reconstruct the file with converted section
+    before_section = content[:match.start()]
+    after_section = content[match.end():]
+    modified_content = before_section + section_header + converted_content + after_section
+    
+    # Create output file path with suffix
+    file_dir = os.path.dirname(file_path)
+    file_name = os.path.basename(file_path)
+    name_parts = file_name.rsplit('.', 1)
+    if len(name_parts) == 2:
+        output_file_name = name_parts[0] + '_incremented.' + name_parts[1]
+    else:
+        output_file_name = file_name + '_incremented'
+    output_file_path = os.path.join(file_dir, output_file_name)
+    
+    # Write the modified content
+    with open(output_file_path, 'w', encoding='utf-8') as file:
+        file.write(modified_content)
+    
+    print(f"Completed numbering increment for file: {file_path}")
+    return output_file_path
+def add_numbering_format_fix_number(file_path, starting_number):
+    """
+    Adds sequential numbering in "[0###] " format starting from a given number to every line in the "## fix number" section.
+
+    :param file_path: string, path to the input file.
+    :param starting_number: int, the starting number for the sequential numbering.
+    :return: string, path to the output file with numbering added.
+    """
+    # Read the entire file
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+    
+    # Find the "## fix number" section
+    fix_number_pattern = r'(## fix number\s*\n)(.*?)(?=\n## |\Z)'
+    match = re.search(fix_number_pattern, content, re.DOTALL)
+    
+    if not match:
+        print(f"Warning: '## fix number' section not found in {file_path}")
+        # Still create output file with same content
+        output_file_path = file_path.rsplit('.', 1)[0] + '_numbered.' + file_path.rsplit('.', 1)[1]
+        with open(output_file_path, 'w', encoding='utf-8') as file:
+            file.write(content)
+        return output_file_path
+    
+    # Extract the section content
+    section_header = match.group(1)
+    section_content = match.group(2)
+    
+    # Track current number (continuous for every line)
+    current_number = starting_number
+    
+    # Process each line in the section
+    lines = section_content.split('\n')
+    converted_lines = []
+    
+    for line in lines:
+        # Add numbering format to every line (including empty lines)
+        replacement = f"[{current_number:04d}] {line}"
+        converted_lines.append(replacement)
+        current_number += 1
+    
+    converted_content = '\n'.join(converted_lines)
+    
+    # Reconstruct the file with converted section
+    before_section = content[:match.start()]
+    after_section = content[match.end():]
+    modified_content = before_section + section_header + converted_content + after_section
+    
+    # Create output file path with suffix
+    file_dir = os.path.dirname(file_path)
+    file_name = os.path.basename(file_path)
+    name_parts = file_name.rsplit('.', 1)
+    if len(name_parts) == 2:
+        output_file_name = name_parts[0] + '_numbered.' + name_parts[1]
+    else:
+        output_file_name = file_name + '_numbered'
+    output_file_path = os.path.join(file_dir, output_file_name)
+    
+    # Write the modified content
+    with open(output_file_path, 'w', encoding='utf-8') as file:
+        file.write(modified_content)
+    
+    print(f"Completed adding numbering format starting from {starting_number} for file: {file_path}")
+    return output_file_path
 
 # ===== END OF FILE primary/conversion.py =====

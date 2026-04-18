@@ -21,7 +21,8 @@ app.api.cors = True
 # Define allowed origins as a set
 ALLOWED_ORIGINS = {
     'https://www.focusonfoundations.org',
-    'https://floodlamp-8c9d00d6ef3e90c375de806594d04.webflow.io'
+    'https://floodlamp-8c9d00d6ef3e90c375de806594d04.webflow.io',
+    'http://localhost:3000'
 }
 
 # Add S3 client

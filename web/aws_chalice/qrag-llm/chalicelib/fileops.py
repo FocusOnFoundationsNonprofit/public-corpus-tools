@@ -85,16 +85,21 @@ def get_suffix(file_str, delimiter='_'):
     # Find the last occurrence of the file extension delimiter (.)
     extension_index = file_base.rfind('.')
 
-    # Check if the delimiter is found and before the extension, or if there is no extension
-    if delimiter_index != -1 and (extension_index == -1 or delimiter_index < extension_index):
+    # Check if the delimiter is found
+    if delimiter_index != -1:
         # Check if the part of the file string preceding the delimiter is a date in the format 'YYYY-MM-DD'
         preceding_str = file_base[:delimiter_index]
         #print(f"DEBUG preceeding_str: {preceding_str}")
         if re.match(r'\d{4}-\d{2}-\d{2}$', preceding_str):
             return None  # Return None if the preceding part is a date
 
-        # Extract and return the suffix including the delimiter
-        suffix_end_index = extension_index if extension_index != -1 else len(file_base)
+        # Determine suffix end: if delimiter is after the period, the period is part of the filename, not an extension
+        if extension_index == -1 or delimiter_index < extension_index:
+            suffix_end_index = extension_index if extension_index != -1 else len(file_base)
+        else:
+            # delimiter is after the period, so period is part of filename, not extension
+            suffix_end_index = len(file_base)
+        
         suffix = file_base[delimiter_index:suffix_end_index]
         # Throw a ValueError if the extracted suffix contains invalid characters
         if not all(char.isalnum() or char == '-' for char in suffix.strip(delimiter)):
@@ -160,11 +165,17 @@ def remove_all_suffixes_in_str(file_str, delimiter='_'): # DS, cat 1, unitests 7
     """
     # Find the last occurrence of the file extension delimiter (.)
     extension_index = file_str.rfind('.')
-    # Extract the extension if it exists
-    extension = file_str[extension_index:] if extension_index != -1 else ''
+    delimiter_index = file_str.rfind(delimiter)
     
-    # Remove the extension from the file string to avoid removing it as a suffix
-    file_str_without_extension = file_str[:extension_index] if extension_index != -1 else file_str
+    # If delimiter is after the period, the period is part of the filename, not an extension
+    if extension_index != -1 and delimiter_index > extension_index:
+        extension = ''
+        file_str_without_extension = file_str
+    else:
+        # Extract the extension if it exists
+        extension = file_str[extension_index:] if extension_index != -1 else ''
+        # Remove the extension from the file string to avoid removing it as a suffix
+        file_str_without_extension = file_str[:extension_index] if extension_index != -1 else file_str
     
     # Continuously strip suffixes until no more can be stripped
     while True:
@@ -929,6 +940,44 @@ def move_files_with_suffix(source_folder, destination_folder, suffixpat_include,
     """
     # Use apply_to_folder to move files
     return apply_to_folder(move_file, source_folder, destination_folder, suffixpat_include=suffixpat_include, include_subfolders=False, verbose=verbose)
+def copy_file(file_path, destination_folder):
+    """
+    Copies a file to the specified destination folder.
+
+    :param file_path: string, the path to the file to be copied.
+    :param destination_folder: string, the path to the destination folder.
+    :return: string, the new file path after copying, or an error if the operation fails.
+    """
+    # Check if the original file exists
+    if not os.path.isfile(file_path):
+        raise ValueError(f"The file path does not exist or is invalid for {file_path}.")
+
+    # Check if the destination folder exists, if not, create it
+    if not os.path.isdir(destination_folder):
+        os.makedirs(destination_folder)
+
+    # Create the new file path with the destination folder
+    file_name = os.path.basename(file_path)
+    new_file_path = os.path.join(destination_folder, file_name)
+
+    # Copy the original file to the new file path
+    try:
+        shutil.copy2(file_path, new_file_path)
+        return new_file_path  # Return the new file path if the file was successfully copied
+    except OSError as e:
+        return e  # Return the exception if an error occurred
+def copy_files_with_suffix(source_folder, destination_folder, suffixpat_include, verbose=False):
+    """
+    Copies all files in a given folder that end with a specified suffix to the destination folder.
+
+    :param source_folder: string, the path to the source folder where files are to be copied from.
+    :param destination_folder: string, the path to the destination folder where files are to be copied to.
+    :param suffixpat_include: string, the suffix pattern of the files to be copied.
+    :param verbose: boolean, if True, the function will print verbose messages. Default is False.
+    :return: list, the new file paths after copying, or an error if the operation fails.
+    """
+    # Use apply_to_folder to copy files
+    return apply_to_folder(copy_file, source_folder, destination_folder, suffixpat_include=suffixpat_include, include_subfolders=False, verbose=verbose)
 def tune_title(title):
     """
     Removes any special characters from the given title.
@@ -1582,7 +1631,31 @@ def add_timestamp_links_to_content(content, base_link):
             line_with_link = line
         processed_lines.append(line_with_link)
     return '\n'.join(processed_lines)+"\n"  # explicitly add extra newline to avoid stripping one
-def add_timestamp_links(file_path):
+def get_link_from_metadata(file_path):
+    """
+    Retrieves a link from metadata, first trying 'link' field, then any field starting with 'link'.
+    
+    :param file_path: string, the path to the file to read metadata from.
+    :return: string, the link value found, or None if no link field is found.
+    """
+    # First try the simple 'link' field
+    _, base_link = read_metadata_field_from_file(file_path, "link")
+    if base_link is not None:
+        return base_link
+    
+    # If that fails, look for any field starting with 'link'
+    metadata, _ = read_metadata_and_content(file_path)
+    metadata_lines = metadata.split('\n')
+    
+    for line in metadata_lines:
+        line = line.strip()
+        if line.startswith('link ') and ':' in line:
+            # Extract the value after the colon
+            colon_index = line.find(':')
+            return line[colon_index + 1:].strip()
+    
+    return None
+def  add_timestamp_links(file_path):
     """
     Adds markdown timestamp links and overwrites the file.
 
@@ -1590,7 +1663,11 @@ def add_timestamp_links(file_path):
     :return: none
     """
     metadata, content = read_metadata_and_content(file_path)
-    _, base_link = read_metadata_field_from_file(file_path, "link")
+    base_link = get_link_from_metadata(file_path)
+    
+    if base_link is None:
+        print(f"Warning: No link field found in metadata for {file_path}")
+        return
     
     # First, remove any existing timestamp links from the content
     content_without_links = remove_timestamp_links_from_content(content)

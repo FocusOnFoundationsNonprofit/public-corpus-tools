@@ -3,9 +3,9 @@ beautifulsoup4
 boto3
 requests
 openai
-pinecone-client
+pinecone
 pytz
-tiktoken
+#tiktoken  # 2026-03-21 removed, not needed in Lambda (try/except import in llm.py)
 termcolor
 tenacity
 PyJWT

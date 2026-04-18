@@ -22,18 +22,20 @@ ALLOWED_ORIGINS = {
 }
 
 # Define the server-side models and timing
-FIRST_MODEL = "o3-mini"
-FALLBACK_MODEL = "gpt-4o"
-RETRY_INITIATION_TIME = 23  # reduced from 27 to allow for overhead
-EXECUTION_TIMEOUT_TIME = 24  # seconds - time to return so that API gateway doesn't kill the lambda
+FIRST_MODEL = "gpt-5.4"
+FALLBACK_MODEL = "gpt-5.4"
+REASONING_EFFORT = "low"  # 'low', 'medium', or 'high'
+FALLBACK_REASONING_EFFORT = None  # None = no reasoning
+RETRY_TIME = 23  # single retry time in seconds for both first and fallback model calls
 SAMPLING_INTERVAL = 1
-INTENTIONAL_DELAY = 0  # seconds
+FIRST_INTENTIONAL_DELAY = 0  # seconds, for testing 17
+FALLBACK_INTENTIONAL_DELAY = 0  # seconds, for testing 21
 
 
 @app.route('/qrag-llm', methods=['POST'], cors=True)
 def handle_qrag_llm():
     start_time = time.time()
-    print(f"qrag-llm lambda func - last updated 2-21 0621 add intentional delay w print statements")
+    print(f"qrag-llm lambda func - last updated 3-22 model gpt-5.4 reasoning low, fallback none")
     
     # Log initial execution time immediately
     elapsed_time = time.time() - start_time
@@ -43,9 +45,15 @@ def handle_qrag_llm():
     received_request_data = app.current_request.json_body
     is_retry = received_request_data.get('metadata', {}).get('is_retry', False)
     
-    # Set model based on whether this is a retry
+    # Set model and reasoning effort based on whether this is a retry
     current_model = FALLBACK_MODEL if is_retry else FIRST_MODEL
-    print(f"Using LLM model: {current_model} (retry: {is_retry})")
+    current_reasoning_effort = FALLBACK_REASONING_EFFORT if is_retry else REASONING_EFFORT
+    print(f"Using LLM model: {current_model} reasoning_effort: {current_reasoning_effort} (retry: {is_retry})")
+    
+    # Inject LLM config into metadata early so it appears in both timeout/retry and success responses
+    if 'metadata' in received_request_data:
+        received_request_data['metadata']['llm_model'] = current_model
+        received_request_data['metadata']['reasoning_effort'] = current_reasoning_effort if current_reasoning_effort else 'none'
     
     # Get the origin from the request
     request_origin = app.current_request.headers.get('origin', '')
@@ -143,10 +151,15 @@ def handle_qrag_llm():
             try:
                 # Add intentional delay for testing (isolated)
                 if not is_retry:
-                    print(f"Adding {INTENTIONAL_DELAY} second intentional delay to test timeout...")
-                    time.sleep(INTENTIONAL_DELAY)
+                    print(f"Adding {FIRST_INTENTIONAL_DELAY} seconds for first intentional delay to test timeout...")
+                    time.sleep(FIRST_INTENTIONAL_DELAY)
                     elapsed = time.time() - start_time
-                    print(f"Intentional delay complete at {elapsed:.1f}s")
+                    print(f"First intentional delay complete at {elapsed:.1f}s")
+                else:
+                    print(f"Adding {FALLBACK_INTENTIONAL_DELAY} seconds for fallback intentional delay to test timeout...")
+                    time.sleep(FALLBACK_INTENTIONAL_DELAY)
+                    elapsed = time.time() - start_time
+                    print(f"Fallback intentional delay complete at {elapsed:.1f}s")
                     
                 elapsed = time.time() - start_time
                 print(f"Starting LLM call with model {current_model} at {elapsed:.1f}s")
@@ -155,7 +168,8 @@ def handle_qrag_llm():
                     received_request_data,
                     llm_model=current_model,
                     large_context=large_context,
-                    large_context_filename=large_context_filename
+                    large_context_filename=large_context_filename,
+                    reasoning_effort=current_reasoning_effort
                 )
                 elapsed = time.time() - start_time
                 print(f"LLM call completed successfully at {elapsed:.1f}s")
@@ -172,36 +186,23 @@ def handle_qrag_llm():
         
         # Wait for completion or timeout
         while not completion_event.wait(timeout=SAMPLING_INTERVAL):
-            if not is_retry and elapsed_time >= RETRY_INITIATION_TIME:
+            if elapsed_time >= RETRY_TIME:
                 monitoring_active.clear()
-                print(f"Execution time exceeded {RETRY_INITIATION_TIME}s, initiating retry...")
+                print(f"Execution time exceeded {RETRY_TIME}s, initiating retry...")
                 
                 return Response(
                     body=json.dumps({
                         'status': 'Retry',
-                        'message': f'Main model ({current_model}) timed out after {elapsed_time:.1f}s. Switching to {FALLBACK_MODEL}.',
+                        'message': f'Model ({current_model}) timed out after {elapsed_time:.1f}s. Doing retry.',
                         'response': {
                             'metadata': received_request_data['metadata'],
                             'content': {
                                 **received_request_data['content'],
-                                'ai_answer': f'Main model ({current_model}) timed out after {elapsed_time:.1f}s. Switching to {FALLBACK_MODEL}.'
+                                'ai_answer': f'STILL WAITING FOR AI ANSWER - Model ({current_model}) timed out after {elapsed_time:.1f}s. Retrying...'
                             }
                         }
                     }),
                     status_code=200,
-                    headers=cors_headers
-                )
-            
-            elif elapsed_time >= EXECUTION_TIMEOUT_TIME:
-                monitoring_active.clear()
-                timeout_msg = f"Execution time limit reached ({EXECUTION_TIMEOUT_TIME}s)"
-                print(timeout_msg)
-                return Response(
-                    body=json.dumps({
-                        'error': timeout_msg,
-                        'error_type': 'ExecutionTimeout'
-                    }),
-                    status_code=500,
                     headers=cors_headers
                 )
 
@@ -227,7 +228,7 @@ def handle_qrag_llm():
         metadata = response_json_object.get("metadata", {})
         vector_index_name = metadata.get("vector_index_name", "NOT_FOUND")
         if vector_index_name.startswith("deutsch"):
-            s3_path = "s3-qrag-deutsch-v3"
+            s3_path = "s3-qrag-deutsch"
         elif vector_index_name.startswith("pv-evac"):
             s3_path = "s3-qrag-pv-evac"
         elif vector_index_name.startswith("fda-townhalls"):

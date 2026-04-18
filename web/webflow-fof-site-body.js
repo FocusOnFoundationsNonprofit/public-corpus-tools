@@ -1,10 +1,12 @@
 // ========= START OF FILE webflow-fof-site-body.js =========
-// deploy: copy to all QRAG pages > Settings > Custom Code > Body section between script tags
-// contains:
+// deploy: copy to Site Settings > Custom Code > Body section between script tags
+// contains: Email sending, hash storage, user data management, validation, security alerts,
+//           UI helpers, and text processing functions for the QRAG application
 
-var fileInfoSiteBody = `webflow-fof-site-body.js   2-18 0559 better logging of removed characters in validateAndSanitizeInput`;
-const HASH_STORE_API_ENDPOINT = 'https://wd3rapoqy7.execute-api.us-west-2.amazonaws.com/api/hash-store';
-const HASH_STORE_LOG_FILE_KEY = 'user_hash_log_2024-12-17.csv';
+var fileInfo = `webflow-fof-site-body.js 9-23-25 moved button params mapping here from webflow-rag-devpage.js`;
+const SEND_EMAIL_API_ENDPOINT_URL = 'https://vbb9ybb4p1.execute-api.us-west-2.amazonaws.com/prod/send-email';
+const HASH_STORE_API_ENDPOINT_URL = 'https://d3aaq3eeyj.execute-api.us-west-2.amazonaws.com/prod/hash-store';
+const HASH_STORE_LOG_FILE_KEY = 'pii_user_hash_log_2024-12-17.csv';
 const HASH_STORE_LOG_FILE_PATH = '';
 const PRIVACY_CONSENT_VERSION_DATE = '2024-12-17';
 
@@ -12,7 +14,7 @@ const PRIVACY_CONSENT_VERSION_DATE = '2024-12-17';
 const JWT_STORAGE_KEY = 'jwtToken';
 
 document.addEventListener("DOMContentLoaded", function() {
-  console.log('Loading JavaScript for Site Body: ', fileInfoSiteBody);
+  console.log('Loading JavaScript for Site Body: ', fileInfo);
 
   // Ensure the Webflow object exists
   window.Webflow ||= [];
@@ -22,6 +24,49 @@ document.addEventListener("DOMContentLoaded", function() {
       console.log('Webflow scripts have loaded.');
   });
 });
+
+// Maps submit button IDs to their corresponding RAG parameters and configuration
+const buttonParamsMapping = {
+    'submitButton_deutsch-demo_qrag': {  // Bot container id=container_deutsch-demo_qrag
+        displayType: 'quoted-qa-then-ai-answer',
+        ragFunction: 'qragRouting, qragLLM', 
+        vector_index_name: 'deutsch-transcript-qrag-95f-20250923', 
+        route_dict_name: 'ROUTES_DICT_DEUTSCH_M1',
+        large_context_filename: 'deutsch_large_context_v1.md',
+        botTitle: 'QRAG demo over David Deutsch Interview Corpus'
+    },
+    'submitButton_deutsch-demo_vrag': { 
+        displayType: 'ai-answer-only',
+        ragFunction: 'vragLLM', 
+        vector_index_name: 'dd-transcripts-vrag-80f-20240727',
+        large_context_filename: 'deutsch_large_context_v1.md',
+        botTitle: 'VRAG demo over David Deutsch Interview Corpus'
+    },
+    'submitButton_pv-evac-demo_qrag': {  // Bot container id=container_pv-evac-demo_qrag
+        displayType: 'quoted-qa-then-ai-answer',
+        ragFunction: 'qragRouting, qragLLM', 
+        vector_index_name: 'pv-evac-qrag-3f-20250202', 
+        route_dict_name: 'ROUTES_DICT_PV_EVAC_M1',
+        large_context_filename: null,  // Explicitly set to null
+        botTitle: 'QRAG demo over PVSD Evacuation Preparedness Meeting'
+    },
+    'submitButton_fda-townhalls-demo_qrag': {  // Bot container id=container_fda-townhalls-demo_qrag
+        displayType: 'quoted-qa-then-ai-answer',
+        ragFunction: 'qragRouting, qragLLM', 
+        vector_index_name: 'fda-townhalls-qrag-100f-20250114', 
+        route_dict_name: 'ROUTES_DICT_FDA_TOWNHALLS_M1',
+        large_context_filename: null,  // Explicitly set to null
+        botTitle: 'QRAG demo over 100 FDA COVID-19 Diagnostics Virtual Town Halls'
+    },
+    'submitButton_sovereign-child-demo_qrag': {  // Bot container id=container_sovereign-child-demo_qrag
+        displayType: 'quoted-qa-then-ai-answer',
+        ragFunction: 'qragRouting, qragLLM', 
+        vector_index_name: 'sovereign-child-qrag-7f-20250805', // was sovereign-child-qrag-2f-20250208
+        route_dict_name: 'ROUTES_DICT_SOVEREIGN_CHILD_M1',
+        large_context_filename: '2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple.md',
+        botTitle: 'QRAG demo over The Sovereign Child book'
+    }
+};
 
 //// SHARE FUNCTIONS
 async function sendEmail(event) {
@@ -103,7 +148,7 @@ async function sendEmail(event) {
           email_body_html: emailBodyHtml
       };
 
-      const response = await fetch('https://lvyznjx395.execute-api.us-west-2.amazonaws.com/api/send-email', {
+      const response = await fetch(SEND_EMAIL_API_ENDPOINT_URL, {
           method: 'POST',
           headers: getAuthHeaders(),
           body: JSON.stringify(payload)
@@ -188,7 +233,7 @@ async function callHashStore(userNiceName, userIPAddress, inputUserEmail = '', e
     console.log('callHashStore - Calling hash-store API with:', payload);
 
     try {
-        const response = await fetch(HASH_STORE_API_ENDPOINT, {
+        const response = await fetch(HASH_STORE_API_ENDPOINT_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -266,7 +311,7 @@ async function notifyUserAction(actionType, actionContent) {
         // Prepare the email payload
         const payload = {
             to_address: "contact@focusonfoundations.org",
-            email_subject: `User ${actionType} Action - ${userNiceName.substring(0, 5)}... - ${actionSource}`,
+            email_subject: `User ${actionType} Action - ${actionSource}`,
             from_address: "contact@focusonfoundations.org",
             email_body_plain: `
 User Action Details:
@@ -294,7 +339,7 @@ ${formattedContent.plainText}`,
 ${formattedContent.html}`
         };
 
-        const response = await fetch('https://lvyznjx395.execute-api.us-west-2.amazonaws.com/api/send-email', {
+        const response = await fetch(SEND_EMAIL_API_ENDPOINT_URL, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify(payload)
@@ -381,7 +426,7 @@ ${btoa(suspiciousContent)}`,
 <pre style="background-color: #f8f8f8; padding: 10px; border: 1px solid #ddd;">${btoa(suspiciousContent)}</pre>`
         };
 
-        const response = await fetch('https://lvyznjx395.execute-api.us-west-2.amazonaws.com/api/send-email', {
+        const response = await fetch(SEND_EMAIL_API_ENDPOINT_URL, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify(payload)
@@ -500,7 +545,7 @@ function logErrorToMonitoring(error, context) {
   // Can add a monitoring endpoint here if needed
 
   // Send the email notification
-  fetch('https://lvyznjx395.execute-api.us-west-2.amazonaws.com/api/send-email', {
+  fetch(SEND_EMAIL_API_ENDPOINT_URL, {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify(payload)

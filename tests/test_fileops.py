@@ -127,6 +127,14 @@ class TestGetSuffix(unittest.TestCase):  # no mock
     def test_get_suffix__with_underscore_at_end_of_filename(self):
         self.assertEqual(get_suffix("tests/test file string_", "_"), "_")
 
+    def test_get_suffix__with_period_before_suffix_no_extension(self):
+        # When extension is stripped and there's a period in the filename (like v1.2), suffix should still be found
+        self.assertEqual(get_suffix("Resulting Decision Flow Chart v1.2_fixed", "_"), "_fixed")
+
+    def test_get_suffix__with_version_number_period_no_extension(self):
+        # Another case with version number period before suffix, no file extension
+        self.assertEqual(get_suffix("filename_v1.0_suffix", "_"), "_suffix")
+
 class TestSubSuffixInStr(unittest.TestCase):  # need further testing of different delimters
     def test_sub_suffix_in_str__existing_suffix(self):
         # Test replacing existing suffix
@@ -199,6 +207,19 @@ class TestRemoveAllSuffixesInStr(unittest.TestCase):
     def test_remove_all_suffixes_in_str__empty_filename(self):
         file_str = ""
         expected_result = ""
+        self.assertEqual(remove_all_suffixes_in_str(file_str), expected_result)
+
+    def test_remove_all_suffixes_in_str__period_before_suffix_no_extension(self):
+        # When there's a period in the filename (like v1.2) and no file extension, suffix should still be removed
+        file_str = "Resulting Decision Flow Chart v1.2_fixed"
+        expected_result = "Resulting Decision Flow Chart v1.2"
+        self.assertEqual(remove_all_suffixes_in_str(file_str), expected_result)
+
+    def test_remove_all_suffixes_in_str__version_number_period_no_extension(self):
+        # When delimiter is after the period, period is part of filename and suffix is removed
+        # For filename_v1.0_suffix: _suffix is after .0 so it's removed, then _v1 is before .0 so it's also removed
+        file_str = "filename_v1.0_suffix"
+        expected_result = "filename"
         self.assertEqual(remove_all_suffixes_in_str(file_str), expected_result)
 
 class TestMOCKHandleOverwritePrompt(unittest.TestCase):  # mocks rename, remove, input and user functions verbose
@@ -1801,6 +1822,128 @@ class TestAddTimestampLinksToContent(unittest.TestCase):
         expected_content = "\n"  # Function adds an extra newline
         processed_content = add_timestamp_links_to_content(original_content, base_link)
         self.assertEqual(processed_content, expected_content)
+class TestGetLinkFromMetadata(unittest.TestCase):
+    def setUp(self):
+        self.test_filename = 'test_link_metadata.md'
+
+    def tearDown(self):
+        if os.path.exists(self.test_filename):
+            os.remove(self.test_filename)
+
+    def test_get_link_from_metadata__simple_link_field(self):
+        # Test with simple "link:" field
+        metadata = "## metadata\nlink: https://example.com/video\n"
+        content = "## content\nSome content here.\n"
+        
+        with open(self.test_filename, 'w') as f:
+            f.write(f"{metadata}\n{content}")
+
+        result = get_link_from_metadata(self.test_filename)
+        self.assertEqual(result, "https://example.com/video")
+
+    def test_get_link_from_metadata__youtube_link_field(self):
+        # Test with "link youtube:" field
+        metadata = "## metadata\nlink youtube: https://youtube.com/watch?v=123\n"
+        content = "## content\nSome content here.\n"
+        
+        with open(self.test_filename, 'w') as f:
+            f.write(f"{metadata}\n{content}")
+
+        result = get_link_from_metadata(self.test_filename)
+        self.assertEqual(result, "https://youtube.com/watch?v=123")
+
+    def test_get_link_from_metadata__spotify_link_field(self):
+        # Test with "link spotify:" field
+        metadata = "## metadata\nlink spotify: https://open.spotify.com/episode/123\n"
+        content = "## content\nSome content here.\n"
+        
+        with open(self.test_filename, 'w') as f:
+            f.write(f"{metadata}\n{content}")
+
+        result = get_link_from_metadata(self.test_filename)
+        self.assertEqual(result, "https://open.spotify.com/episode/123")
+
+    def test_get_link_from_metadata__multiple_link_fields(self):
+        # Test with multiple link fields - should return the first one found
+        metadata = "## metadata\nlink youtube: https://youtube.com/watch?v=123\nlink spotify: https://open.spotify.com/episode/456\n"
+        content = "## content\nSome content here.\n"
+        
+        with open(self.test_filename, 'w') as f:
+            f.write(f"{metadata}\n{content}")
+
+        result = get_link_from_metadata(self.test_filename)
+        self.assertEqual(result, "https://youtube.com/watch?v=123")
+
+    def test_get_link_from_metadata__no_link_field(self):
+        # Test with no link field
+        metadata = "## metadata\ntitle: Test Title\nauthor: Test Author\n"
+        content = "## content\nSome content here.\n"
+        
+        with open(self.test_filename, 'w') as f:
+            f.write(f"{metadata}\n{content}")
+
+        result = get_link_from_metadata(self.test_filename)
+        self.assertIsNone(result)
+
+    def test_get_link_from_metadata__fallback_to_extended_format(self):
+        # Test fallback: no simple "link:" but has "link youtube:"
+        metadata = "## metadata\ntitle: Test Title\nlink youtube: https://youtube.com/watch?v=789\n"
+        content = "## content\nSome content here.\n"
+        
+        with open(self.test_filename, 'w') as f:
+            f.write(f"{metadata}\n{content}")
+
+        result = get_link_from_metadata(self.test_filename)
+        self.assertEqual(result, "https://youtube.com/watch?v=789")
+
+    def test_get_link_from_metadata__link_with_extra_spaces(self):
+        # Test with extra spaces around the link value
+        metadata = "## metadata\nlink youtube:   https://youtube.com/watch?v=123   \n"
+        content = "## content\nSome content here.\n"
+        
+        with open(self.test_filename, 'w') as f:
+            f.write(f"{metadata}\n{content}")
+
+        result = get_link_from_metadata(self.test_filename)
+        self.assertEqual(result, "https://youtube.com/watch?v=123")
+
+    @patch('primary.fileops.read_metadata_field_from_file')
+    @patch('primary.fileops.read_metadata_and_content')
+    def test_get_link_from_metadata__mock_simple_link(self, mock_read_metadata, mock_read_field):
+        # Test mocked simple link field
+        mock_read_field.return_value = (2, "https://example.com/video")
+        
+        result = get_link_from_metadata(self.test_filename)
+        
+        self.assertEqual(result, "https://example.com/video")
+        mock_read_field.assert_called_once_with(self.test_filename, "link")
+        mock_read_metadata.assert_not_called()
+
+    @patch('primary.fileops.read_metadata_field_from_file')
+    @patch('primary.fileops.read_metadata_and_content')
+    def test_get_link_from_metadata__mock_fallback_to_extended(self, mock_read_metadata, mock_read_field):
+        # Test mocked fallback to extended format
+        mock_read_field.return_value = (None, None)
+        mock_read_metadata.return_value = ("## metadata\nlink youtube: https://youtube.com/watch?v=456\n", "## content\nTest content\n")
+        
+        result = get_link_from_metadata(self.test_filename)
+        
+        self.assertEqual(result, "https://youtube.com/watch?v=456")
+        mock_read_field.assert_called_once_with(self.test_filename, "link")
+        mock_read_metadata.assert_called_once_with(self.test_filename)
+
+    @patch('primary.fileops.read_metadata_field_from_file')
+    @patch('primary.fileops.read_metadata_and_content')
+    def test_get_link_from_metadata__mock_no_link_found(self, mock_read_metadata, mock_read_field):
+        # Test mocked no link found
+        mock_read_field.return_value = (None, None)
+        mock_read_metadata.return_value = ("## metadata\ntitle: Test Title\n", "## content\nTest content\n")
+        
+        result = get_link_from_metadata(self.test_filename)
+        
+        self.assertIsNone(result)
+        mock_read_field.assert_called_once_with(self.test_filename, "link")
+        mock_read_metadata.assert_called_once_with(self.test_filename)
 
 class TestAddTimestampLinks(unittest.TestCase):
     def setUp(self):
@@ -1817,44 +1960,45 @@ class TestAddTimestampLinks(unittest.TestCase):
             os.remove(self.test_filename)
 
     @patch('primary.fileops.read_metadata_and_content')
-    @patch('primary.fileops.read_metadata_field_from_file')
+    @patch('primary.fileops.get_link_from_metadata')
     @patch('primary.fileops.remove_timestamp_links_from_content')
     @patch('primary.fileops.add_timestamp_links_to_content')
     @patch('primary.fileops.write_metadata_and_content')
-    def test_add_timestamp_links__basic_functionality(self, mock_write, mock_add, mock_remove, mock_read_field, mock_read):
+    def test_add_timestamp_links__basic_functionality(self, mock_write, mock_add, mock_remove, mock_get_link, mock_read):
         mock_read.return_value = (self.metadata, self.content)
-        mock_read_field.return_value = (2, "https://example.com/video")
+        mock_get_link.return_value = "https://example.com/video"
         mock_remove.return_value = self.content
         mock_add.return_value = "John  [1:00](https://example.com/video&t=60)\nHi There.\nBill  [2:00](https://example.com/video&t=120)\nI like turtles.\n"
 
         add_timestamp_links(self.test_filename)
 
         mock_read.assert_called_once_with(self.test_filename)
-        mock_read_field.assert_called_once_with(self.test_filename, "link")
+        mock_get_link.assert_called_once_with(self.test_filename)
         mock_remove.assert_called_once_with(self.content)
         mock_add.assert_called_once_with(self.content, "https://example.com/video")
         mock_write.assert_called_once_with(self.test_filename, self.metadata, mock_add.return_value, suffix_new='_temp', overwrite='yes')
 
     @patch('primary.fileops.read_metadata_and_content')
-    @patch('primary.fileops.read_metadata_field_from_file')
-    def test_add_timestamp_links__missing_link_metadata(self, mock_read_field, mock_read):
+    @patch('primary.fileops.get_link_from_metadata')
+    @patch('builtins.print')
+    def test_add_timestamp_links__missing_link_metadata(self, mock_print, mock_get_link, mock_read):
         mock_read.return_value = (self.metadata, self.content)
-        mock_read_field.return_value = None
+        mock_get_link.return_value = None
 
-        with self.assertRaises(TypeError):
-            add_timestamp_links(self.test_filename)
+        add_timestamp_links(self.test_filename)
 
         mock_read.assert_called_once_with(self.test_filename)
-        mock_read_field.assert_called_once_with(self.test_filename, "link")
+        mock_get_link.assert_called_once_with(self.test_filename)
+        mock_print.assert_called_once_with(f"Warning: No link field found in metadata for {self.test_filename}")
 
     @patch('primary.fileops.read_metadata_and_content')
-    @patch('primary.fileops.read_metadata_field_from_file')
+    @patch('primary.fileops.get_link_from_metadata')
     @patch('primary.fileops.remove_timestamp_links_from_content')
     @patch('primary.fileops.add_timestamp_links_to_content')
     @patch('primary.fileops.write_metadata_and_content')
-    def test_add_timestamp_links__empty_content(self, mock_write, mock_add, mock_remove, mock_read_field, mock_read):
+    def test_add_timestamp_links__empty_content(self, mock_write, mock_add, mock_remove, mock_get_link, mock_read):
         mock_read.return_value = (self.metadata, "")
-        mock_read_field.return_value = (2, "https://example.com/video")
+        mock_get_link.return_value = "https://example.com/video"
         mock_remove.return_value = ""
         mock_add.return_value = ""
 
@@ -1869,13 +2013,13 @@ class TestAddTimestampLinks(unittest.TestCase):
             add_timestamp_links(self.test_filename)
 
     @patch('primary.fileops.read_metadata_and_content')
-    @patch('primary.fileops.read_metadata_field_from_file')
+    @patch('primary.fileops.get_link_from_metadata')
     @patch('primary.fileops.remove_timestamp_links_from_content')
     @patch('primary.fileops.add_timestamp_links_to_content')
     @patch('primary.fileops.write_metadata_and_content', side_effect=IOError)
-    def test_add_timestamp_links__write_error(self, mock_write, mock_add, mock_remove, mock_read_field, mock_read):
+    def test_add_timestamp_links__write_error(self, mock_write, mock_add, mock_remove, mock_get_link, mock_read):
         mock_read.return_value = (self.metadata, self.content)
-        mock_read_field.return_value = (2, "https://example.com/video")
+        mock_get_link.return_value = "https://example.com/video"
         mock_remove.return_value = self.content
         mock_add.return_value = "John  [1:00](https://example.com/video&t=60)\nHi There.\nBill  [2:00](https://example.com/video&t=120)\nI like turtles.\n"
 
@@ -1911,6 +2055,25 @@ class TestAddTimestampLinks(unittest.TestCase):
             new_content = f.read()
 
         expected_content = f"{self.metadata}\n\n{content_with_links}"
+        self.assertEqual(new_content, expected_content)
+
+    def test_add_timestamp_links__integration_with_new_link_format(self):
+        # Test with new link format (e.g., "link youtube:")
+        metadata_new_format = "## metadata\nlink youtube: https://youtube.com/watch?v=123\n"
+        with open(self.test_filename, 'w') as f:
+            f.write(f"{metadata_new_format}\n{self.content}")
+
+        add_timestamp_links(self.test_filename)
+
+        with open(self.test_filename, 'r') as f:
+            new_content = f.read()
+
+        expected_content = (
+            "## metadata\nlink youtube: https://youtube.com/watch?v=123\n\n\n"
+            "## content\n\n"
+            "John  [1:00](https://youtube.com/watch?v=123&t=60)\nHi There.\n"
+            "Bill  [2:00](https://youtube.com/watch?v=123&t=120)\nI like turtles.\n"
+        )
         self.assertEqual(new_content, expected_content)
 
 class TestGetTextBetweenDelimiters(unittest.TestCase):
@@ -2131,6 +2294,126 @@ Hello world
         with open(self.file_path, 'r') as f:
             unchanged_text = f.read()
         self.assertEqual(unchanged_text, complete_text)
+class TestFindAndReplacePairsInFolder(unittest.TestCase):
+    def setUp(self):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.folder_path = self.temp_dir.name
+        self.logs_folder = os.path.join(self.temp_dir.name, "logs", "find and replace logs")
+        self.file1 = os.path.join(self.folder_path, "file1.txt")
+        self.file2 = os.path.join(self.folder_path, "file2.md")
+        self.subfolder = os.path.join(self.folder_path, "subfolder")
+        self.subfolder_file = os.path.join(self.subfolder, "file3.txt")
+        os.mkdir(self.subfolder)
+    def tearDown(self):
+        self.temp_dir.cleanup()
+    def write_file(self, file_path, content):
+        with open(file_path, 'w', encoding='utf-8') as file:
+            file.write(content)
+    def read_file(self, file_path):
+        with open(file_path, 'r', encoding='utf-8') as file:
+            return file.read()
+    @patch('primary.fileops.get_current_datetime_filefriendly', return_value='2026-03-26_123456')
+    @patch('primary.fileops._get_find_and_replace_logs_folder')
+    def test_find_and_replace_pairs_in_folder__suffix_filter_and_log(self, mock_logs_folder, mock_timestamp):
+        mock_logs_folder.return_value = self.logs_folder
+        self.write_file(self.file1, "Alpha world\nBeta world")
+        self.write_file(self.file2, "world should stay here")
+        self.write_file(self.subfolder_file, "world should stay in subfolder")
+        result = find_and_replace_pairs_in_folder(self.folder_path, [("world", "universe")], suffixpat_include='.txt', show_summary=False)
+        self.assertEqual(result['files_scanned'], 1)
+        self.assertEqual(result['total_replacements'], 2)
+        self.assertIn(self.file1, result['files_changed'])
+        self.assertEqual(result['files_changed'][self.file1]['total_replacements'], 2)
+        self.assertEqual(self.read_file(self.file1), "Alpha universe\nBeta universe")
+        self.assertEqual(self.read_file(self.file2), "world should stay here")
+        self.assertEqual(self.read_file(self.subfolder_file), "world should stay in subfolder")
+        self.assertEqual(result['log_file_path'], os.path.join(self.logs_folder, '2026-03-26_123456_find_and_replace_pairs_in_folder.md'))
+        self.assertTrue(os.path.isfile(result['log_file_path']))
+        log_text = self.read_file(result['log_file_path'])
+        self.assertIn("files_changed: 1", log_text)
+        self.assertIn("find: world | replace: universe | replacements: 2", log_text)
+        self.assertIn("### file1.txt", log_text)
+    @patch('primary.fileops.get_current_datetime_filefriendly', return_value='2026-03-26_123457')
+    @patch('primary.fileops._get_find_and_replace_logs_folder')
+    def test_find_and_replace_pairs_in_folder__include_subfolders_and_save_backups(self, mock_logs_folder, mock_timestamp):
+        mock_logs_folder.return_value = self.logs_folder
+        complete_text = """## metadata
+world in metadata
+
+
+## content
+
+world in content
+"""
+        self.write_file(self.file1, complete_text)
+        self.write_file(self.subfolder_file, "world in subfolder")
+        result = find_and_replace_pairs_in_folder(self.folder_path, [("world", "universe")], suffixpat_include='.txt', include_subfolders=True, save_backups_of_changed_files=True, show_summary=False)
+        self.assertEqual(result['files_scanned'], 2)
+        self.assertEqual(result['total_replacements'], 2)
+        self.assertTrue(result['backup_folder_path'].endswith('2026-03-26_123457_find_and_replace_backups'))
+        backup_file1 = os.path.join(result['backup_folder_path'], 'file1.txt')
+        backup_file2 = os.path.join(result['backup_folder_path'], 'subfolder', 'file3.txt')
+        self.assertTrue(os.path.isfile(backup_file1))
+        self.assertTrue(os.path.isfile(backup_file2))
+        self.assertEqual(self.read_file(backup_file1), complete_text)
+        self.assertEqual(self.read_file(backup_file2), "world in subfolder")
+        self.assertEqual(self.read_file(self.file1), """## metadata
+world in metadata
+
+
+## content
+
+universe in content
+""")
+        self.assertEqual(self.read_file(self.subfolder_file), "universe in subfolder")
+        log_text = self.read_file(result['log_file_path'])
+        self.assertIn("save_backups_of_changed_files: True", log_text)
+        self.assertIn("### subfolder/file3.txt", log_text)
+    @patch('builtins.input', return_value='n')
+    @patch('primary.fileops.get_current_datetime_filefriendly', return_value='2026-03-26_123458')
+    @patch('primary.fileops._get_find_and_replace_logs_folder')
+    def test_find_and_replace_pairs_in_folder__prompt_reject_restores_original_file(self, mock_logs_folder, mock_timestamp, mock_input):
+        mock_logs_folder.return_value = self.logs_folder
+        original_text = "Keep world unchanged"
+        self.write_file(self.file1, original_text)
+        result = find_and_replace_pairs_in_folder(self.folder_path, [("world", "universe")], suffixpat_include='.txt', prompt_to_keep_updated_file=True, save_backups_of_changed_files=True, show_summary=False)
+        self.assertEqual(result['total_replacements'], 0)
+        self.assertEqual(result['files_changed'], {})
+        self.assertIn(self.file1, result['files_rejected'])
+        self.assertEqual(self.read_file(self.file1), original_text)
+        backup_file = os.path.join(result['backup_folder_path'], 'file1.txt')
+        self.assertTrue(os.path.isfile(backup_file))
+        self.assertEqual(self.read_file(backup_file), original_text)
+        log_text = self.read_file(result['log_file_path'])
+        self.assertIn("files_rejected: 1", log_text)
+        self.assertIn("## Rejected Changes", log_text)
+        self.assertIn("### file1.txt", log_text)
+    @patch('builtins.print')
+    @patch('primary.fileops.get_current_datetime_filefriendly', return_value='2026-03-26_123459')
+    @patch('primary.fileops._get_find_and_replace_logs_folder')
+    def test_find_and_replace_pairs_in_folder__show_summary_default_prints_compact_report(self, mock_logs_folder, mock_timestamp, mock_print):
+        mock_logs_folder.return_value = self.logs_folder
+        self.write_file(self.file1, "world Python")
+        self.write_file(self.subfolder_file, "world only")
+        result = find_and_replace_pairs_in_folder(self.folder_path, [("world", "universe"), ("Python", "Programming")], suffixpat_include='.txt', include_subfolders=True)
+        self.assertEqual(result['total_replacements'], 3)
+        printed_lines = '\n'.join(call.args[0] for call in mock_print.call_args_list)
+        self.assertIn("=== FIND AND REPLACE SUMMARY ===", printed_lines)
+        self.assertIn(f"Files checked: {2}", printed_lines)
+        self.assertIn("Find: 'world' -> Replace: 'universe'", printed_lines)
+        self.assertIn("1 file1.txt", printed_lines)
+        self.assertIn("1 subfolder/file3.txt", printed_lines)
+        self.assertIn("Find: 'Python' -> Replace: 'Programming'", printed_lines)
+        self.assertIn("1 file1.txt", printed_lines)
+    @patch('builtins.print')
+    @patch('primary.fileops.get_current_datetime_filefriendly', return_value='2026-03-26_123460')
+    @patch('primary.fileops._get_find_and_replace_logs_folder')
+    def test_find_and_replace_pairs_in_folder__show_summary_false_suppresses_summary_output(self, mock_logs_folder, mock_timestamp, mock_print):
+        mock_logs_folder.return_value = self.logs_folder
+        self.write_file(self.file1, "world")
+        result = find_and_replace_pairs_in_folder(self.folder_path, [("world", "universe")], suffixpat_include='.txt', show_summary=False)
+        self.assertEqual(result['total_replacements'], 1)
+        mock_print.assert_not_called()
 
 ### HEADINGS
 class TestGetHeadingLevel(unittest.TestCase):

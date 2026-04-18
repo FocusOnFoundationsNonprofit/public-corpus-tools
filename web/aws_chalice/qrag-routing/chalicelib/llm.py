@@ -26,9 +26,9 @@ OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 # ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
 
 # OpenAI model name - comment one out
-OPENAI_MODEL = "gpt-4o-mini"
+#OPENAI_MODEL = "gpt-4o-mini"
 #OPENAI_MODEL = "o1"
-#OPENAI_MODEL = "gpt-4o-2024-11-20"
+OPENAI_MODEL = "gpt-4o-2024-11-20"
 #OPENAI_MODEL = "o3-mini"
 
 ANTHROPIC_MODEL = "claude-3-5-sonnet-20241022"
@@ -2048,11 +2048,11 @@ The question should capture the essence of the original query posed by the inter
 FCALL_PROMPT_QA_DIALOGUE_FROMANSWER = """
 You are an expert text analyzer that is trained in identifying questions or implied questions. You will be given dialogue and your role is to return a create a general, simple question from the provided answer of the speaker {speaker}. This created general question may or may not be related to the question actually asked in the dialogue preceding the answer. The created general question will be part of a question and answer set used for Retrieval Augmented Generation. The question must not mention any speaker names. You will use your tool to only return exact JSON in the format specified.
 """
-FCALL_PROMPT_QA_DEUTSCH = """
-You are an expert text analyzer that is trained in identifying questions or implied questions. You will be given dialogue and your role is to return a create a general, simple question from the provided answer. This created general question may or may not be related to the question actually asked by the speaker in the dialogue preceding the answer. The created general question will be part of a question and answer set used for Retrieval Augmented Generation. The question must not mention the speaker name. The question should be written in such a way that it assumes that the answer provided is the best knowledge humanity has about this topic at present moment.  Some specific phrases to use include: 1) 'multiverse quantum theory' - rather than 'many-worlds interpretation of quantum'. You will use your tool to only return exact JSON in the format specified. 
-"""
 CUSTOM_INSTRUCTIONS_DEUTSCH_GENERALQ = """
 Analyze the following passage and create a general, simple question for which the answer will be the response. This will be part of a question and answer set such that new questions are compared against the questions, and answers retrieved. The question should not mention the author, or David Deutsch. The question should be written in such a way that it assumes that the answer provided is the best knowledge humanity has about this topic at present moment. Use the phrase 'multiverse quantum theory' rather than 'many-worlds interpretation of quantum'
+"""
+FCALL_PROMPT_QA_DEUTSCH = """
+You are an expert text analyzer that is trained in identifying questions or implied questions. You will be given dialogue and your role is to return a create a general, simple question from the provided answer. This created general question may or may not be related to the question actually asked by the speaker in the dialogue preceding the answer. The created general question will be part of a question and answer set used for Retrieval Augmented Generation. The question must not mention the speaker name. The question should be written in such a way that it assumes that the answer provided is the best knowledge humanity has about this topic at present moment.  Some specific phrases to use include: 1) 'multiverse quantum theory' - rather than 'many-worlds interpretation of quantum'. You will use your tool to only return exact JSON in the format specified. 
 """
 def tools_qa_speaker(speaker):
     """
@@ -4179,7 +4179,7 @@ def mrun_visualize_question_similarities():
     print(f"\n\nVisualization HTML saved to: {html_viz_file}")
     print(f"Visualization PNG saved to: {png_viz_file}")
 
-### ************************** START OF CODE BEING REFACTORED **************************
+### ************************** START OF REFACTORED CODE **************************
 ### QA BY SECTIONS - Q ONLY
 def create_extract_log_header(fcall_prompt, provider, model, round_num, round_name):
     """
@@ -5507,7 +5507,7 @@ def mrun_auto_check_qa_qonly_folder():
     for i, qa_file_path in enumerate(qa_files_to_run, 1):
         print(colored(f"\n{qa_file_path}", "blue"))
         search_for_no_answers_in_qa_blocks(qa_file_path)
-### ************************** END OF CODE BEING REFACTORED **************************
+### ************************** END OF REFACTORED CODE **************************
 
 
 ### QA QONLY REFACTOR
@@ -6729,6 +6729,311 @@ def write_section_titles(source_file_path, scall_prompt, provider="openai", head
     print(colored("New file written to " + new_file_path, "green"))
     return new_file_path
 
+### MULTI QUESTIONS
+FCALL_PROMPT_QA_MULTI = """
+You are an expert text analyzer, trained in identifying multiple relevant questions or implied questions from a given answer that adequately cover the content of the answer.
+Your job:
+  - Take the provided answer and generate several clear, consise questions covering the major topics of the answer.
+  - The questions must not mention speaker names or personal details.
+  - The questions should treat the answer as authoritative knowledge.
+  - Always return EXACT JSON, matching the specified schema, where the property 'questions' is an array of question strings.
+
+You are an expert text analyzer, trained in identifying multiple relevant questions or implied questions from a given answer that adequately cover the content of the answer.
+Your job:
+  - Take the provided answer and generate several clear, concise questions covering the major topics of the answer.
+  - The questions must not mention speaker names or personal details.
+  - The questions should treat the answer as authoritative knowledge.
+  - Use full names for people instead of just last names, such as "Alan Turing" and "Karl Popper". Do this for every question not just the first one.
+  - Use "AGI (artificial general intelligence)" instead of just "AGI".
+  - Use double quotes instead of single quotes for quoted text in the questions.
+  - Always return EXACT JSON, matching the specified schema, where the property 'questions' is an array of question strings.
+
+DO NOT Do the following:
+  - DO NOT create questions that are too similar to existing questions
+  - DO NOT generate questions that are overly specific about minor details
+  - DO NOT create questions that require knowledge not contained in the answer
+  - DO NOT include questions that are too broad or vague
+  - DO NOT include examples or scenarios that are not essential to the main ideas of the question
+  - DO NOT generate questions that misrepresent the content of the answer
+  - DO NOT create questions that use jargon not explained in the answer
+  - DO NOT include questions that make assumptions beyond what's stated in the answer
+  - DO NOT generate questions that are leading or contain implicit assumptions
+  - DO NOT include phrases like "in the text," "according to the speaker/answer," "in this passage," etc.
+  - DO NOT reference the answer or quote the speaker in any way
+  - DO NOT create questions that aren't standalone (questions must make sense without seeing the answer)
+  - DO NOT use meta-references like "How does the author describe..." or "What does the passage say about..."
+
+Use terminology and concepts that are provided in the answer.
+"""
+TOOLS_QA_MULTI = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_multi_qa", 
+            "description": "Extract or create multiple new questions from the provided answer text.",
+            "strict": True,  # For structured (JSON) output
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "questions": {
+                        "type": "array",
+                        "description": "A list of new questions derived from the answer text. Do not duplicate questions - these questions should be sufficiently different from the provided current question or questions. Do not mention speaker names. Avoid overly specific questions about minor details. Questions must be answerable using only the information in the answer. Do not create questions that are too broad, vague, or that misrepresent the content. Never include phrases like 'in the text,' 'according to the speaker,' 'in this passage,' etc. Questions must be completely standalone without referencing the answer or quoting the speaker. Avoid meta-references like 'How does the author describe...' or 'What does the passage say about...'",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": ["questions"],
+                "additionalProperties": False
+            },
+        },
+    }
+]
+def get_existing_questions(block_text):
+    """
+    Extract all questions from a block of text by finding fields that contain 'QUESTION' in their name.
+
+    :param block_text: string, the text block to parse for questions
+    :return: list, list of question strings found in the block
+    """
+    from structured import get_all_fields_dict
+    fields_dict = get_all_fields_dict(block_text)
+    questions = []
+    
+    # Find all fields that contain 'QUESTION' in their name
+    for field_name, field_value in fields_dict.items():
+        if 'QUESTION' in field_name and field_value:
+            questions.append(field_value)
+            
+    return questions
+def generate_new_questions(existing_questions, answer_text, fcall_prompt=FCALL_PROMPT_QA_MULTI, fcall_tools=TOOLS_QA_MULTI, model='o3-mini', provider="openai"):
+    """
+    Generate new questions based on existing questions and answer text.
+
+    :param existing_questions: list, list of existing questions
+    :param answer_text: string, the answer text to generate new questions from
+    :param fcall_prompt: string, the prompt to use for function calling
+    :param fcall_tools: list, the tools to use for function calling
+    :param model: string, the model to use for function calling
+    :param provider: string, the provider to use ("openai" or "anthropic")
+    :return: list, list of new questions
+    """
+    fcall_content = "<CURRENT EXISTING QUESTIONS>\n" + "\n".join(existing_questions) + "\n</CURRENT EXISTING QUESTIONS>\n"
+    fcall_content += "<ANSWER>\n" + answer_text + "\n</ANSWER>\n"
+    
+    # Make the appropriate function call based on provider
+    if provider == "openai":
+        fcall_response = openai_function_call(fcall_prompt, fcall_content, fcall_tools, model=model)
+    elif provider == "anthropic":
+        fcall_response = anthropic_function_call(fcall_prompt, fcall_content, fcall_tools, model=model)
+    else:
+        raise ValueError("Provider must be either 'openai' or 'anthropic'")
+    
+    # Parse the response using the common parser
+    arguments = parse_function_call_response(fcall_response, provider)
+    
+    if not arguments:
+        raise Exception("Failed to parse function call response")
+    
+    new_questions = arguments['questions']
+    return new_questions
+def create_qa_multi_file_from_qa(qa_file_path, fcall_prompt=FCALL_PROMPT_QA_MULTI, fcall_tools=TOOLS_QA_MULTI, model='o3-mini', provider="openai", suffix_new="_qa-multi", verbose=False, max_workers=50):
+    """
+    Processes an existing QA file to generate multiple numbered questions per block 
+    via multi-question extraction. Uses parallel processing for faster execution.
+
+    :param qa_file_path: string, path to the existing QA file
+    :param suffix_new: string, suffix to add to the output file name
+    :param verbose: boolean, whether to print verbose output
+    :param max_workers: int, maximum number of parallel workers
+    :return: string, path to the generated QA multi file
+    """
+    import concurrent.futures
+    from structured import get_blocks_from_file, get_all_fields_dict
+    print("Running create_qa_multi_file_from_qa on file: " + qa_file_path)
+
+    blocks = get_blocks_from_file(qa_file_path, heading="### qa")
+    print(f"Found {len(blocks)} blocks to process")
+    
+    # Define a function to process a single block
+    def process_block(block_data):
+        index, block = block_data
+        verbose_print(verbose, f"  Starting processing for QA block number: {index+1}/{len(blocks)}")
+        
+        # Use get_all_fields_dict to extract all fields from the block
+        fields_dict = get_all_fields_dict(block)
+        
+        # Extract answer from fields_dict
+        answer_text = fields_dict.get("ANSWER", "")
+        
+        if not answer_text:
+            verbose_print(verbose, f"  No answer text found for block {index+1}. Keeping as is.")
+            return index, block
+            
+        # Get existing questions from the block
+        existing_questions = get_existing_questions(block)
+        
+        try:
+            # Generate new questions from the answer using default parameters
+            new_questions = generate_new_questions(existing_questions, answer_text, fcall_prompt, fcall_tools, model, provider)
+            
+            # Combine existing + new questions
+            combined_questions = existing_questions + new_questions
+            
+            # Create new dictionary starting with numbered questions
+            new_fields_dict = {}
+            
+            # Add numbered questions first
+            for q_idx, question in enumerate(combined_questions, 1):
+                new_fields_dict[f"QUESTION {q_idx}"] = question
+                
+            # Add remaining fields that don't have 'QUESTION' in the name
+            for k, v in fields_dict.items():
+                if 'QUESTION' not in k:
+                    # Handle TOPICS field properly whether it's a list or string
+                    if k == 'TOPICS':
+                        if isinstance(v, list):
+                            # If it's already a list, join it directly
+                            new_fields_dict[k] = ', '.join(v) if v else ''
+                        elif isinstance(v, str):
+                            # If it's a string representation of a list like "['item1', 'item2']"
+                            if v.startswith('[') and v.endswith(']') and "'" in v:
+                                try:
+                                    # Try to convert string representation to actual list
+                                    items = v[1:-1].replace("'", "").split(', ')
+                                    new_fields_dict[k] = ', '.join(items)
+                                except:
+                                    # If conversion fails, keep as is
+                                    new_fields_dict[k] = v
+                            else:
+                                # Regular string, keep as is
+                                new_fields_dict[k] = v
+                        else:
+                            # For any other type, convert to string
+                            new_fields_dict[k] = str(v)
+                    else:
+                        # For all other fields, keep as is
+                        new_fields_dict[k] = v
+                    
+            # Create block lines from updated dictionary
+            new_block_lines = [f"{field}: {value}" for field, value in new_fields_dict.items()]
+            
+            # Join the lines to form the new block
+            new_block = "\n".join(new_block_lines)
+            verbose_print(verbose, f"  Completed processing for QA block number: {index+1}/{len(blocks)}")
+            return index, new_block
+            
+        except Exception as e:
+            print(colored(f"Error processing block {index+1}: {str(e)}", "red"))
+            # Return the original block if there's an error
+            return index, block
+
+    # Process blocks in parallel
+    processed_blocks_dict = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all blocks for processing
+        future_to_block = {
+            executor.submit(process_block, (i, block)): i 
+            for i, block in enumerate(blocks)
+        }
+        
+        # Collect results as they complete
+        for future in concurrent.futures.as_completed(future_to_block):
+            block_idx = future_to_block[future]
+            try:
+                idx, processed_block = future.result()
+                processed_blocks_dict[idx] = processed_block
+                verbose_print(verbose, f"  ***** Block {idx+1}/{len(blocks)} completed *****")
+            except Exception as exc:
+                verbose_print(verbose, f"  ***** Block {block_idx+1} generated an exception: {exc} *****")
+                # Keep the original block in case of error
+                processed_blocks_dict[block_idx] = blocks[block_idx]
+    
+    # Reassemble blocks in the original order
+    processed_blocks = [processed_blocks_dict[i] for i in range(len(blocks))]
+    
+    # Join all processed blocks with a blank line between them
+    qa_multi_content = "## content\n\n" + "\n\n".join(processed_blocks)
+
+    # Write out to new file
+    metadata, _ = read_metadata_and_content(qa_file_path)
+    metadata = set_metadata_field(metadata, "model qa-multi", model)
+    qa_multi_file_path = write_metadata_and_content(qa_file_path, metadata, qa_multi_content, suffix_new, overwrite='no-sub')
+    set_last_updated(qa_multi_file_path, "Created multi-QA")
+    print("Multi-QA written to " + qa_multi_file_path)
+
+    return qa_multi_file_path
+def create_qa_multi_file_from_qa_sequential(qa_file_path, suffix_new="_qa-multi", verbose=False):
+    """
+    Processes an existing QA file to generate multiple numbered questions per block 
+    via multi-question extraction.
+
+    :param qa_file_path: string, path to the existing QA file
+    :param suffix_new: string, suffix to add to the output file name
+    :return: string, path to the generated QA multi file
+    """
+    from structured import get_blocks_from_file, get_all_fields_dict
+    print("Running create_qa_multi_file_from_qa on file: " + qa_file_path)
+
+    blocks = get_blocks_from_file(qa_file_path, heading="### qa")
+    
+    # Accumulate all the processed blocks here
+    processed_blocks = []
+
+    for i, block in enumerate(blocks):
+        verbose_print(verbose, f"  Processing QA block number: {i+1}/{len(blocks)}")
+        
+        # Use get_all_fields_dict to extract all fields from the block
+        fields_dict = get_all_fields_dict(block)
+        
+        # Extract answer from fields_dict
+        answer_text = fields_dict.get("ANSWER", "")
+        
+        if not answer_text:
+            print("No answer text found for this block. Keeping as is.")
+            processed_blocks.append(block)
+            continue
+            
+        # Get existing questions from the block
+        existing_questions = get_existing_questions(block)
+        
+        # Generate new questions from the answer
+        new_questions = generate_new_questions(existing_questions, answer_text)
+        
+        # Combine existing + new questions
+        combined_questions = existing_questions + new_questions
+        
+        # Create new dictionary starting with numbered questions
+        new_fields_dict = {}
+        
+        # Add numbered questions first
+        for idx, question in enumerate(combined_questions, 1):
+            new_fields_dict[f"QUESTION {idx}"] = question
+            
+        # Add remaining fields that don't have 'QUESTION' in the name
+        for k,v in fields_dict.items():
+            if 'QUESTION' not in k:
+                new_fields_dict[k] = v
+                
+        fields_dict = new_fields_dict
+            
+        # Create block lines from updated dictionary
+        new_block_lines = [f"{field}: {value}" for field, value in fields_dict.items()]
+        
+        # Join the lines to form the new block
+        new_block = "\n".join(new_block_lines)
+        processed_blocks.append(new_block)
+
+    # Join all processed blocks with a blank line between them
+    qa_multi_content = "## content\n\n" + "\n\n".join(processed_blocks)
+
+    # Write out to new file
+    metadata, _ = read_metadata_and_content(qa_file_path)
+    qa_multi_file_path = write_metadata_and_content(qa_file_path, metadata, qa_multi_content, suffix_new, overwrite='no-sub')
+    set_last_updated(qa_multi_file_path, "Created multi-QA")
+    print("Multi-QA written to " + qa_multi_file_path)
+
+    return qa_multi_file_path
 
 ### OLD PROMPTS
 def tools_qonly_explicit_list():  # not tried - think this is incorrect format

@@ -1,5 +1,25 @@
 // ===== START OF FILE web/aws_chalice/chalice_new_lambda_checklist.md =====
 
+## Update - delete lambda resource-based policy ApiGatewayInvoke
+
+Resource-based policies on Lambda functions authorize other services (like API Gateway) to invoke your Lambda. Here's how they work:
+
+1. **Resource-based policies vs. IAM role policies**:
+   - **Resource-based policies**: Control who can access your Lambda function
+   - **IAM role policies**: Control what AWS resources your Lambda function can access
+
+2. **Your two statements**:
+   - The first one (with ID 64444ff9...) is likely automatically created when API Gateway is set up, with a specific ARN condition limiting which API Gateway can invoke it
+   - The second one (ApiGatewayInvoke) is the manual one added in step 8 of your checklist and gives broader permission to API Gateway generally
+
+3. **Do you need both?** No, they're redundant. The first one is actually more secure because it restricts invocation to a specific API Gateway ARN. The second one (manual "ApiGatewayInvoke") is broader and allows any API Gateway to invoke your function.
+
+4. **API Gateway permissions**: API Gateway doesn't need its own resource policy since it's the one doing the invoking. The permissions flow is:
+   - Client → API Gateway → Lambda
+
+You can safely delete the second broader policy (ApiGatewayInvoke) since the first one already provides the necessary permission with better security through the ArnLike condition.
+
+
 ##  Process Checklist - New AWS Lambda Function
 
 ### Purpose

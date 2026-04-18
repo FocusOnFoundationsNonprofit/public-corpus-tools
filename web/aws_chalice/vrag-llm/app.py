@@ -25,7 +25,8 @@ ALLOWED_ORIGINS = {
 
 @app.route('/vrag-llm', methods=['POST'], cors=True)
 def handle_vrag_llm():
-    print("vrag-llm lambda func - last updated 12-21  0646 with JWT verification")
+    print("vrag-llm lambda func")
+    print("last updated: 4-11 0818 dev troubleshooting PREV 12-21 0646 with JWT verification")
     
     # Get the origin and set up CORS headers
     request_origin = app.current_request.headers.get('origin', '')

@@ -12,14 +12,16 @@ from primary.fileops import *
 # ---API KEYS AND SECRETS---
 load_dotenv(override=True)  # Load environment variables from .env file
 WEBFLOW_API_KEY_FOF_ALL = os.environ["WEBFLOW_API_KEY_FOF_ALL"]
+WEBFLOW_API_KEY_FOF_CMS = os.environ["WEBFLOW_API_KEY_FOF_CMS"]
 
 # ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
 
 # Initialize the Webflow API client
-client = Webflow(access_token=WEBFLOW_API_KEY_FOF_ALL)
+client = Webflow(access_token=WEBFLOW_API_KEY_FOF_CMS)
 
 ### WEBFLOW SITES
 SITE_ID_FOF = "66f32336260d050c6e0fffa0"
+SITE_ID_FLOODLAMP = "65678d3d31e9a39323f82b37"
 def mrun_print_site_info():
     pass
 #if __name__ == "__main__":
@@ -36,33 +38,113 @@ def mrun_print_site_info():
     print(f"Preview URL: {site_info.preview_url}")
     print(f"Time Zone: {site_info.time_zone}")
     print(f"Custom Domains: {site_info.custom_domains}")
+def webflow_pages_list(site_id, locale_id=None, verbose=False, api_key=None, page_size=100):
+    """
+    Lists all pages for a Webflow site.
+
+    :param site_id: string, the Webflow site id.
+    :param locale_id: string, optional locale id for localized page reads.
+    :param verbose: boolean, whether to print page summaries.
+    :param api_key: string, optional explicit api key override.
+    :param page_size: int, number of pages to request per page.
+    :return pages: list, the returned Webflow page objects.
+    """
+    try:
+        all_pages = []
+        offset = 0
+        while True:
+            params = {
+                "limit": page_size,
+                "offset": offset,
+            }
+            if locale_id:
+                params["localeId"] = locale_id
+            response = requests.get(f"https://api.webflow.com/v2/sites/{site_id}/pages", headers=_webflow_headers(api_key=api_key), params=params)
+            if response.status_code != 200:
+                if verbose:
+                    print(colored(f"Error listing pages. Status code: {response.status_code}", "red"))
+                    print(f"Response: {response.text}")
+                return []
+            page_items = response.json().get("pages", [])
+            all_pages.extend(page_items)
+            pagination = response.json().get("pagination", {})
+            total = pagination.get("total")
+            if total is not None and len(all_pages) >= total:
+                break
+            if len(page_items) < page_size:
+                break
+            offset += page_size
+        if verbose:
+            print(f"Webflow pages for site {site_id}: {len(all_pages)}")
+            for page in all_pages:
+                print(f"- {page.get('title') or page.get('name') or 'Untitled'} | slug={page.get('slug')} | id={page.get('id')}")
+        return all_pages
+    except Exception as e:
+        if verbose:
+            print(colored(f"Error listing pages: {str(e)}", "red"))
+        return []
+def webflow_pages_get_page_by_slug(site_id, slug, locale_id=None, verbose=False, api_key=None):
+    """
+    Gets a Webflow page object by slug.
+
+    :param site_id: string, the Webflow site id.
+    :param slug: string, the page slug to look up.
+    :param locale_id: string, optional locale id for localized page reads.
+    :param verbose: boolean, whether to print the matched page.
+    :param api_key: string, optional explicit api key override.
+    :return page: dict, the matched page object or an empty dict.
+    """
+    for page in webflow_pages_list(site_id, locale_id=locale_id, verbose=False, api_key=api_key):
+        if page.get("slug") == slug:
+            if verbose:
+                print(f"Matched page slug '{slug}' to page id {page.get('id')}")
+            return page
+    if verbose:
+        print(f"No Webflow page found for slug '{slug}' on site {site_id}.")
+    return {}
+def mrun_webflow_pages_list():
+    pass
+#if __name__ == "__main__":
+    cur_site_id = SITE_ID_FLOODLAMP
+    webflow_pages_list(cur_site_id, verbose=True)
 
 DEUTSCH_INTERVIEWS_VRBS_ID = "6711b684a9e995b7c0f06e17"  # for test one - not the real interviews collection
 FDA_C19_TOWNHALLS_ID = "6780532037b7b191793c3544"
 SOVEREIGN_CHILD_ID = "67b1eb365b3e0e9c63aa3cf5"
 
 ### WEBFLOW CMS
-def webflow_cms_get_collection_details(collection_id, debug=False, verbose=True):
+def _webflow_headers(api_key=None, include_json=False):
+    """
+    Builds headers for Webflow v2 API requests.
+
+    :param api_key: string, optional explicit api key override.
+    :param include_json: boolean, whether to include a JSON content-type header.
+    :return headers: dict, the request headers.
+    """
+    resolved_api_key = api_key or WEBFLOW_API_KEY_FOF_ALL
+    headers = {
+        "accept": "application/json",
+        "authorization": f"Bearer {resolved_api_key}"
+    }
+    if include_json:
+        headers["content-type"] = "application/json"
+    return headers
+def webflow_cms_get_collection_details(collection_id, debug=False, verbose=True, api_key=None):
     """
     Get the full details of a collection from its ID.
 
     :param collection_id: str, the ID of the Webflow CMS collection.
     :param debug: bool, if True prints raw API response details.
     :param verbose: bool, if True prints formatted collection details.
+    :param api_key: string, optional explicit api key override.
     :return: dict, a dictionary containing the collection details or None if an error occurs.
     """
     try:
         # Construct the URL
         url = f"https://api.webflow.com/v2/collections/{collection_id}"
-        
-        # Set up headers
-        headers = {
-            "accept": "application/json",
-            "authorization": f"Bearer {WEBFLOW_API_KEY_FOF_ALL}"
-        }
-        
+
         # Make the request
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=_webflow_headers(api_key=api_key))
         
         if debug: 
             print("Raw API response:")
@@ -112,7 +194,6 @@ def webflow_cms_get_collection_details(collection_id, debug=False, verbose=True)
     except requests.exceptions.RequestException as e:
         print(f"Error fetching collection details: {str(e)}")
         return None
-
 def mrun_get_collection_details():
     pass
 if __name__ == "__main__":
@@ -156,41 +237,45 @@ def webflow_cms_import_heading(collection_id, file_path, heading):
 
     return created_item['_id']
 
-def webflow_cms_list_items(collection_id, include_archived=True, verbose=False):
+def webflow_cms_list_items(collection_id, include_archived=True, verbose=False, api_key=None, page_size=100):
     """
     Lists all items in a Webflow collection.
 
     :param collection_id: str, the ID of the Webflow CMS collection
     :param include_archived: bool, whether to include archived/trashed items
     :param verbose: bool, whether to print API response details
+    :param api_key: string, optional explicit api key override.
+    :param page_size: int, number of items to request per page.
     :return: list of items or None if the request fails
     """
     try:
-        headers = {
-            "accept": "application/json",
-            "authorization": f"Bearer {WEBFLOW_API_KEY_FOF_ALL}"
-        }
-        
-        url = f'https://api.webflow.com/v2/collections/{collection_id}/items'
-        if include_archived:
-            url += '?archived=true'
-        
-        response = requests.get(url, headers=headers)
-        
-        if response.status_code == 200:
-            items = response.json()['items']
-            if verbose:
-                for item in items:
-                    archived_status = " (ARCHIVED)" if item.get('archived', False) else ""
-                    print(f"ID: {item['id']}, Name: {item['fieldData'].get('name', 'N/A')}, "
-                          f"Slug: {item['fieldData'].get('slug', 'N/A')}{archived_status}")
-                print(f"\nTotal items: {len(items)}")
-            return items
-        else:
-            if verbose:
-                print(colored(f"Error listing items. Status code: {response.status_code}", "red"))
-                print(f"Response: {response.text}")
-            return None
+        all_items = []
+        offset = 0
+        while True:
+            params = {
+                "limit": page_size,
+                "offset": offset,
+            }
+            if include_archived:
+                params["archived"] = "true"
+            response = requests.get(f'https://api.webflow.com/v2/collections/{collection_id}/items', headers=_webflow_headers(api_key=api_key), params=params)
+            if response.status_code != 200:
+                if verbose:
+                    print(colored(f"Error listing items. Status code: {response.status_code}", "red"))
+                    print(f"Response: {response.text}")
+                return None
+            page_items = response.json().get('items', [])
+            all_items.extend(page_items)
+            if len(page_items) < page_size:
+                break
+            offset += page_size
+        if verbose:
+            for item in all_items:
+                archived_status = " (ARCHIVED)" if item.get('archived', False) else ""
+                print(f"ID: {item['id']}, Name: {item['fieldData'].get('name', 'N/A')}, "
+                      f"Slug: {item['fieldData'].get('slug', 'N/A')}{archived_status}")
+            print(f"\nTotal items: {len(all_items)}")
+        return all_items
             
     except Exception as e:
         if verbose:
@@ -283,7 +368,7 @@ def mrun_webflow_cms_import_transcript_and_qa():
     cur_collection_id = FDA_C19_TOWNHALLS_ID
     transcript_file_path = 'data/floodlamp/reg/fda-townhalls/f5_fixnames/done_auto/2020-12-09_Virtual Town Hall 36_fixnames.md'
     webflow_cms_import_transcript_and_qa(cur_collection_id, transcript_file_path, verbose=True)
-def webflow_cms_create_item(collection_id, field_data, collection_validation=True, verbose=False):
+def webflow_cms_create_item(collection_id, field_data, collection_validation=True, verbose=False, api_key=None):
     """
     Creates a new item in a Webflow collection after validating the field data.
 
@@ -291,11 +376,12 @@ def webflow_cms_create_item(collection_id, field_data, collection_validation=Tru
     :param field_data: dict, the data for all fields to be created.
     :param collection_validation: bool, whether to validate fields against collection schema
     :param verbose: bool, whether to print field validation and API response details.
+    :param api_key: string, optional explicit api key override.
     :return: str, the ID of the newly created item or None if validation/creation fails.
     """
     # Get collection details and validate fields only if collection_validation is True
     if collection_validation:
-        collection_details = webflow_cms_get_collection_details(collection_id, verbose=False)
+        collection_details = webflow_cms_get_collection_details(collection_id, verbose=False, api_key=api_key)
         if not collection_details:
             print("Failed to fetch collection details for validation")
             return None
@@ -329,15 +415,9 @@ def webflow_cms_create_item(collection_id, field_data, collection_validation=Tru
     }
 
     try:
-        headers = {
-            "accept": "application/json",
-            "content-type": "application/json",
-            "authorization": f"Bearer {WEBFLOW_API_KEY_FOF_ALL}"
-        }
-        
         response = requests.post(
             f'https://api.webflow.com/v2/collections/{collection_id}/items',
-            headers=headers,
+            headers=_webflow_headers(api_key=api_key, include_json=True),
             json=request_body
         )
         
@@ -366,7 +446,7 @@ def mtest_webflow_cms_create_item():
         'youtube-url-3': 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
     }
     webflow_cms_create_item(cur_collection_id, field_data, collection_validation=False, verbose=True)
-def webflow_cms_update_item(collection_id, item_id, field_data, collection_validation=True, verbose=False):
+def webflow_cms_update_item(collection_id, item_id, field_data, collection_validation=True, verbose=False, api_key=None):
     """
     Updates an existing item in a Webflow collection.
 
@@ -375,34 +455,29 @@ def webflow_cms_update_item(collection_id, item_id, field_data, collection_valid
     :param field_data: dict, the updated field data
     :param collection_validation: bool, whether to validate fields against collection schema
     :param verbose: bool, whether to print field validation and API response details
+    :param api_key: string, optional explicit api key override.
     :return: bool indicating success or failure
     """
     if collection_validation:
-        collection_details = webflow_cms_get_collection_details(collection_id, verbose=False)
+        collection_details = webflow_cms_get_collection_details(collection_id, verbose=False, api_key=api_key)
         if not collection_details:
             print("Failed to fetch collection details for validation")
             return False
 
     try:
-        headers = {
-            "accept": "application/json",
-            "content-type": "application/json",
-            "authorization": f"Bearer {WEBFLOW_API_KEY_FOF_ALL}"
-        }
-        
         request_body = {
             "fieldData": field_data
         }
         
         response = requests.patch(
             f'https://api.webflow.com/v2/collections/{collection_id}/items/{item_id}',
-            headers=headers,
+            headers=_webflow_headers(api_key=api_key, include_json=True),
             json=request_body
         )
         
         if response.status_code in [200, 202]:
             if verbose:
-                print(f"Successfully updated item with ID: {item_id}")
+                print(f"Successfully updated item with ID: {item_id}  name: {field_data.get('name', '(unknown)')}")
             return True
         else:
             if verbose:
@@ -414,6 +489,86 @@ def webflow_cms_update_item(collection_id, item_id, field_data, collection_valid
         if verbose:
             print(f"Error updating item: {str(e)}")
         return False
+def webflow_cms_delete_item(collection_id, item_id, verbose=False, api_key=None):
+    """
+    Deletes an existing item from a Webflow collection.
 
+    :param collection_id: str, the ID of the Webflow CMS collection.
+    :param item_id: str, the ID of the item to delete.
+    :param verbose: bool, whether to print API response details.
+    :param api_key: string, optional explicit api key override.
+    :return: bool, True when the delete succeeds.
+    """
+    try:
+        response = requests.delete(
+            f'https://api.webflow.com/v2/collections/{collection_id}/items/{item_id}',
+            headers=_webflow_headers(api_key=api_key)
+        )
+        if response.status_code in [200, 202, 204]:
+            if verbose:
+                print(f"Successfully deleted item with ID: {item_id}")
+            return True
+        if verbose:
+            print(f"Error deleting item. Status code: {response.status_code}")
+            print(f"Response: {response.text}")
+        return False
+    except Exception as e:
+        if verbose:
+            print(f"Error deleting item: {str(e)}")
+        return False
 
+### WEBFLOW CMS helpers
+def webflow_cms_get_collection_field_slugs(collection_id, include_builtin=True, verbose=False, api_key=None):
+    """
+    Gets the field slugs for a Webflow collection.
+
+    :param collection_id: string, the id of the Webflow CMS collection.
+    :param include_builtin: boolean, whether to include the built-in name and slug fields.
+    :param verbose: boolean, whether to print the returned field slugs.
+    :param api_key: string, optional explicit api key override.
+    :return field_slugs: list, the collection field slugs.
+    """
+    collection_details = webflow_cms_get_collection_details(collection_id, verbose=False, api_key=api_key)
+    if not collection_details:
+        return []
+    field_slugs = []
+    for field in collection_details.get("fields", []):
+        field_slug = field.get("slug")
+        if not field_slug:
+            continue
+        if not include_builtin and field_slug in ["name", "slug"]:
+            continue
+        field_slugs.append(field_slug)
+    if verbose:
+        print(f"Collection field slugs ({len(field_slugs)}):")
+        for field_slug in field_slugs:
+            print(f"- {field_slug}")
+    return field_slugs
+def webflow_cms_get_existing_items_map(collection_id, key_field="name", include_archived=True, verbose=False, api_key=None):
+    """
+    Builds a lookup map for existing Webflow CMS items.
+
+    :param collection_id: string, the id of the Webflow CMS collection.
+    :param key_field: string, the fieldData key to use as the lookup key.
+    :param include_archived: boolean, whether to include archived items in the lookup.
+    :param verbose: boolean, whether to print a summary of the lookup map.
+    :param api_key: string, optional explicit api key override.
+    :return items_map: dict, mapping field values to item ids.
+    """
+    items = webflow_cms_list_items(collection_id, include_archived=include_archived, verbose=False, api_key=api_key)
+    if not items:
+        if verbose:
+            print(f"No existing items found for collection {collection_id}.")
+        return {}
+    items_map = {}
+    for item in items:
+        field_data = item.get("fieldData", {})
+        field_value = field_data.get(key_field)
+        item_id = item.get("id")
+        if not field_value or not item_id:
+            continue
+        items_map[field_value] = item_id
+    if verbose:
+        print(f"Existing Webflow items indexed by '{key_field}': {len(items_map)}")
+    return items_map
 # ===== END OF FILE secondary/webflow.py =====

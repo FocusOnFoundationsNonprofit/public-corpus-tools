@@ -5,6 +5,8 @@ import sys
 import os
 import json
 from chalice import Chalice, Response
+import traceback
+import pinecone
 
 from chalicelib.rag import qrag_routing_call
 # from chalicelib.llm import simple_openai_chat_completion_request
@@ -25,10 +27,14 @@ ALLOWED_ORIGINS = {
     'https://floodlamp-8c9d00d6ef3e90c375de806594d04.webflow.io',
     'http://localhost:8000'
 }
-
 @app.route('/qrag-routing', methods=['POST'], cors=True)
 def handle_qrag_routing():
-    print("qrag-routing lambda func - last updated 2025-02-15 1704 added error handling for empty user question")
+    print("DEBUG: Environment info:")
+    print(f"Python version: {sys.version}")
+    print(f"Pinecone version: {pinecone.__version__}")
+    print(f"Pinecone package location: {pinecone.__file__}")
+    print(f"PYTHONPATH: {sys.path}")
+    print("qrag-routing lambda func - last updated 2025-02-25 0355 troubleshooting Pinecone v6 update")
     
     # Enhanced request logging
     request_headers = app.current_request.headers
@@ -180,8 +186,12 @@ def handle_qrag_routing():
             'hashedInputUserEmail'
         ]) else None
 
-        # Call your custom multi-route retrieval augmented generation pipeline
-        print("\nCalling qrag_routing...")
+        # Add more detailed logging before qrag_routing_call
+        print("\nDEBUG: Parameters for qrag_routing_call:")
+        print(f"vector_index_name: {vector_index_name}")
+        print(f"num_chunks: {num_chunks}")
+        print(f"date_range: {date_range}")
+        
         response_json_object = qrag_routing_call(
             user_question,
             vector_index_name,
@@ -190,7 +200,7 @@ def handle_qrag_routing():
             date_range,
             routes_bounds,
             user_id,
-            user_context,  # Pass the user context as an optional parameter
+            user_context,
             qrag_version
         )
 
@@ -213,6 +223,20 @@ def handle_qrag_routing():
             headers=cors_headers
         )
     except Exception as e:
+        print("DEBUG: Error type:", type(e))
+        print("DEBUG: Error message:", str(e))
+        print("DEBUG: Full error traceback:", traceback.format_exc())
+        
+        # Add specific handling for KeyError on 'vectors'
+        if "'vectors'" in str(e):
+            error_msg = "Failed to access vector data from Pinecone response. This might be due to an empty response or API version mismatch."
+            print(f"DEBUG: {error_msg}")
+            return Response(
+                body={'error': error_msg},
+                status_code=500,
+                headers=cors_headers
+            )
+            
         error_type = type(e).__name__
         error_details = str(e)
         print(f"ERROR: Unexpected error: {error_details} (type: {error_type})")
@@ -227,6 +251,8 @@ def handle_qrag_routing():
 cd /Users/randytrue/Documents/Code/corpus-tools/web/aws_chalice/qrag-routing
 ../chalicelib_mirror_deploy.sh
 '''
+
+# IF deployment fails, can use this to Clear local Chalice deployment cache: rm -rf .chalice/deployed
 
 # TEST WITH CURL WITH JWT
 # curl -X POST https://us05oglu51.execute-api.us-west-2.amazonaws.com/api/qrag-routing -H "Content-Type: application/json" -H "Authorization: Bearer eyJh..." -d '{"user_question": "Is this test working with JWT?", "vector_index_name": "deutsch-transcript-qrag-78f-20240926", "num_chunks": 3, "route_dict_name": "ROUTES_DICT_DEUTSCH_V4", "routes_bounds": [0.3, 0.9], "llm_model": "gpt-4o", "user_id": "test_user", "qrag_version": "1.0"}'
@@ -252,37 +278,19 @@ Origin:https://www.focusonfoundations.org,
 Authorization:Bearer your_jwt_token_here
 '''
 
-# Request body for PV Evac:
-'''
-{
-  "user_question": "Is this PV Evac QRAG working from the Portal API Gateway Test tab with CORS restricted to fof domain?",
-  "vector_index_name": "pv-evac-qrag-2f-20241024",
-  "num_chunks": 3,
-  "route_dict_name": "ROUTES_DICT_PV_EVAC_V1",
-  "routes_bounds": [0.3, 0.9],
-  "llm_model": "gpt-4o",
-  "user_id": "test_user",
-  "qrag_version": "1.0",
-  "hashedUserNiceName": "abc123...hash_value_here",
-  "hashedUserIPAddress": "def456...hash_value_here",
-  "hashedInputUserEmail": "ghi789...hash_value_here"
-}
-'''
-
 # Request body for Deutsch:
 '''
 {
-  "user_question": "Is this Deutsch QRAG working from the Portal API Gateway Test tab with CORS restricted to fof domain?",
-  "vector_index_name": "deutsch-transcript-qrag-78f-20240926",
-  "num_chunks": 3,
-  "route_dict_name": "ROUTES_DICT_DEUTSCH_V4",
-  "routes_bounds": [0.3, 0.9],
-  "llm_model": "gpt-4o",
-  "user_id": "test_user",
-  "qrag_version": "1.0",
-  "hashedUserNiceName": "abc123...hash_value_here",
-  "hashedUserIPAddress": "def456...hash_value_here",
-  "hashedInputUserEmail": "ghi789...hash_value_here"
+    "user_question": "What is the meaning of the good life?",
+    "vector_index_name": "deutsch-transcript-qrag-83f-20250202",
+    "num_chunks": 2,
+    "route_dict_name": "ROUTES_DICT_DEUTSCH_M1",
+    "routes_bounds": [0.3, 0.9],
+    "user_id": "test_user",
+    "qrag_version": "2.0",
+    "hashedUserNiceName": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
+    "hashedUserIPAddress": "b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1",
+    "hashedInputUserEmail": "c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0v1w2"
 }
 '''
 

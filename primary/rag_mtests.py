@@ -12,11 +12,11 @@ if True:
 # if __name__ == "__main__":    
     cur_file_path = ""
 
-CUR_VECTOR_INDEX_NAME = 'deutsch-transcript-qrag-83f-20250202'
-CUR_ROUTES_DICT = ROUTES_DICT_DEUTSCH_M1
-CUR_QUERY = "Why is Thomas Kuhn's philosophy of science taught in universities instead of Karl Popper's?"
-CUR_NUM_CHUNKS = 20
-CUR_LARGE_CONTEXT_FILENAME = 'deutsch_large_context_v1.md'
+# CUR_VECTOR_INDEX_NAME = 'deutsch-transcript-qrag-83f-20250202'
+# CUR_ROUTES_DICT = ROUTES_DICT_DEUTSCH_M1
+# CUR_QUERY = "Why is Thomas Kuhn's philosophy of science taught in universities instead of Karl Popper's?"
+# CUR_NUM_CHUNKS = 20
+# CUR_LARGE_CONTEXT_FILENAME = 'deutsch_large_context_v1.md'
 # CUR_JSON_PATH = 'tests/test_manual_files/rag/qrag_routing_deutsch_q1.json'
 
 # CUR_VECTOR_INDEX_NAME = 'fda-townhalls-qrag-4f-20250114'
@@ -34,26 +34,43 @@ CUR_LARGE_CONTEXT_FILENAME = 'deutsch_large_context_v1.md'
 # CUR_NUM_CHUNKS = 10
 # CUR_LARGE_CONTEXT_FILENAME = '2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple_trimmed.md'
 
+ROOT_FOLDER = "/Users/randytrue/Documents/Code/corpus-tools/"
 
 ### RETRIEVAL
-
+CUR_VECTOR_INDEX_NAME = 'deutsch-transcript-qrag-83f-20250311'  #'deutsch-transcript-qrag-83f-20250202'
+CUR_ROUTES_DICT = ROUTES_DICT_DEUTSCH_M1
+CUR_QUERY = "What is the meaning of the good life?"
+CUR_NUM_CHUNKS = 10
+CUR_LARGE_CONTEXT_FILENAME = 'deutsch_large_context_v1.md'
 def mtest_pinecone_retriever():
     pass
-#if __name__ == "__main__":
-    fetched_chunks, retrieved_ids_scores = pinecone_retriever(CUR_QUERY, CUR_VECTOR_INDEX_NAME, num_chunks=CUR_NUM_CHUNKS)
-    # print("Fetched chunks:")
-    # print(fetched_chunks)
-    print(colored("Retrieving chunks WITHOUT DATE RANGE", "blue"))
+if __name__ == "__main__":
+    print(f"Local Python version: {sys.version}")
+    print(f"Local Pinecone version: {pinecone.__version__}")
+    print(f"Local Pinecone package location: {pinecone.__file__}")
+    retrieved_chunks, retrieved_ids_scores = pinecone_retriever(CUR_QUERY, CUR_VECTOR_INDEX_NAME, num_chunks=CUR_NUM_CHUNKS)
+    print(colored(f"Retrieving chunks WITHOUT DATE RANGE and BEFORE FILTERING - num chunks: {len(retrieved_ids_scores)}", "yellow"))
     for id, score in retrieved_ids_scores.items():
         print(f"{id}: {score:.3f}")
     
-    print(colored("Retrieving chunks WITH DATE RANGE", "yellow"))
-    date_range = ["2024-09-20", "2024-10-23"]
-    #date_range = ["2023-11-15", "2024-10-23"]
-    fetched_chunks, retrieved_ids_scores = pinecone_retriever(CUR_QUERY, CUR_VECTOR_INDEX_NAME, num_chunks=CUR_NUM_CHUNKS, date_range=date_range)
-    print(f"Retrieved IDs and scores with date range of {date_range}:")
-    for id, score in retrieved_ids_scores.items():
+    filtered_chunks, filtered_ids_scores = filter_same_block_chunks(retrieved_chunks, retrieved_ids_scores)
+    print(colored(f"\nRetrieving chunks WITHOUT DATE RANGE and AFTER FILTERING WITHOUT num_chunks_keep - num chunks: {len(filtered_ids_scores)}", "green"))
+    for id, score in filtered_ids_scores.items():
         print(f"{id}: {score:.3f}")
+        
+    filtered_chunks, filtered_ids_scores = filter_same_block_chunks(retrieved_chunks, retrieved_ids_scores, 3)
+    print(colored(f"\nRetrieving chunks WITHOUT DATE RANGE and AFTER FILTERING WITH num_chunks_keep=3 - num chunks: {len(filtered_ids_scores)}", "green"))
+    for id, score in filtered_ids_scores.items():
+        print(f"{id}: {score:.3f}")
+
+    # *****FROM BEFORE FILTERING SAME BLOCK CHUNKS FOR MULTI_Q BLOCKS*****
+    # print(colored("\nRetrieving chunks WITH DATE RANGE", "yellow"))
+    # date_range = ["2024-09-20", "2024-10-23"]
+    # #date_range = ["2023-11-15", "2024-10-23"]
+    # fetched_chunks, retrieved_ids_scores = pinecone_retriever(CUR_QUERY, CUR_VECTOR_INDEX_NAME, num_chunks=CUR_NUM_CHUNKS, date_range=date_range)
+    # print(f"Retrieved IDs and scores with date range of {date_range}:")
+    # for id, score in retrieved_ids_scores.items():
+    #     print(f"{id}: {score:.3f}")
     
 
 ### VRAG
@@ -126,8 +143,13 @@ def mtest_qrag_routing_call():
         num_chunks=CUR_NUM_CHUNKS,
         routes_dict=CUR_ROUTES_DICT
     )
-    # Optionally write to a JSON file
     pretty_print_json_data(qrag_routing_output_json_object, print_values=True)
+    # Save the routing output to a temporary JSON file
+    import json
+    temp_file = ROOT_FOLDER + "temp.json"
+    with open(temp_file, "w") as f:
+        json.dump(qrag_routing_output_json_object, f, indent=4)
+    print(f"\nSaved routing output to: {temp_file}")
 def mtest_qrag_llm_call():
     pass
 #if __name__ == "__main__":
@@ -184,8 +206,8 @@ def mtest_qrag_2step():
 
 def mrun_create_md_from_qrag_exchange_json():
     pass
-if __name__ == "__main__":
-    cur_exchange_file_path = "exchanges/pv-evac/qrag-exch_2025-02-16_045335.json"
+#if __name__ == "__main__":
+    cur_exchange_file_path = "exchanges/qrag_sovereign-child/exchange_jsons/qrag-exch_2025-06-24_064934.json"
     print(f"Created markdown file: {create_md_from_qrag_exchange_json(cur_exchange_file_path)}")
 
 # NOT WORKING - See CHAT LOGGING comments

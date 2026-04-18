@@ -1,10 +1,12 @@
-<!-- ========= START OF FILE webflow-fof-home.html ========== -->
+<!-- ========= START OF FILE webflow-fof-home_users.html ========== -->
 <!-- ================ START Body Custom Code ================ -->
 <script>
-    var fileInfo = 'webflow-fof-home.html 12-03-2024 1239 Update API Key to single demo one';
+    var fileInfo = 'webflow-fof-home_users.html 4-7 0722 url at top, PREV 12-03-2024 1239 Update API Key to single demo one';
     const AWS_API_KEY_DEMO = 'Fhhs7ubSQK5zK06RywPls53v0qRWSBJG6rsk7XPz';
-    console.log('BODY of File loaded: ', fileInfo);
+    console.log('Loading JavaScript for Home Page Body: ', fileInfo);
 
+    const HMAC_HASH_API_ENDPOINT_URL = 'https://xusv8bpl49.execute-api.us-west-2.amazonaws.com/api/generate-hash';
+    
     // Ensure the SA5 library is initialized
     window.sa5 = window.sa5 || [];
 
@@ -105,7 +107,7 @@
     // Function to generate and store email hash
     function generateAndStoreEmailHash(email) {
         console.log('Attempting to generate hash for email:', email);
-        return fetch('https://xusv8bpl49.execute-api.us-west-2.amazonaws.com/api/generate-hash', {
+        return fetch(HMAC_HASH_API_ENDPOINT_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -188,4 +190,4 @@
     });
 </script>
 <!-- ================ END Body Custom Code ================ -->
-<!-- ========= END OF FILE webflow-fof-home.html ========== -->
+<!-- ========= END OF FILE webflow-fof-home_users.html ========== -->

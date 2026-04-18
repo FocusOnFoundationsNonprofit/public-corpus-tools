@@ -696,14 +696,62 @@ def validate_blocks_in_folders(folder_paths, required_fields, custom_validators,
         for file_path in file_paths:
             total_files += 1
             blocks = get_blocks_from_file(file_path)
-            if validate_blocks_in_file(file_path, required_fields, custom_validators):
+            
+            # Modify the validation to handle numbered questions
+            modified_required_fields = required_fields.copy()
+            if "QUESTION" in modified_required_fields:
+                # We'll handle QUESTION validation separately
+                modified_required_fields.remove("QUESTION")
+            
+            if validate_blocks_in_file(file_path, modified_required_fields, custom_validators):
+                # Additional check for QUESTION field with numbers
+                if "QUESTION" in required_fields:
+                    has_invalid_block = False
+                    for block in blocks:
+                        # Check if the block has any field starting with "QUESTION" (possibly followed by a number)
+                        has_question_field = False
+                        for line in block.split('\n'):
+                            if ':' in line:
+                                field_part = line.split(':', 1)[0].strip()
+                                if field_part == "QUESTION" or (field_part.startswith("QUESTION ") and field_part[9:].strip().isdigit()):
+                                    has_question_field = True
+                                    break
+                        
+                        if not has_question_field:
+                            print(f"ValidationErrors found in block:")
+                            print(f"- Missing required field: QUESTION")
+                            print("\nInvalid block:")
+                            print(block)
+                            print()
+                            has_invalid_block = True
+                            break
+                    
+                    if has_invalid_block:
+                        print(f"Number of validated files: {valid_files_count} in {folder_path}: ")
+                        print(f"INVALID file: {file_path}")
+                        return file_path
+                
                 valid_files_count += 1
                 total_valid_files += 1
                 
                 # Count optional fields using get_all_fields_dict
                 for block in blocks:
                     try:
-                        block_fields_dict = get_all_fields_dict(block)
+                        # Parse block lines to handle numbered questions
+                        block_fields_dict = {}
+                        for line in block.split('\n'):
+                            if ':' in line:
+                                field_part, value = line.split(':', 1)
+                                # Strip whitespace from field part and value
+                                field_part = field_part.strip()
+                                value = value.strip()
+                                
+                                # Extract base field name without number for QUESTION fields
+                                if field_part.startswith("QUESTION ") and field_part[9:].strip().isdigit():
+                                    field_part = "QUESTION"
+                                
+                                block_fields_dict[field_part] = value
+                                
                         for field in block_fields_dict.keys():
                             if field not in required_fields:
                                 optional_fields_stats[field]['files'].add(file_path)
@@ -1206,8 +1254,8 @@ def compare_fields(file_path, field1, field2, print_same_exceptions=False, print
             print(f"{field2}: {val2}")
 def mrun_compare_fields():
     pass
-if __name__ == "__main__":
-    #cur_file_path = "data/misc_books/Sovereign Child/The Sovereign Child_qa-qonly.md"
+#if __name__ == "__main__":
+    #cur_file_path = "data/misc_books/Sovereign Child/Sovereign Child_qa-qonly.md"
     cur_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_qa-qonly.md"
     compare_fields(cur_file_path, "CLARIFIED QUESTION", "VERBATIM QUESTION")
 def write_blocks_to_heading(file_path, blocks, heading):
@@ -1316,6 +1364,91 @@ def mrun_remap_fields():
     rename_fields = [("CLARIFIED QUESTION", "QUESTION"), ("VERBATIM ANSWER", "ANSWER")]
     delete_fields = ["CLARIFIED ANSWER", "VERBATIM QUESTION", "SPEAKER QUESTION", "SPEAKER ANSWER"]
     remap_fields(cur_file_path, rename_fields, delete_fields)
+def renumber_multi_qa(qa_file_path, verbose=False):
+    """
+    Renumber the questions in a multi-question QA file sequentially.
+    
+    Finds all lines starting with "QUESTION" followed by a number and renumbers them.
+    Numbering restarts at 1 for each block (blocks are separated by blank lines).
+    This is useful when questions have been deleted or are out of order.
+
+    :param qa_file_path: string, path to the QA file to process
+    :return: string, path to the updated file
+    """
+    qa_text = get_heading(qa_file_path, "### qa")
+    if not qa_text:
+        warnings.warn(f"No QA section found in file: {qa_file_path}")
+        return qa_file_path
+    
+    # Split the text into lines for processing
+    lines = qa_text.split('\n')
+    
+    # Pattern to match lines starting with "QUESTION" followed by a number
+    question_pattern = re.compile(r'^QUESTION\s+(\d+):', re.IGNORECASE)
+    
+    # Counter for question numbering
+    question_counter = 1
+    # Counter for total questions renumbered
+    total_renumbered = 0
+    
+    # Process each line
+    i = 0
+    while i < len(lines):
+        # Check if current line is blank - reset counter if it is
+        if not lines[i].strip():
+            question_counter = 1
+            i += 1
+            continue
+            
+        match = question_pattern.match(lines[i])
+        if match:
+            # Replace the old number with the new counter value
+            lines[i] = f"QUESTION {question_counter}:" + lines[i][match.end():]
+            question_counter += 1
+            total_renumbered += 1
+        
+        i += 1
+    
+    # Join the lines back together
+    modified_qa_text = '\n'.join(lines)
+    
+    # Update the file with the modified content
+    set_heading(qa_file_path, modified_qa_text, "### qa")
+    
+    verbose_print(verbose, f"Renumbered {total_renumbered} questions in {qa_file_path}")
+    return qa_file_path
+def mrun_renumber_multi_qa():
+    pass
+#if __name__ == "__main__":
+    cur_file_path = "data/deutsch/f8_qafixed_talks/2007-01-27_Why Are Flowers Beautiful_qa-multi.md"
+    renumber_multi_qa(cur_file_path, verbose=True)
+def get_num_questions_multi_qa(qa_file_path):
+    """
+    Counts the number of questions in a multi-question QA file.
+
+    :param qa_file_path: string, path to the QA file to process
+    :return: int, number of questions in the file
+    """
+    qa_text = get_heading(qa_file_path, "### qa")
+    if not qa_text:
+        warnings.warn(f"No QA section found in file: {qa_file_path}")
+        return 0
+    
+    # Split the text into lines for processing  
+    lines = qa_text.split('\n')
+    
+    # Count lines starting with "QUESTION" followed by a number
+    question_count = 0
+    for line in lines:
+        if line.strip().startswith("QUESTION"):  # TODO: make case insensitive
+            question_count += 1
+    
+    return question_count
+def mrun_get_num_questions_multi_qa():
+    pass
+if __name__ == "__main__":
+    cur_file_path = "data/deutsch/f8_qafixed_talks/2007-01-27_Why Are Flowers Beautiful_qa-multi.md"
+    print(get_num_questions_multi_qa(cur_file_path))
 
 
 # ===== END OF FILE primary/structured.py =====

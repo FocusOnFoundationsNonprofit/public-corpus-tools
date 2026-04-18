@@ -9,8 +9,10 @@ import csv
 from collections import defaultdict
 import urllib.parse
 import pickle
+import zipfile
 
 from primary.fileops import *
+from primary.transcribe import *
 from primary.conversion import *
 from primary.structured import *
 from primary.llm import *
@@ -19,6 +21,7 @@ from primary.dbgen import *
 from primary.webflow_api import *
 from primary.vectordb import *
 from primary.rag import *
+from primary.rag_prompts_routes import *
 
 # ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
 
@@ -31,6 +34,32 @@ CUSTOM_VALIDATORS = {
     "STARS": validate_stars,
     "TOPICS": validate_topics
 }
+
+### MRUN GUARD
+def _guard_multiple_mrun_blocks():
+    """
+    Checks for multiple uncommented 'if __name__ == "__main__":' blocks.
+    Warns and prompts user if more than one is found. Only runs when file is executed directly.
+    """
+    if __name__ != "__main__":
+        return
+    with open(__file__, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+    active_blocks = []
+    for i, line in enumerate(lines, 1):
+        stripped = line.lstrip()
+        # Only match 'if __name__ == "__main__":' (not != checks)
+        if stripped.startswith('if __name__') and '==' in stripped and '__main__' in stripped and stripped.rstrip().endswith(':'):
+            active_blocks.append((i, line.rstrip()))
+    if len(active_blocks) > 1:
+        print(f"\n⚠️  WARNING: {len(active_blocks)} uncommented 'if __name__' blocks found!")
+        for line_num, line_text in active_blocks:
+            print(f"  Line {line_num}: {line_text}")
+        response = input("\nPress N to abort, any other key to continue: ")
+        if response in ('n', 'N'):
+            import sys
+            sys.exit(0)
+_guard_multiple_mrun_blocks()
 
 ### S3 WEBFLOW UPLOADS
 def collect_s3_source_files(folder_path, transcript_suffix, qa_suffix):
@@ -186,23 +215,159 @@ def mrun_process_corpus_s3_webflow_upload():
     config = CONFIG_S3_WEBFLOW_UPLOAD_MY_CORPUS_HERE
     process_corpus_s3_webflow_upload(config, s3_upload=True, webflow_upload=True, s3_prompt_overwrite=True, webflow_cms_prompt_overwrite=True)
 
+### GENERIC CORPUS
+def count_chars_words_tokens(text):
+    """
+    Counts the number of characters, words, and tokens in a given text.
+
+    :param text: string of text to be analyzed.
+    :return: tuple of integers representing the number of characters, words, and tokens in the input text.
+    """
+    num_chars = len(text)
+    num_words = len(text.split())
+    num_tokens = count_tokens(text)  # in llm.py
+    return num_chars, num_words, num_tokens
+def count_chars_words_tokens_in_file(file_path):
+    """
+    Counts the number of characters, words, and tokens in a given file.
+
+    :param file_path: string of the path to the file to be analyzed.
+    :return: tuple of integers representing the number of characters, words, and tokens in the input file.
+    """
+    try:
+        _, content = read_metadata_and_content(file_path)
+    except:
+        # If read_metadata_and_content fails, read the entire file
+        with open(file_path, 'r', encoding='utf-8') as file:
+            content = file.read()
+    
+    # Check if content is actually text
+    if not isinstance(content, str):
+        raise ValueError(f"File content is not text: {file_path}")
+    
+    return count_chars_words_tokens(content)
+def mtest_count_chars_words_tokens_in_file():
+    pass
+#if __name__ == "__main__":
+    file_path = "data/sovereign-child/book/2025-01-11_Book - The Sovereign Child by Dr Aaron Stupple_section-titles.md"
+    num_chars, num_words, num_tokens = count_chars_words_tokens_in_file(file_path)
+    print(f"{'Number of characters:':<22} {num_chars:>10,}")
+    print(f"{'Number of words:':<22} {num_words:>10,}")
+    print(f"{'Number of tokens:':<22} {num_tokens:>10,}")
+def create_csv_with_chars_words_tokens(output_file_path, folder_list, suffixpat_include=None, include_subfolders=False):
+    """
+    Creates a CSV file with the number of characters, words, and tokens for each file in a given folder.
+
+    :param output_file_path: string of the path to the output CSV file.
+    :param folder_list: list of strings representing paths to folders to be analyzed.
+    :param suffixpat_include: string of the suffix pattern to be included in the analysis.
+    :param include_subfolders: boolean indicating whether to include subfolders in the analysis.
+    """
+    # Create a list to store the results
+    results = []
+    
+    # Process each folder separately
+    for folder_path in folder_list:
+        print(f"Processing folder: {folder_path}")
+        
+        # Get files for this folder
+        folder_files = get_files_in_folder(folder_path, suffixpat_include=suffixpat_include, include_subfolders=include_subfolders)
+        
+        # Process each file in this folder
+        for file_path in folder_files:
+            file_name = os.path.basename(file_path)
+            num_chars, num_words, num_tokens = count_chars_words_tokens_in_file(file_path)
+            results.append([file_path, file_name, num_chars, num_words, num_tokens])
+            print(f"  {file_name}: {num_chars} chars, {num_words} words, {num_tokens} tokens")
+        
+        # Print blank line after each folder to delineate sections
+        print("\n")
+
+    # Write the combined results to a CSV file
+    with open(output_file_path, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['File Path', 'File Name', 'Characters', 'Words', 'Tokens'])
+        writer.writerows(results)
+
+#### TRANSCRIBE
+def mrun_transcribe_using_callback():
+    pass
+#if __name__ == "__main__":
+    videos_to_process = [  #  (title, link)
+        ("2025-09-24_Alex Springer Award - Sam Altman and David Deutsch discuss AGI", "https://youtu.be/WZ22AJmuKKQ"),
+    ] 
+    process_multiple_videos(videos_to_process) # default set to audio_inbox, 'whisper-medium' 'nova-2-general' 'whisper-large' 'nova-2-meeting' 'enhanced-meeting'
+
+    print("TESTING DOWNLOAD DEEPGRAM CALLBACK WAITING")     
+    download_deepgram_callback_waiting()
+def mrun_transcribe_with_audio_only():
+    pass
+#if __name__ == "__main__":
+    audio_file_path = "data/audio_inbox/2025-09-24_Alex Springer Award - Sam Altman and David Deutsch discuss AGI.mp3"
+    link = "https://youtu.be/WZ22AJmuKKQ"  # Can be None if no YouTube link exists
+    model = "whisper-medium"  # Or other Deepgram model like "whisper-medium"
+    process_deepgram_transcription_sync_from_audio_file(audio_file_path, link, model)
 
 ### DEUTSCH CORPUS
 def mrun_create_deustch_qa_from_prepqa():
     pass
 #if __name__ == "__main__":
     apply_to_folder(create_qa_file_select_speaker, 'data/deutsch/f5_run_qa_now', 'David Deutsch', FCALL_PROMPT_QA_DEUTSCH, suffixpat_include='_prepqa')
-
-DEUTSCH_REQUIRED_FIELDS = ["QUESTION", "TIMESTAMP", "ANSWER", "EDITS", "TOPICS", "STARS"]  
-DEUTSCH_FOLDER_PATHS = ["data/deutsch/f8_done_qafixed_and_vrb", "data/deutsch/f8_qafixed_talks"]
-def validate_corpus_deutsch():
-    validate_blocks_in_folders(DEUTSCH_FOLDER_PATHS, DEUTSCH_REQUIRED_FIELDS, CUSTOM_VALIDATORS, suffixpat_include="_qafixed")
-def mrun_corpus_deutsch():
+def mrun_create_deustch_qa_multi():
     pass
 #if __name__ == "__main__":
-    #validate_corpus_deutsch()
+    source_folder = 'data/deutsch/f6_needs_qafixed'
+    for qa_file in os.listdir(source_folder):
+        if qa_file.endswith('_qafixed.md'):
+            qa_file_path = os.path.join(source_folder, qa_file)
+            qa_multi_file_path = create_qa_multi_file_from_qa(qa_file_path, verbose=True)
+            
+            # Create copy with space appended to filename
+            copy_folder = 'data/deutsch/fx_archive'
+            qa_multi_file_name = os.path.basename(qa_multi_file_path)
+            qa_multi_file_name_copy = qa_multi_file_name.replace('.md', ' copy.md')
+            qa_multi_file_path_copy = os.path.join(copy_folder, qa_multi_file_name_copy)
+            
+            # Copy the file
+            shutil.copy2(qa_multi_file_path, qa_multi_file_path_copy)
+            print(f"Processed {qa_file}")
 
-    # cur_topics_matrix_csv = "data/deutsch/topics_matrix.csv"
+            set_last_updated(qa_multi_file_path, "RT multi-QA manual edits")
+
+
+DEUTSCH_REQUIRED_FIELDS = ["QUESTION", "TIMESTAMP", "ANSWER", "TOPICS", "STARS"]  
+DEUTSCH_FOLDER_PATHS = ["data/deutsch/f8_done_qafixed_and_vrb", "data/deutsch/f8_qafixed_talks"]
+def mrun_renumber_multi_qa_deutsch():
+    pass
+#if __name__ == "__main__":
+    for folder in ["data/deutsch/f9_process"]: #DEUTSCH_FOLDER_PATHS:
+        apply_to_folder(renumber_multi_qa, folder, suffixpat_include="_qa-multi.md")
+def mrun_get_num_questions_multi_qa_deutsch():
+    pass
+#if __name__ == "__main__":
+    total_questions = 0
+    for folder in DEUTSCH_FOLDER_PATHS:
+        for file in os.listdir(folder):
+            if file.endswith("_qa-multi.md"):
+                file_path = os.path.join(folder, file)
+                num_questions = get_num_questions_multi_qa(file_path)
+                total_questions += num_questions
+                #print(f"{file}: {num_questions} questions")
+    print(f"\nTotal questions across all files: {total_questions}")
+def validate_corpus_deutsch():
+    validate_blocks_in_folders(DEUTSCH_FOLDER_PATHS, DEUTSCH_REQUIRED_FIELDS, CUSTOM_VALIDATORS, suffixpat_include="_qa-multi")
+def mrun_validate_corpusdeutsch():
+    pass
+#if __name__ == "__main__":
+    validate_corpus_deutsch()
+def mrun_create_qrag_vector_db_deutsch(): # RUN VALIDATION FIRST
+    pass
+#if __name__ == "__main__":
+    create_qrag_vectordb(DEUTSCH_FOLDER_PATHS, "deutsch-transcript-qrag", suffixpat_include="_qa-multi.md", embedding_field="QUESTION", date_from_filename=True, dummy_run=False)
+def mrun_misc_corpus_deutsch():
+    pass
+#if __name__ == "__main__":
+    cur_topics_matrix_csv = "data/deutsch/topics_matrix.csv"
     # cur_topics_matrix_csv = create_topics_matrix(DEUTSCH_FOLDER_PATHS)
     
     # cur_find_replace_pairs = [("%", " percent")]
@@ -211,8 +376,6 @@ def mrun_corpus_deutsch():
     
     # change_topic_in_folders(DEUTSCH_FOLDER_PATHS, "quantum computer", "quantum computation")
     # review_singlet_topic(DEUTSCH_FOLDER_PATHS, cur_topics_matrix_csv, "z")
-
-    create_qrag_vectordb(DEUTSCH_FOLDER_PATHS, "deutsch-transcript-qrag", suffixpat_include="_qafixed.md", embedding_field="QUESTION", date_from_filename=True)
 def mrun_deutsch_download_new_s3_files():
     pass
 #if __name__ == "__main__":
@@ -234,9 +397,9 @@ def mtest_qrag_2step_deutsch():
     pass
 #if __name__ == "__main__":
     cur_query = "What is the meaning of life?"
-    cur_routes_dict = ROUTES_DICT_DEUTSCH_V4
-    cur_vector_index_name = 'deutsch-transcript-qrag-78f-20240926'
-    qrag_2step(cur_query, cur_routes_dict, cur_vector_index_name)
+    cur_routes_dict = ROUTES_DICT_DEUTSCH_M1
+    cur_vector_index_name = 'deutsch-transcript-qrag-95f-20250923'
+    qrag_2step(cur_query, cur_vector_index_name, 10, cur_routes_dict)
 
 def mrun_find_and_replace_on_deutsch():
     pass
@@ -263,46 +426,45 @@ def mrun_move_files_deutsch():
 def mrun_create_top_stars_files_deutsch():  # 2-4-25 RT
     pass
 #if __name__ == "__main__":
-    #folders = DEUTSCH_FOLDER_PATHS
-    folders = ["data/deutsch/dd_update"]  # 1st copy orig _qafixed and _vrb to this folder, then delete them after and copy new top-stars files there
-    destination_folder = "data/deutsch/dd_top-stars"
+    folders = DEUTSCH_FOLDER_PATHS
+    #folders = ["data/deutsch/f9_process"]  # 1st copy orig _qafixed and _vrb to this folder, then delete them after and copy new top-stars files there
+    destination_folder = "data/deutsch/dd_top-stars_qa-multi"
     for folder in folders:
-        qafixed_files = get_files_in_folder(folder, suffixpat_include='_qafixed.md')
+        qafixed_files = get_files_in_folder(folder, suffixpat_include='_qa-multi.md')
         for qafixed_file in qafixed_files:
             qa_top_stars_file_path = create_qa_top_stars_file(qafixed_file, num_blocks=5)
             print(create_transcript_top_stars_file(qa_top_stars_file_path))
         move_files_with_suffix(folder, destination_folder, suffixpat_include='_qa-topstars.md')
         move_files_with_suffix(folder, destination_folder, suffixpat_include='_vrb-topstars.md')
-
 def mrun_create_html_files_for_deutsch():  # 2-3-25 RT
     pass
 #if __name__ == "__main__":
-    cur_folder_path = "data/deutsch/dd_update"
+    cur_folder_path = "data/deutsch/dd_top-stars_qa-multi"
     #cur_folder_path = "data/deutsch/dd_test_files"
     transcript_md_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include='_vrb-topstars.md')
     qa_md_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include='_qa-topstars.md')
     css_file_path = ""  # was "transcript-with-section-titles.css" for local testing
-    new_heading_text = "David Deutsch Corpus"
+    new_heading_text = "David Deutsch Corpus" # 9-23-25 comment out h_tune_html_file(html_file_path, new_heading_text, 1)
 
     # transcripts
     for i, md_file_path in enumerate(transcript_md_files_to_run, 1):
         html_file_path = convert_markdown_to_html(md_file_path, heading="### transcript", css_file_path=css_file_path)
-        h_tune_html_file(html_file_path, new_heading_text, 1)
+        #h_tune_html_file(html_file_path, new_heading_text, 1)
         clean_summaries_in_html_file(html_file_path)
         add_additional_html_from_template(html_file_path, "web/md_to_html_dev/additions_transcript.html")
 
     # qa
     for i, md_file_path in enumerate(qa_md_files_to_run, 1):
         html_file_path = convert_markdown_to_html(md_file_path, heading="### qa", css_file_path=css_file_path)
-        h_tune_html_file(html_file_path, new_heading_text, 1)
+        #h_tune_html_file(html_file_path, new_heading_text, 1)
         h_tune_html_file(html_file_path, "Extracted Question and Answer", 3, insert=False)
         wrap_qa_blocks_in_details(html_file_path, "QUESTION", "ANSWER")
         clean_summaries_in_html_file(html_file_path)
         add_additional_html_from_template(html_file_path, "web/md_to_html_dev/additions_qa.html")
-
+    
 WEBFLOW_CMS_COLLECTION_ID_DEUTSCH_TRANSCRIPTS = "67a249cf5625c057b2fd345c"
 CONFIG_S3_WEBFLOW_UPLOAD_DEUTSCH_TRANSCRIPTS = {
-    "folder_path": "data/deutsch/dd_update",
+    "folder_path": "data/deutsch/f9_process", #"data/deutsch/dd_top-stars_qa-multi",
     "transcript_suffix": "_vrb-topstars",
     "qa_suffix": "_qa-topstars",
     "bucket": "fofpublic",
@@ -319,7 +481,33 @@ def mrun_process_corpus_s3_webflow_upload():
     pass
 #if __name__ == "__main__":
     config = CONFIG_S3_WEBFLOW_UPLOAD_DEUTSCH_TRANSCRIPTS
-    process_corpus_s3_webflow_upload(config, s3_upload=True, webflow_upload=True, s3_prompt_overwrite=False, webflow_cms_prompt_overwrite=False)
+    process_corpus_s3_webflow_upload(config, s3_upload=True, webflow_upload=False, s3_prompt_overwrite=False, webflow_cms_prompt_overwrite=True)
+
+def mrun_copy_suffix_files_deutsch():
+    pass
+#if __name__ == "__main__":
+    # source_folder_list = DEUTSCH_FOLDER_PATHS
+    # destination_folder = "/Users/randytrue/Documents/Code/copyrighted-files-private/dd-transcripts"
+    # suffixpat_include_list = ["_vrb", "_read-qafixed"]
+    
+    # FOR RAW _dgwhspm files
+    source_folder_list = ["data/deutsch/f9_raw"]
+    destination_folder = "/Users/randytrue/Documents/Code/copyrighted-files-private/dd-transcripts"
+    suffixpat_include_list = ["_dgwhspm.json", "_dgwhspm.md"]
+    
+    for source_folder in source_folder_list:
+        for suffixpat_include in suffixpat_include_list:
+            results = copy_files_with_suffix(source_folder, destination_folder, suffixpat_include)
+            file_count = len(results)
+            print(f"{file_count} files copied from '{source_folder}' with suffix '{suffixpat_include}'")
+def mrun_create_csv_with_chars_words_tokens_deutsch():
+    pass
+#if __name__ == "__main__":
+    source_folder_list = ["data/deutsch/f8_done_qafixed_and_vrb", "data/deutsch/f8_qafixed_talks", "data/deutsch/f8_vrb_talks_only"]
+    output_file_path = "data/deutsch/dd_chars_words_tokens.csv"
+    suffixpat_include = "_vrb"
+    include_subfolders = False
+    create_csv_with_chars_words_tokens(output_file_path, source_folder_list, suffixpat_include, include_subfolders)
 
 
 ### PV EVAC CORPUS
@@ -357,6 +545,16 @@ def mtest_qrag_2step_pv_evac():
     cur_routes_dict = ROUTES_DICT_PV_EVAC_V1
     cur_vector_index_name = 'pv-evac-qrag-3f-20241106'
     qrag_2step(cur_query, cur_routes_dict, cur_vector_index_name)
+def mrun_create_pv_evac_multi_qa():  # 10-11-2025 RT
+    pass
+#if __name__ == "__main__":
+    qa_file_path = "data/pv/pv_epc_evac/f2_draftqa/2024-10-23_PVSD WFPD - Wildfire Preparedness Parent Presentation 3_qafixed.md"
+    qa_multi_file_path = create_qa_multi_file_from_qa(qa_file_path, verbose=True)
+def mrun_renumber_pv_evacmulti_qa():
+    pass
+#if __name__ == "__main__":
+    cur_file_path = "data/pv/pv_epc_evac/2024-10-23_PVSD WFPD - Wildfire Preparedness Parent Presentation 3_qa-multi.md"
+    renumber_multi_qa(cur_file_path, verbose=True)
 
 ### FDA TOWNHALLS CORPUS
 FDA_TOWNHALLS_REQUIRED_FIELDS = ["CLARIFIED QUESTION", "CLARIFIED ANSWER", "VERBATIM QUESTION", "VERBATIM ANSWER", "SPEAKER QUESTION", "SPEAKER ANSWER", "TOPICS", "REVIEW FLAG"]
@@ -780,16 +978,110 @@ def mtest_s3_upload_fda_townhalls():
     json_file_path = "tests/test_manual_files/jsons/qrag-exch_2025-01-01_000000.json"
     s3_path = "s3-qrag-fda-townhalls"
     upload_file_to_s3(json_file_path, bucket='fofsecure', s3_path=s3_path)
+def run_qrag_timed(query, vector_index_name, num_chunks, routes_dict, llm_model, output_folder, reasoning_effort=None):
+    """
+    Runs qrag routing and LLM call with timing, saves JSON and markdown to output folder.
 
-### Sovereign Child
-SOVEREIGN_CHILD_REQUIRED_FIELDS = ["QUESTION", "ANSWER", "TOPICS", "REVIEW FLAG"]
-SOVEREIGN_CHILD_FOLDER = "data/misc_books/Sovereign Child"
+    :param query: string, the user question.
+    :param vector_index_name: string, name of the vector index.
+    :param num_chunks: int, number of chunks to retrieve.
+    :param routes_dict: dict, routing configuration.
+    :param llm_model: string, LLM model name.
+    :param output_folder: string, folder to save JSON and markdown files.
+    :param reasoning_effort: string, optional reasoning effort level ('low', 'medium', 'high').
+    :return result: dict, qrag JSON object with elapsed_time_seconds added to metadata.
+    """
+    start_time = time.time()
+    routing_json_obj = qrag_routing_call(query, vector_index_name, num_chunks, routes_dict)
+    result = qrag_llm_call(routing_json_obj, llm_model=llm_model, reasoning_effort=reasoning_effort)
+    elapsed = time.time() - start_time
+    result['metadata']['elapsed_time_seconds'] = round(elapsed, 1)
+    cost = result['content'].get('cost_pennies_mycalc', 0)
+    input_tokens = result['content'].get('input_tokens', 0)
+    output_tokens = result['content'].get('output_tokens', 0)
+    reasoning_tokens = result['content'].get('reasoning_tokens', 0)
+    cached_input_tokens = result['content'].get('cached_input_tokens', 0)
+    minutes = int(elapsed // 60)
+    seconds = int(elapsed % 60)
+    token_detail = f"Input: {input_tokens:,}"
+    if cached_input_tokens:
+        token_detail += f" (cached: {cached_input_tokens:,})"
+    token_detail += f"  Output: {output_tokens:,}"
+    if reasoning_tokens:
+        token_detail += f" (reasoning: {reasoning_tokens:,})"
+    print(f"  Cost: {cost:.1f}¢  Time: {minutes}:{seconds:02d}  {token_detail}")
+    os.makedirs(output_folder, exist_ok=True)
+    datetime_str = get_current_datetime_filefriendly()
+    json_filename = f"qrag_{datetime_str}_{llm_model}.json"
+    json_file_path = os.path.join(output_folder, json_filename)
+    write_json_file_from_json_data(result, json_file_path, overwrite="yes")
+    md_file_path = create_md_from_qrag_exchange_json(json_file_path)
+    print(f"  JSON saved: {json_file_path}")
+    print(f"  MD saved: {md_file_path}")
+    return result
+def mrun_qrag_batch_fda_townhalls():
+    pass
+if __name__ == "__main__":
+    queries = [
+        "What was the number of FDA reviewers for diagnostic test EUA submissions and how did that change during the pandemic from 2020 to 2022?",
+        "What was discussed with respect to the FDA Reference Panel for COVID-19 diagnostic tests?",
+    ]
+    cur_routes_dict = ROUTES_DICT_FDA_TOWNHALLS_V1
+    cur_vector_index_name = 'fda-townhalls-qrag-100f-20250114'
+    cur_model = 'gpt-5.4'
+    cur_reasoning_effort = 'medium'
+    cur_num_chunks = 20
+    output_folder = "data/floodlamp/regulatory/fda-townhalls/_exclude-from-archive/_qrag-townhall-examples"
+    results = []
+    for i, query in enumerate(queries, 1):
+        print(f"\n{'='*60}\nQuery {i}/{len(queries)}: {query}\n{'='*60}")
+        result = run_qrag_timed(query, cur_vector_index_name, cur_num_chunks, cur_routes_dict, cur_model, output_folder, reasoning_effort=cur_reasoning_effort)
+        results.append((query, result))
+    print(f"\n{'='*60}")
+    print(f"Batch Summary ({len(queries)} queries, model={cur_model}, reasoning_effort={cur_reasoning_effort})")
+    print(f"{'='*60}")
+    total_cost = 0
+    total_time = 0
+    for query, result in results:
+        cost = result['content'].get('cost_pennies_mycalc', 0)
+        elapsed = result['metadata'].get('elapsed_time_seconds', 0)
+        input_tokens = result['content'].get('input_tokens', 0)
+        output_tokens = result['content'].get('output_tokens', 0)
+        reasoning_tokens = result['content'].get('reasoning_tokens', 0)
+        cached_input_tokens = result['content'].get('cached_input_tokens', 0)
+        total_cost += cost
+        total_time += elapsed
+        query_short = query[:70] + ('...' if len(query) > 70 else '')
+        token_detail = f"Input: {input_tokens:,}"
+        if cached_input_tokens:
+            token_detail += f" (cached: {cached_input_tokens:,})"
+        token_detail += f"  Output: {output_tokens:,}"
+        if reasoning_tokens:
+            token_detail += f" (reasoning: {reasoning_tokens:,})"
+        print(f"  {query_short}")
+        print(f"    Cost: {cost:.1f}¢  Time: {elapsed:.1f}s  {token_detail}")
+    print(f"\n  TOTAL: Cost: {total_cost:.1f}¢  Time: {total_time:.1f}s")
+    print(f"{'='*60}")
+
+
+### SOVEREIGN CHILD
+SOVEREIGN_CHILD_REQUIRED_FIELDS = ["QUESTION", "ANSWER", "TOPICS", "STARS"]
+SOVEREIGN_CHILD_FOLDER = "data/sovereign-child/new_processed"
+SUFFIXPAT_INCLUDE = "_qa-multi.md"
 def mrun_corpus_sovereign_child():
     pass
 #if __name__ == "__main__":
-    #validate_blocks_in_folders([SOVEREIGN_CHILD_FOLDER], SOVEREIGN_CHILD_REQUIRED_FIELDS, CUSTOM_VALIDATORS, suffixpat_include="_qa-qonly.md")
-    #validate_iso_dates_in_filename([SOVEREIGN_CHILD_FOLDER], suffixpat_include="_qa-qonly.md")
-    #create_qrag_vectordb([SOVEREIGN_CHILD_FOLDER], "sovereign-child-qrag", suffixpat_include="_qa-qonly.md", embedding_field="QUESTION", date_from_filename=True)
+    #validate_blocks_in_folders([SOVEREIGN_CHILD_FOLDER], SOVEREIGN_CHILD_REQUIRED_FIELDS, CUSTOM_VALIDATORS, suffixpat_include=SUFFIXPAT_INCLUDE)
+    #validate_iso_dates_in_filename([SOVEREIGN_CHILD_FOLDER], suffixpat_include=SUFFIXPAT_INCLUDE)
+    create_qrag_vectordb([SOVEREIGN_CHILD_FOLDER], "sovereign-child-qrag", suffixpat_include=SUFFIXPAT_INCLUDE, embedding_field="QUESTION", date_from_filename=True)
+def mtest_qrag_2step_sovereign_child():
+    pass
+# if __name__ == "__main__":
+    cur_query = "Is delayed gratification good for kids?"
+    cur_routes_dict = ROUTES_DICT_SOVEREIGN_CHILD_M1
+    cur_vector_index_name = 'sovereign-child-qrag-7f-20250805'
+    #print(cur_routes_dict)
+    qrag_2step(cur_query, cur_vector_index_name, 10, cur_routes_dict)
 def mrun_deepseek_sovereign_child():
     pass
 #if __name__ == "__main__":
@@ -833,7 +1125,7 @@ def mrun_count_tokens_sovereign_child():
     cur_file_path = "data/misc_books/Sovereign Child/2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple_trimmed.md"
     text = read_complete_text(cur_file_path)
     print(count_tokens(text))
-def mrun_create_html_files_for_sovereign_child():
+def mrun_create_html_files_for_sovereign_child_v1():
     pass
 #if __name__ == "__main__":
     cur_folder_path = SOVEREIGN_CHILD_FOLDER
@@ -857,9 +1149,32 @@ def mrun_create_html_files_for_sovereign_child():
     #     wrap_qa_blocks_in_details(html_file_path, "QUESTION", "ANSWER")
     #     clean_summaries_in_html_file(html_file_path)
     #     add_additional_html_from_template(html_file_path, "web/md_to_html_dev/additions_qa.html")
+def mrun_create_html_files_for_sovereign_child_v2():  # for _qa-multi
+    pass
+#if __name__ == "__main__":
+    cur_folder_path = SOVEREIGN_CHILD_FOLDER
+    transcript_md_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include='_vrb.md')
+    qa_md_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include='_qa-multi.md')
+    css_file_path = ""  # was "transcript-with-section-titles.css"
+
+    # transcripts
+    for i, md_file_path in enumerate(transcript_md_files_to_run, 1):
+        html_file_path = convert_markdown_to_html(md_file_path, heading="### transcript", css_file_path=css_file_path)
+        h_tune_html_file(html_file_path, "", 1)
+        clean_summaries_in_html_file(html_file_path)
+        add_additional_html_from_template(html_file_path, "web/md_to_html_dev/additions_transcript.html")
+
+    # qa
+    for i, md_file_path in enumerate(qa_md_files_to_run, 1):
+        html_file_path = convert_markdown_to_html(md_file_path, heading="### qa", css_file_path=css_file_path)
+        h_tune_html_file(html_file_path, "", 1)
+        h_tune_html_file(html_file_path, "AI Extracted Question and Answer", 3, insert=False)
+        wrap_qa_blocks_in_details(html_file_path, "QUESTION", "ANSWER")
+        clean_summaries_in_html_file(html_file_path)
+        add_additional_html_from_template(html_file_path, "web/md_to_html_dev/additions_qa.html")
 def mrun_create_html_file_for_book():
     pass
-if __name__ == "__main__":
+#if __name__ == "__main__":
     # md_file_path = "data/misc_books/Sovereign Child/2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple_section-titles.md"
     # html_file_path = convert_markdown_to_html(md_file_path, heading="CONTENT", collapse_h=4, css_file_path="", bold_first_line=False, wrap_subsections=True)
     # h_tune_html_file(html_file_path, "", 1)
@@ -877,6 +1192,16 @@ if __name__ == "__main__":
     html_file_path = "data/misc_books/Sovereign Child/2025-01-13_Book - The Sovereign Child by Dr Aaron Stupple_qa-qonly.html"
     cur_s3_path = "sources-sovereign-child/qa-html/"
     upload_file_to_s3(html_file_path, bucket=cur_bucket, s3_path=cur_s3_path, prompt_overwrite=False)
+def mrun_create_sovereign_child_qa_from_prepqa():
+    pass
+#if __name__ == "__main__":
+    CUR_FILE_PATH = 'data/sovereign-child/new_to_process/2025-06-26_Infinite Loops - The Sovereign Child Liberating Kids from the Tyranny of Rules_prepqa.md'
+    create_qa_file_select_speaker(CUR_FILE_PATH, 'Aaron Stupple', FCALL_PROMPT_QA_DIALOGUE_FROMANSWER)
+def mrun_create_sovereign_child_multi_qa():
+    pass
+#if __name__ == "__main__":
+    qa_file_path = "data/sovereign-child/new_to_process/2025-06-02_Walk Ins Welcome - Raising Kids To Think For Themselves_qafixed.md"
+    qa_multi_file_path = create_qa_multi_file_from_qa(qa_file_path, verbose=True)
 
 def mrun_propagate_heading4_placeholders():
     pass
@@ -921,161 +1246,6 @@ def mrun_propagate_heading4_placeholders():
     print(f"First 5 questions: {questions[:5]}")
     print(f"Total questions: {len(questions)}")
     set_heading(cur_file_path, '\n'.join(qa_lines), "### qa")
-def upload_s3_and_webflow_sovereign_child(s3_upload=True, s3_prompt_overwrite=True, webflow_upload=True):
-    """
-    Uploads Sovereign Child files to S3 and creates corresponding Webflow CMS items.
-
-    :param s3_upload: bool, whether to upload files to S3
-    :param s3_prompt_overwrite: bool, whether to prompt before overwriting S3 files
-    :param webflow_upload: bool, whether to create Webflow CMS items
-    :return: None
-    """
-    cur_folder_path = "data/misc_books/Sovereign Child"
-    transcript_suffix = "_section-titles"
-    qa_suffix = "_qa-qonly"
-    cur_bucket = "fofpublic"
-    cur_s3_path = "sources-sovereign-child/"
-    collection_id = SOVEREIGN_CHILD_ID
-    cms_name = "Sovereign Child"
-
-    # transcript_html_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include=transcript_suffix+".html")
-    # transcript_md_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include=transcript_suffix+".md")
-    # qa_html_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include=qa_suffix+".html")
-    # qa_md_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include=qa_suffix+".md")
-    
-    transcript_html_files_to_run = []
-    transcript_md_files_to_run = []
-    single_qa_md_file_to_run = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_qa-qonly.md"
-    single_qa_html_file_to_run = single_qa_md_file_to_run.replace(".md", ".html")
-    qa_md_files_to_run = [single_qa_md_file_to_run]
-    qa_html_files_to_run = [single_qa_html_file_to_run]
-
-    cms_items = []
-
-    # Initialize counters
-    total_base_names = set()
-    total_files = 0
-
-    # Build mapping of base names to file paths and metadata
-    file_mapping = defaultdict(dict)
-    for files, s3_subfolder, key_suffix in [
-        (transcript_html_files_to_run, "transcripts-html/", "transcript_html"),
-        (transcript_md_files_to_run, "transcripts-md/", "transcript_md"),
-        (qa_html_files_to_run, "qa-html/", "qa_html"),
-        (qa_md_files_to_run, "qa-md/", "qa_md")
-    ]:
-        for file_path in files:
-            base_name = os.path.splitext(os.path.basename(file_path))[0]
-            base_name = re.sub(f'{transcript_suffix}$|{qa_suffix}$', '', base_name)
-            
-            # Print status in blue for each base name's first file
-            if base_name not in total_base_names:
-                total_base_names.add(base_name)
-            
-            # Upload to S3 if not skipped
-            if s3_upload:
-                upload_file_to_s3(file_path, bucket=cur_bucket, s3_path=cur_s3_path + s3_subfolder, prompt_overwrite=s3_prompt_overwrite)
-                total_files += 1
-            
-            # Store S3 URL with URL-encoded filename
-            encoded_filename = urllib.parse.quote(os.path.basename(file_path))
-            s3_url = f"https://{cur_bucket}.s3.us-west-2.amazonaws.com/{cur_s3_path}{s3_subfolder}{encoded_filename}"
-            file_mapping[base_name][key_suffix] = s3_url
-
-            # For transcript MD files, read metadata fields
-            if key_suffix == "transcript_md":
-                _, youtube_url = read_metadata_field_from_file(file_path, "youtube link")
-                _, pdf_url = read_metadata_field_from_file(file_path, "pdf link")  # not working for book
-                
-                file_mapping[base_name]["youtube_url"] = youtube_url
-                file_mapping[base_name]["pdf_url"] = pdf_url
-
-    # Print summary after all uploads complete
-    print(colored(f"\nS3 Upload Summary:", "green"))
-    print(colored(f"  Total base names processed: {len(total_base_names)}", "green"))
-    print(colored(f"  Total files uploaded: {total_files}", "green"))
-    
-    if webflow_upload:
-        # Prompt user before proceeding
-        response = input("\nPress Enter to continue with Webflow CMS operations, or 'x' to abort: ").lower()
-        if response == 'x':
-            print("Aborting operation.")
-            return
-
-        # Validate Webflow collection once before creating items
-        collection_details = webflow_cms_get_collection_details(collection_id, verbose=True)
-        if not collection_details:
-            print(colored("Failed to fetch collection details for validation", "red"))
-            return
-
-        # Check for existing items
-        existing_items = webflow_cms_list_items(collection_id, verbose=True)
-        if existing_items:
-            existing_names = [item['fieldData'].get('name', '') for item in existing_items]
-            existing_items_map = {item['fieldData'].get('name', ''): item['id'] for item in existing_items}
-            
-            # Check if any of our new items already exist
-            overlapping_items = [cms_name for base_name, urls in file_mapping.items()]
-            
-            if overlapping_items:
-                print(colored("\nThe following items already exist in the Webflow CMS:", "blue"))
-                for name in overlapping_items:
-                    print(f"- {name}")
-                
-                response = input("\nPress Enter to proceed with updating these Webflow CMS items, or 'x' to abort: ").lower()
-                if response == 'x':
-                    print("Aborting operation.")
-                    return
-                
-                # Store whether we're updating for later use
-                is_updating = True
-            else:
-                is_updating = False
-        else:
-            is_updating = False
-
-    # Create CMS items list
-    for base_name, urls in file_mapping.items():
-        if all(key in urls for key in ["transcript_html", "transcript_md", "qa_html", "qa_md"]):
-            cms_item = {
-                "name": base_name,
-                "s3-transcript-html-url": urls["transcript_html"],
-                "s3-qa-html-url": urls["qa_html"],
-                "s3-transcript-md-url": urls["transcript_md"],
-                "s3-qa-md-url": urls["qa_md"],
-                "youtube-url": urls.get("youtube_url", ""),
-                "pdf-url": urls.get("pdf_url", "")
-            }
-            cms_items.append(cms_item)
-
-    # Create or update Webflow CMS items
-    if webflow_upload:
-        for item in cms_items:
-            if is_updating and item['name'] in existing_items_map:
-                # Update existing item
-                result = webflow_cms_update_item(
-                    collection_id=collection_id,
-                    item_id=existing_items_map[item['name']],
-                    field_data=item,
-                    collection_validation=False,  # Skip validation since we did it once
-                    verbose=True
-                )
-                if not result:
-                    print(colored(f"Failed to update CMS item for {item['name']}", "red"))
-            else:
-                # Create new item
-                result = webflow_cms_create_item(
-                    collection_id=collection_id,
-                    field_data=item,
-                    collection_validation=False,  # Skip validation since we did it once
-                    verbose=True
-                )
-                if not result:
-                    print(colored(f"Failed to create CMS item for {item['name']}", "red"))
-def mrun_upload_s3_and_webflow_sovereign_child():
-    pass
-#if __name__ == "__main__":
-    upload_s3_and_webflow_sovereign_child(s3_upload=True, s3_prompt_overwrite=False, webflow_upload=False)
 def get_timestamps_for_qa_from_transcript(qa_file_path, transcript_file_path, debug=True):
     """
     Adds timestamps to QA blocks by matching answers with transcript dialogue.
@@ -1270,6 +1440,187 @@ def mrun_get_timestamps_for_qa_from_transcript():
     qa_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_qa-qonly.md"
     transcript_file_path = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_section-titles.md"
     get_timestamps_for_qa_from_transcript(qa_file_path, transcript_file_path)
+
+WEBFLOW_CMS_COLLECTION_ID_SOVCHILD_TRANSCRIPTS = "68bf0edd549d72aa1a32bf7f"
+CONFIG_S3_WEBFLOW_UPLOAD_SOVCHILD_TRANSCRIPTS = {
+    "folder_path": "data/sovereign-child/new_processed",
+    "transcript_suffix": "_vrb",
+    "qa_suffix": "_qa-multi",
+    "bucket": "fofpublic",
+    "s3_path": "index-sovereign-child/",
+    "collection_id": WEBFLOW_CMS_COLLECTION_ID_SOVCHILD_TRANSCRIPTS,
+    "cms_item_name_old": "",
+    "cms_item_name_new": "",
+    "metadata_field_mapping": {
+        "link youtube": "youtube-url",
+        "link spotify": "spotify-url"
+    }
+}
+def mrun_process_corpus_s3_webflow_upload():
+    pass
+#if __name__ == "__main__":
+    config = CONFIG_S3_WEBFLOW_UPLOAD_SOVCHILD_TRANSCRIPTS
+    process_corpus_s3_webflow_upload(config, s3_upload=True, webflow_upload=True, s3_prompt_overwrite=False, webflow_cms_prompt_overwrite=False)
+
+
+#### OLD SOVEREIGN CHILD UPLOAD FUNCTION ####
+def upload_s3_and_webflow_sovereign_child(s3_upload=True, s3_prompt_overwrite=True, webflow_upload=True):
+    """
+    Uploads Sovereign Child files to S3 and creates corresponding Webflow CMS items.
+
+    :param s3_upload: bool, whether to upload files to S3
+    :param s3_prompt_overwrite: bool, whether to prompt before overwriting S3 files
+    :param webflow_upload: bool, whether to create Webflow CMS items
+    :return: None
+    """
+    cur_folder_path = "data/misc_books/Sovereign Child"
+    transcript_suffix = "_section-titles"
+    qa_suffix = "_qa-qonly"
+    cur_bucket = "fofpublic"
+    cur_s3_path = "sources-sovereign-child/"
+    collection_id = SOVEREIGN_CHILD_ID
+    cms_name = "Sovereign Child"
+
+    # transcript_html_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include=transcript_suffix+".html")
+    # transcript_md_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include=transcript_suffix+".md")
+    # qa_html_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include=qa_suffix+".html")
+    # qa_md_files_to_run = get_files_in_folder(cur_folder_path, suffixpat_include=qa_suffix+".md")
+    
+    transcript_html_files_to_run = []
+    transcript_md_files_to_run = []
+    single_qa_md_file_to_run = "data/misc_books/Sovereign Child/2025-01-17_Tim Ferriss Show - Naval and Aaron Stupple on Sovereign Child_qa-qonly.md"
+    single_qa_html_file_to_run = single_qa_md_file_to_run.replace(".md", ".html")
+    qa_md_files_to_run = [single_qa_md_file_to_run]
+    qa_html_files_to_run = [single_qa_html_file_to_run]
+
+    cms_items = []
+
+    # Initialize counters
+    total_base_names = set()
+    total_files = 0
+
+    # Build mapping of base names to file paths and metadata
+    file_mapping = defaultdict(dict)
+    for files, s3_subfolder, key_suffix in [
+        (transcript_html_files_to_run, "transcripts-html/", "transcript_html"),
+        (transcript_md_files_to_run, "transcripts-md/", "transcript_md"),
+        (qa_html_files_to_run, "qa-html/", "qa_html"),
+        (qa_md_files_to_run, "qa-md/", "qa_md")
+    ]:
+        for file_path in files:
+            base_name = os.path.splitext(os.path.basename(file_path))[0]
+            base_name = re.sub(f'{transcript_suffix}$|{qa_suffix}$', '', base_name)
+            
+            # Print status in blue for each base name's first file
+            if base_name not in total_base_names:
+                total_base_names.add(base_name)
+            
+            # Upload to S3 if not skipped
+            if s3_upload:
+                upload_file_to_s3(file_path, bucket=cur_bucket, s3_path=cur_s3_path + s3_subfolder, prompt_overwrite=s3_prompt_overwrite)
+                total_files += 1
+            
+            # Store S3 URL with URL-encoded filename
+            encoded_filename = urllib.parse.quote(os.path.basename(file_path))
+            s3_url = f"https://{cur_bucket}.s3.us-west-2.amazonaws.com/{cur_s3_path}{s3_subfolder}{encoded_filename}"
+            file_mapping[base_name][key_suffix] = s3_url
+
+            # For transcript MD files, read metadata fields
+            if key_suffix == "transcript_md":
+                _, youtube_url = read_metadata_field_from_file(file_path, "youtube link")
+                _, pdf_url = read_metadata_field_from_file(file_path, "pdf link")  # not working for book
+                
+                file_mapping[base_name]["youtube_url"] = youtube_url
+                file_mapping[base_name]["pdf_url"] = pdf_url
+
+    # Print summary after all uploads complete
+    print(colored(f"\nS3 Upload Summary:", "green"))
+    print(colored(f"  Total base names processed: {len(total_base_names)}", "green"))
+    print(colored(f"  Total files uploaded: {total_files}", "green"))
+    
+    if webflow_upload:
+        # Prompt user before proceeding
+        response = input("\nPress Enter to continue with Webflow CMS operations, or 'x' to abort: ").lower()
+        if response == 'x':
+            print("Aborting operation.")
+            return
+
+        # Validate Webflow collection once before creating items
+        collection_details = webflow_cms_get_collection_details(collection_id, verbose=True)
+        if not collection_details:
+            print(colored("Failed to fetch collection details for validation", "red"))
+            return
+
+        # Check for existing items
+        existing_items = webflow_cms_list_items(collection_id, verbose=True)
+        if existing_items:
+            existing_names = [item['fieldData'].get('name', '') for item in existing_items]
+            existing_items_map = {item['fieldData'].get('name', ''): item['id'] for item in existing_items}
+            
+            # Check if any of our new items already exist
+            overlapping_items = [cms_name for base_name, urls in file_mapping.items()]
+            
+            if overlapping_items:
+                print(colored("\nThe following items already exist in the Webflow CMS:", "blue"))
+                for name in overlapping_items:
+                    print(f"- {name}")
+                
+                response = input("\nPress Enter to proceed with updating these Webflow CMS items, or 'x' to abort: ").lower()
+                if response == 'x':
+                    print("Aborting operation.")
+                    return
+                
+                # Store whether we're updating for later use
+                is_updating = True
+            else:
+                is_updating = False
+        else:
+            is_updating = False
+
+    # Create CMS items list
+    for base_name, urls in file_mapping.items():
+        if all(key in urls for key in ["transcript_html", "transcript_md", "qa_html", "qa_md"]):
+            cms_item = {
+                "name": base_name,
+                "s3-transcript-html-url": urls["transcript_html"],
+                "s3-qa-html-url": urls["qa_html"],
+                "s3-transcript-md-url": urls["transcript_md"],
+                "s3-qa-md-url": urls["qa_md"],
+                "youtube-url": urls.get("youtube_url", ""),
+                "pdf-url": urls.get("pdf_url", "")
+            }
+            cms_items.append(cms_item)
+
+    # Create or update Webflow CMS items
+    if webflow_upload:
+        for item in cms_items:
+            if is_updating and item['name'] in existing_items_map:
+                # Update existing item
+                result = webflow_cms_update_item(
+                    collection_id=collection_id,
+                    item_id=existing_items_map[item['name']],
+                    field_data=item,
+                    collection_validation=False,  # Skip validation since we did it once
+                    verbose=True
+                )
+                if not result:
+                    print(colored(f"Failed to update CMS item for {item['name']}", "red"))
+            else:
+                # Create new item
+                result = webflow_cms_create_item(
+                    collection_id=collection_id,
+                    field_data=item,
+                    collection_validation=False,  # Skip validation since we did it once
+                    verbose=True
+                )
+                if not result:
+                    print(colored(f"Failed to create CMS item for {item['name']}", "red"))
+def mrun_upload_s3_and_webflow_sovereign_child():
+    pass
+#if __name__ == "__main__":
+    upload_s3_and_webflow_sovereign_child(s3_upload=True, s3_prompt_overwrite=False, webflow_upload=False)
+
+
 
 ''' ’,'   ''' # curvy apostrophe
 
@@ -1512,6 +1863,5 @@ def mrun_create_csv_of_files_by_suffix_folders():
     pass
 #if __name__ == "__main__":
     create_csv_of_files_by_suffix_folders(DEUTSCH_FOLDER_PATHS, suffixpat_include=".md")
-
 
 # ===== END OF FILE primary/corpuses.py =====

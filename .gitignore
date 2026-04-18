@@ -1,43 +1,33 @@
-# Byte-compiled / optimized / DLL files
+# Ignore any folder with "gitignore" in its name
+**/*gitignore*/
+
+# Python-specific ignore patterns
+*.pyc
+*.pyo
 __pycache__/
-*.py[cod]
-*$py.class
 
-# C extensions
-*.so
-
-# Distribution / packaging
-.Python
-build/
-develop-eggs/
+# Python packaging ignore patterns
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
+build/
 *.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+# Virtual environment ignore patterns
+.env
+.venv
+venv/
+.venv*
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+env/
+ms-graphrag/.env
+
+# IDE-specific files and directories
+# removed .vscode/ so workspace settings for cSpell.words would be included
 
 # DB pattern
 *-chroma-db/
+
+# Large file zips for FloodLAMP Archive
+**/_zip_*.zip
 
 # API Keys and Access files
 config.py
@@ -48,139 +38,796 @@ credentials.json
 credentials_new.json
 gdrive_service_account.json
 floodlamp-gdrive-jackie-cce56b4f953f.json
-client_secret_119941763167-jmob7gtcjbpamdukm8in6ekfp72r154h.apps.googleusercontent.com.json
+client_secret_*.*
+
+
+# Exclude all PII files anywhere in the repository
+**/PII*
+**/pii*
+
 
 # Data folders with large files
 data/voice_playback/
 voice/captured_frames/
 data/0_gitignore
 data/audio_0_pv_gitignore
+logs/vectordb_pinecone_log_zips/_gitignore_big_zips
+
+# Ignore any folder containing 'gitignore' in its name (case insensitive)
+**/*gitignore*/**
 
 # macOS related
 .DS_Store
-
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-.pybuilder/
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-#   For a library or package, you might want to ignore these files since the code is
-#   intended to run in multiple environments; otherwise, check them in:
-# .python-version
-
-# pipenv
-#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
-#   However, in case of collaboration, if having platform-specific dependencies or dependencies
-#   having no cross-platform support, pipenv may install dependencies that don't work, or not
-#   install all needed dependencies.
-#Pipfile.lock
-
-# poetry
-#   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
-#   This is especially recommended for binary packages to ensure reproducibility, and is more
-#   commonly ignored for libraries.
-#   https://python-poetry.org/docs/basic-usage/#commit-your-poetrylock-file-to-version-control
-#poetry.lock
-
-# pdm
-#   Similar to Pipfile.lock, it is generally recommended to include pdm.lock in version control.
-#pdm.lock
-#   pdm stores project-wide configurations in .pdm.toml, but it is recommended to not include it
-#   in version control.
-#   https://pdm.fming.dev/#use-with-ide
-.pdm.toml
-
-# PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-ms-graphrag/.env
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-#  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
-#  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
-#  and can be added to the global gitignore or merged into this file.  For a more nuclear
-#  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
-**/config.py
+data/pv/meetings_epc/deutsch/cspell_dictionary_deutsch.txt
+data/pv/meetings_epc/deutsch/INVENTORY_dd_post_qafixed.md
+data/pv/meetings_epc/deutsch/f1_directly_after_transcription/2021-08-29_ Eli Tyler - Poppers problem-oriented epistemology_dgwhspm.json
+data/pv/meetings_epc/deutsch/f1_directly_after_transcription/2021-08-29_ Eli Tyler - Poppers problem-oriented epistemology_dgwhspm.md
+data/pv/meetings_epc/deutsch/f1_directly_after_transcription/2022-11-20_The Edge of the Universe_dgwhspm.json
+data/pv/meetings_epc/deutsch/f1_directly_after_transcription/2022-11-20_The Edge of the Universe_dgwhspm.md
+data/pv/meetings_epc/deutsch/f1_directly_after_transcription/2024-03-31_Sagenhaft und Sonderbar der Podcast_nova2.json
+data/pv/meetings_epc/deutsch/f1_directly_after_transcription/2024-03-31_Sagenhaft und Sonderbar der Podcast_nova2.md
+data/pv/meetings_epc/deutsch/f3_manual_copyedit_done/2021-08-29_ Eli Tyler - Poppers problem-oriented epistemology_emilia.md
+data/pv/meetings_epc/deutsch/f3_manual_copyedit_done/2024-03-31_Sagenhaft und Sonderbar der Podcast_emilia.md
+data/pv/meetings_epc/deutsch/f4_needs_prepqa/.gitkeep
+data/pv/meetings_epc/deutsch/f5_run_qa_now/.gitkeep
+data/pv/meetings_epc/deutsch/f6_needs_qafixed/.gitkeep
+data/pv/meetings_epc/deutsch/f6_needs_qafixed/2021-08-29_ Eli Tyler - Poppers problem-oriented epistemology_qafixed.md
+data/pv/meetings_epc/deutsch/f6_needs_qafixed/2021-08-29_ Eli Tyler - Poppers problem-oriented epistemology_vrb.md
+data/pv/meetings_epc/deutsch/f6_needs_qafixed/2024-03-31_Sagenhaft und Sonderbar der Podcast_qafixed.md
+data/pv/meetings_epc/deutsch/f6_needs_qafixed/2024-03-31_Sagenhaft und Sonderbar der Podcast_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/1995-01-01_The Multiverse Documentary by Noorderlicht_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/1995-01-01_The Multiverse Documentary by Noorderlicht_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2011-08-01_KERA Think Radio interview with Krys Boyd_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2011-08-01_KERA Think Radio interview with Krys Boyd_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2011-08-01_On Point interview with Tom Ashbrook_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2011-08-01_On Point interview with Tom Ashbrook_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2011-09-01_AirTalk interview with David Lazarus_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2011-09-01_AirTalk interview with David Lazarus_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2011-09-01_Groks Science Show_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2011-09-01_Groks Science Show_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2011-09-01_Sci-Fi London interview_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2011-09-01_Sci-Fi London interview_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2011-10-01_What Now interview with Ken Rose_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2011-10-01_What Now interview with Ken Rose_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - Can Science Provide Ultimate Answers_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - Can Science Provide Ultimate Answers_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - Do General Principles Govern All Science_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - Do General Principles Govern All Science_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - Is the Cosmos a Computer_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - Is the Cosmos a Computer_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - Many Worlds of Quantum Theory_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - Many Worlds of Quantum Theory_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - What does quantum theory mean_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - What does quantum theory mean_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - What is Truth_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - What is Truth_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - What is Ultimate Reality_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - What is Ultimate Reality_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - Which Laws of Nature are Fundamental_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - Which Laws of Nature are Fundamental_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - Why is the Quantum so Strange_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-05-08_Closer to Truth - Why is the Quantum so Strange_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-06-25_Nautilus Interview - Why its good to be wrong_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2013-06-25_Nautilus Interview - Why its good to be wrong_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2015-10-19_RSA Debate - Optimism Knowledge and the Future of Enlightenment_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2015-10-19_RSA Debate - Optimism Knowledge and the Future of Enlightenment_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2015-12-15_Sam Harris 1 - Surviving the Cosmos_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2015-12-15_Sam Harris 1 - Surviving the Cosmos_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2016-11-16_Sam Harris 2 - Finding Our Way in the Cosmos_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2016-11-16_Sam Harris 2 - Finding Our Way in the Cosmos_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2017-02-01_Christian Transhumanists podcast with Micah Redding_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2017-02-01_Christian Transhumanists podcast with Micah Redding_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2018-03-14_Dirac Prize Talk_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2018-03-14_Dirac Prize Talk_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2018-04-18_John Horgan interview_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2018-04-18_John Horgan interview_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2018-06-01_CBC Tapestry interview on AGI and other_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2018-06-01_CBC Tapestry interview on AGI and other_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2018-06-19_Are There Many Worlds with Markus Arndt_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2018-06-19_Are There Many Worlds with Markus Arndt_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2018-07-24_Visionaries interview with John Lobell_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2018-07-24_Visionaries interview with John Lobell_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2018-10-23_TED interview 1 with Chris Anderson - The Infinite Reach of Knowledge_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2018-10-23_TED interview 1 with Chris Anderson - The Infinite Reach of Knowledge_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2018-12-08_Constructor Theory with Joe Boswell_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2018-12-08_Constructor Theory with Joe Boswell_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2019-02-12_Innovation Show interview with Aidan McCullen_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2019-02-12_Innovation Show interview with Aidan McCullen_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2019-12-04_Brexit and Error Correction with Joe Boswell_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2019-12-04_Brexit and Error Correction with Joe Boswell_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2019-12-13_What is the Fun Criterion with Lulie Tanett_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2019-12-13_What is the Fun Criterion with Lulie Tanett_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2020-02-26_Dilemma podcast with Jay Shapiro and Coleman Hughes_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2020-02-26_Dilemma podcast with Jay Shapiro and Coleman Hughes_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2020-03-17_Do Explain podcast with Christofer Lovgren_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2020-03-17_Do Explain podcast with Christofer Lovgren_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2020-03-18_Interview by Visa about The Beginning of Infinity_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2020-03-18_Interview by Visa about The Beginning of Infinity_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2020-09-24_Fallible Animals interview with Logan Chipkin_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2020-09-24_Fallible Animals interview with Logan Chipkin_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2020-11-29_Popperian Podcast - Karl Popper and the Beginning of Infinity_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2020-11-29_Popperian Podcast - Karl Popper and the Beginning of Infinity_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2021-01-09_Knowledge and Reality OurKarlPopper - Meeting David Deutsch_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2021-01-09_Knowledge and Reality OurKarlPopper - Meeting David Deutsch_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2021-06-02_Conversations with Tyler Cowen interview_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2021-06-02_Conversations with Tyler Cowen interview_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2021-09-20_Dennis Hackethal interview on German translation of BOI_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2021-09-20_Dennis Hackethal interview on German translation of BOI_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2021-10-08_Ripples - The Fun Criterion Objective Beauty and Artificial Intelligence_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2021-10-08_Ripples - The Fun Criterion Objective Beauty and Artificial Intelligence_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2021-11-30_TokCast interview with Brett Hall_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2021-11-30_TokCast interview with Brett Hall_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2021-12-13_Robin Hanson conversation - To What Extent Can We Predict The Future_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2021-12-13_Robin Hanson conversation - To What Extent Can We Predict The Future_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2022-01-01_Universal Constructor with Logan Chipkin_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2022-01-01_Universal Constructor with Logan Chipkin_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2022-01-30_Lunar Society podcast - AI America Fun and Bayes_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2022-01-30_Lunar Society podcast - AI America Fun and Bayes_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2022-04-25_Jolly Swagman podcast - Against Bayesianism_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2022-04-25_Jolly Swagman podcast - Against Bayesianism_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2022-05-16_Quantum Information in Many Worlds_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2022-05-16_Quantum Information in Many Worlds_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-02-11_Naval interview - Knowledge Creation and The Human Race Part 1_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-02-11_Naval interview - Knowledge Creation and The Human Race Part 1_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-03-23_Tim Ferriss podcast - Naval David and Tim_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-03-23_Tim Ferriss podcast - Naval David and Tim_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-04-08_Reason Is Fun podcast - Ep-1 AGI_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-04-08_Reason Is Fun podcast - Ep-1 AGI_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-04-22_Reason Is Fun podcast - Ep0 Effective Altruism_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-04-22_Reason Is Fun podcast - Ep0 Effective Altruism_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-04-26_Foresight Institute podcast - Existential Hope On Beauty Knowledge and Progress_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-04-26_Foresight Institute podcast - Existential Hope On Beauty Knowledge and Progress_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-05-06_Reason Is Fun podcast - Ep1 Fun Fury Feeling_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-05-06_Reason Is Fun podcast - Ep1 Fun Fury Feeling_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-05-09_Coleman Hughes Interview - Multiverse of Madness_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-05-09_Coleman Hughes Interview - Multiverse of Madness_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-05-23_Reason Is Fun Podcast - Ep2 Physics of Inexplicit Ideas_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-05-23_Reason Is Fun Podcast - Ep2 Physics of Inexplicit Ideas_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-06-03_Reason Is Fun podcast - Ep3 Inexplicit Ideas and Embodiment_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-06-03_Reason Is Fun podcast - Ep3 Inexplicit Ideas and Embodiment_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-06-28_Bennett and Deutsch - The Nature of Computation Incompleteness and Mathematics_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-06-28_Bennett and Deutsch - The Nature of Computation Incompleteness and Mathematics_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-08-11_Naval interview - Knowledge Creation and The Human Race Part 2_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-08-11_Naval interview - Knowledge Creation and The Human Race Part 2_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-10-15_Deutsch Files 1 with Naval and Brett_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-10-15_Deutsch Files 1 with Naval and Brett_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-10-15_Deutsch Files 2 with Naval and Brett_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-10-15_Deutsch Files 2 with Naval and Brett_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-10-15_Deutsch Files 3 with Naval and Brett_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-10-15_Deutsch Files 3 with Naval and Brett_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-10-16_Sean Carroll Mindscape - On Science Complexity and Explanation_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-10-16_Sean Carroll Mindscape - On Science Complexity and Explanation_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-12-19_Steven Pinker 1 on Joe Walker Podcast - on AGI Doom and Enemies of Civilization_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-12-19_Steven Pinker 1 on Joe Walker Podcast - on AGI Doom and Enemies of Civilization_randycomments.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-12-19_Steven Pinker 1 on Joe Walker Podcast - on AGI Doom and Enemies of Civilization_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-12-23_Antisemitism in Britain_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2023-12-23_Antisemitism in Britain_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2024-01-01_Arjun Khemani interview on TCS_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2024-01-01_Arjun Khemani interview on TCS_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2024-01-03_Reason Is Fun podcast - Ep4 Decisions_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2024-01-03_Reason Is Fun podcast - Ep4 Decisions_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2024-01-04_Reason Is Fun podcast - Ep5 The Art of Decision Making_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2024-01-04_Reason Is Fun podcast - Ep5 The Art of Decision Making_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2024-03-04_Alex OConnor Podcast - The Multiverse is Real_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2024-03-04_Alex OConnor Podcast - The Multiverse is Real_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2024-03-06_Peter Boghossian Podcast - Ideological Contagion_qafixed.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/2024-03-06_Peter Boghossian Podcast - Ideological Contagion_vrb.md
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/test_matrix.csv
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/topics_matrix_PREV.csv
+data/pv/meetings_epc/deutsch/f8_done_qafixed_and_vrb/topics_matrix75.csv
+data/pv/meetings_epc/deutsch/f8_qafixed_talks/2007-01-27_Why Are Flowers Beautiful_qafixed.md
+data/pv/meetings_epc/deutsch/f8_qafixed_talks/2007-01-27_Why Are Flowers Beautiful_vrb.md
+data/pv/meetings_epc/deutsch/f8_qafixed_talks/2011-03-10_Oxford Transhumanists - How to Think About the Future_qafixed.md
+data/pv/meetings_epc/deutsch/f8_qafixed_talks/2011-03-10_Oxford Transhumanists - How to Think About the Future_vrb.md
+data/pv/meetings_epc/deutsch/f8_qafixed_talks/2012-10-22_Edge Video - Constructor Theory and the Real Reality_qafixed.md
+data/pv/meetings_epc/deutsch/f8_qafixed_talks/2012-10-22_Edge Video - Constructor Theory and the Real Reality_vrb.md
+data/pv/meetings_epc/deutsch/f8_qafixed_talks/2015-06-01_Physics without Probability_qafixed.md
+data/pv/meetings_epc/deutsch/f8_qafixed_talks/2015-06-01_Physics without Probability_vrb.md
+data/pv/meetings_epc/deutsch/f8_qafixed_talks/2020-05-26_CFI - Knowledge Creation and its Risks_qafixed.md
+data/pv/meetings_epc/deutsch/f8_qafixed_talks/2020-05-26_CFI - Knowledge Creation and its Risks_vrb.md
+data/pv/meetings_epc/deutsch/f8_qafixed_talks/2021-03-01_Oxford Karl Popper Society - Musings about Statements Propositions and Truths_qafixed.md
+data/pv/meetings_epc/deutsch/f8_qafixed_talks/2021-03-01_Oxford Karl Popper Society - Musings about Statements Propositions and Truths_vrb.md
+data/pv/meetings_epc/deutsch/f8_qafixed_talks/2022-10-27_Why is Everettian quantum theory not in the consensus_qafixed.md
+data/pv/meetings_epc/deutsch/f8_qafixed_talks/2022-10-27_Why is Everettian quantum theory not in the consensus_vrb.md
+data/pv/meetings_epc/deutsch/f8_vrb_talks_only/2007-01-16_TED Talk - Chemical Scum that Dreams of Distant Quasars_vrb.md
+data/pv/meetings_epc/deutsch/f8_vrb_talks_only/2009-10-26_TED Talk - A New Way to Explain Explanations_vrb.md
+data/pv/meetings_epc/deutsch/f8_vrb_talks_only/2011-12-06_TED Talk - The Unknowable and How to Prepare for It_vrb.md
+data/pv/meetings_epc/deutsch/f8_vrb_talks_only/2016-03-12_Oxford Lecture - Unity Of The Universe_readable.md
+data/pv/meetings_epc/deutsch/f8_vrb_talks_only/2016-03-12_Oxford Lecture - Unity Of The Universe_vrb.md
+data/pv/meetings_epc/deutsch/f8_vrb_talks_only/2019-11-05_TED Talk - After Billions of Years of Monotony the Universe is Waking Up_vrb.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/1995-01-01_The Multiverse Documentary by Noorderlicht_2NDHALF_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/1995-01-01_The Multiverse Documentary by Noorderlicht_2NDHALFdgwhspm.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2007-01-27_Why Are Flowers Beautiful_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2013-05-08_Closer to Truth - Many Worlds of Quantum Theory_dgwhspm.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2013-05-08_Closer to Truth - Many Worlds of Quantum Theory_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2013-05-08_Closer to Truth - What does quantum theory mean_dgwhspm.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2013-05-08_Closer to Truth - What does quantum theory mean_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2013-05-08_Closer to Truth - What is Ultimate Reality_dgwhspm.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2013-05-08_Closer to Truth - What is Ultimate Reality_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2015-12-15_Sam Harris 1 - Surviving the Cosmos_other.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2019-12-04_Brexit and Error Correction with Joe Boswell_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2021-03-01_Oxford Karl Popper Society - Musings about Statements Propositions and Truths_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2021-09-20_Dennis Hackethal interview on German translation of BOI_dgwhspm.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2021-09-20_Dennis Hackethal interview on German translation of BOI_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2021-10-08_Ripples - The Fun Criterion Objective Beauty and Artificial Intelligence_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2022-01-01_Universal Constructor with Logan Chipkin_dgwhspm.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2022-05-16_Quantum Information in Many Worlds_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-02-11_Naval interview - Knowledge Creation and The Human Race Part 1_host.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-04-26_Foresight Institute podcast - Existential Hope On Beauty Knowledge and Progress_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-08-11_Naval interview - Knowledge Creation and The Human Race Part 2_host.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-10-15_Deutsch Files 1 with Naval and Brett_dgwhspm.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-10-15_Deutsch Files 1 with Naval and Brett_host.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-10-15_Deutsch Files 1 with Naval and Brett_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-10-15_Deutsch Files 2 with Naval and Brett_dgwhspm.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-10-15_Deutsch Files 2 with Naval and Brett_host.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-10-15_Deutsch Files 2 with Naval and Brett_nova2.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-10-15_Deutsch Files 2 with Naval and Brett_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-10-15_Deutsch Files 3 with Naval and Brett_dgwhspm.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-10-15_Deutsch Files 3 with Naval and Brett_host.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-10-15_Deutsch Files 3 with Naval and Brett_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-10-16_Sean Carrol Mindscapes - On Science, Complexity, and Explanation_nova2.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-12-19_Steven Pinker 1 on Joe Walker Podcast - on AGI Doom and Enemies of Civilization_dgwhspm.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-12-19_Steven Pinker 1 on Joe Walker Podcast - on AGI Doom and Enemies of Civilization_host.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-12-19_Steven Pinker 1 on Joe Walker Podcast - on AGI Doom and Enemies of Civilization_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-12-23_Antisemitism in Britain_dgwhspm.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2023-12-23_Antisemitism in Britain_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2024-01-01_Arjun Khemani interview on TCS_dgwhspm.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2024-01-01_Arjun Khemani interview on TCS_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2024-01-03_Reason Is Fun podcast - Ep4 Decisions_dgwhspm.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2024-01-04_Reason Is Fun podcast - Ep5 The Art of Decision Making_dgwhspm.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2024-03-04_Alex OConnor Podcast - The Multiverse is Real_nova2.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2024-03-04_Alex OConnor Podcast - The Multiverse is Real_yt.md
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2024-03-06_Peter Boghossian Podcast - Ideological Contagion_nova2.json
+data/pv/meetings_epc/deutsch/f9_done_json_yt_host/2024-03-06_Peter Boghossian Podcast - Ideological Contagion_yt.md
+data/pv/meetings_epc/deutsch/fx_archive/1995-01-01_The Multiverse Documentary by Noorderlicht_bert.md
+data/pv/meetings_epc/deutsch/fx_archive/1995-01-01_The Multiverse Documentary by Noorderlicht_dgwhspm.md
+data/pv/meetings_epc/deutsch/fx_archive/1995-01-01_The Multiverse Documentary by Noorderlicht_emiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/1995-01-01_The Multiverse Documentary by Noorderlicht_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/1995-01-01_The Multiverse Documentary by Noorderlicht_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/1995-01-01_The Multiverse Documentary by Noorderlicht_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/1995-01-01_The Multiverse Documentary by Noorderlicht_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2007-01-16_TED Talk - Chemical Scum that Dreams of Distant Quasars_emiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2007-01-16_TED Talk - Chemical Scum that Dreams of Distant Quasars_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2007-01-27_Why Are Flowers Beautiful_emiliav1.md
+data/pv/meetings_epc/deutsch/fx_archive/2007-01-27_Why Are Flowers Beautiful_emiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2007-01-27_Why Are Flowers Beautiful_maeafteremiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2007-01-27_Why Are Flowers Beautiful_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2007-01-27_Why Are Flowers Beautiful_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2007-01-27_Why Are Flowers Beautiful_qafixed_randyWIP_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2007-01-27_Why Are Flowers Beautiful_vrb_randyWIP_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2007-01-27_Why Are Flowers Beautiful_vrb_theresa.md
+data/pv/meetings_epc/deutsch/fx_archive/2009-10-26_TED Talk - A New Way to Explain Explanations_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2009-10-26_TED Talk - A New Way to Explain Explanations_vrb_randyWIP.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-03-10_Oxford Transhumanists - How to Think About the Future_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-03-10_Oxford Transhumanists - How to Think About the Future_qafixed_randyWIP.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-03-10_Oxford Transhumanists - How to Think About the Future_vrb_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-03-10_Oxford Transhumanists - How to Think About the Future_vrb_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-03-10_Oxford Transhumanists - How to Think About the Future_vrb_randyWIP.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-08-01_KERA Think Radio interview with Krys Boyd_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-08-01_KERA Think Radio interview with Krys Boyd_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-08-01_KERA Think Radio interview with Krys Boyd_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-08-01_KERA Think Radio interview with Krys Boyd_qafixed copy.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-08-01_KERA Think Radio interview with Krys Boyd_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-08-01_KERA Think Radio interview with Krys Boyd_vrb_beforeRandy.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-08-01_KERA Think Radio interview with Krys Boyd_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-08-01_KERA Think Radio interview with Krys Boyd_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-08-01_On Point interview with Tom Ashbrook_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-08-01_On Point interview with Tom Ashbrook_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-08-01_On Point interview with Tom Ashbrook_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-08-01_On Point interview with Tom Ashbrook_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-08-01_On Point interview with Tom Ashbrook_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-08-01_On Point interview with Tom Ashbrook_vrb_beforeRandy.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-08-01_On Point interview with Tom Ashbrook_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-08-01_On Point interview with Tom Ashbrook_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-09-01_AirTalk interview with David Lazarus_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-09-01_AirTalk interview with David Lazarus_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-09-01_AirTalk interview with David Lazarus_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-09-01_AirTalk interview with David Lazarus_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-09-01_AirTalk interview with David Lazarus_vrb copy_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-09-01_Groks Science Show_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-09-01_Groks Science Show_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-09-01_Groks Science Show_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-09-01_Groks Science Show_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-09-01_Groks Science Show_vrb copy_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-09-01_Sci-Fi London interview_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-09-01_Sci-Fi London interview_other.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-09-01_Sci-Fi London interview_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-09-01_Sci-Fi London interview_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-09-01_Sci-Fi London interview_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-09-01_Sci-Fi London interview_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-10-01_What Now interview with Ken Rose_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-10-01_What Now interview with Ken Rose_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-10-01_What Now interview with Ken Rose_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-10-01_What Now interview with Ken Rose_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-10-01_What Now interview with Ken Rose_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2011-12-06_TED Talk - The Unknowable and How to Prepare for It_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2012-10-22_Edge Video - Constructor Theory and the Real Reality_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2012-10-22_Edge Video - Constructor Theory and the Real Reality_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2012-10-22_Edge Video - Constructor Theory and the Real Reality_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2012-10-22_Edge Video - Constructor Theory and the Real Reality_qafixed_randyWIP.md
+data/pv/meetings_epc/deutsch/fx_archive/2012-10-22_Edge Video - Constructor Theory and the Real Reality_vrb_randyWIP.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Can Science Provide Ultimate Answers_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Can Science Provide Ultimate Answers_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Do General Principles Govern All Science_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Do General Principles Govern All Science_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Do General Principles Govern All Science_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Do General Principles Govern All Science_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Do General Principles Govern All Science_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Do General Principles Govern All Science_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Is the Cosmos a Computer_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Is the Cosmos a Computer_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Is the Cosmos a Computer_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Is the Cosmos a Computer_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Is the Cosmos a Computer_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Is the Cosmos a Computer_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Many Worlds of Quantum Theory_dgwhspm.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Many Worlds of Quantum Theory_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Many Worlds of Quantum Theory_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - What does quantum theory mean_dgwhspm.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - What does quantum theory mean_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - What does quantum theory mean_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - What is Truth_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - What is Truth_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - What is Ultimate Reality_dgwhspm.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - What is Ultimate Reality_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - What is Ultimate Reality_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Which Laws of Nature are Fundamental_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Which Laws of Nature are Fundamental_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Which Laws of Nature are Fundamental_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Which Laws of Nature are Fundamental_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Which Laws of Nature are Fundamental_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Which Laws of Nature are Fundamental_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Why is the Quantum so Strange_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-05-08_Closer to Truth - Why is the Quantum so Strange_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-06-25_Nautilus Interview - Why its good to be wrong_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-06-25_Nautilus Interview - Why its good to be wrong_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-06-25_Nautilus Interview - Why its good to be wrong_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-06-25_Nautilus Interview - Why its good to be wrong_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2013-06-25_Nautilus Interview - Why its good to be wrong_vrb_BeforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-06-01_Physics without Probability_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-06-01_Physics without Probability_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-06-01_Physics without Probability_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-06-01_Physics without Probability_qafixed_randyWIP.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-06-01_Physics without Probability_vrb_randyWIP.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-10-19_RSA Debate - Optimism Knowledge and the Future of Enlightenment_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-10-19_RSA Debate - Optimism Knowledge and the Future of Enlightenment_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-10-19_RSA Debate - Optimism Knowledge and the Future of Enlightenment_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-10-19_RSA Debate - Optimism Knowledge and the Future of Enlightenment_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-10-19_RSA Debate - Optimism Knowledge and the Future of Enlightenment_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-10-19_RSA Debate - Optimism Knowledge and the Future of Enlightenment_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-10-19_RSA Debate - Optimism Knowledge and the Future of Enlightenment_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-12-15_Sam Harris 1 - Surviving the Cosmos_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-12-15_Sam Harris 1 - Surviving the Cosmos_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-12-15_Sam Harris 1 - Surviving the Cosmos_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-12-15_Sam Harris 1 - Surviving the Cosmos_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-12-15_Sam Harris 1 - Surviving the Cosmos_qafixed_needstimestampfix.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-12-15_Sam Harris 1 - Surviving the Cosmos_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2015-12-15_Sam Harris 1 - Surviving the Cosmos_vrb_needstimestampfix.md
+data/pv/meetings_epc/deutsch/fx_archive/2016-03-12_Oxford Lecture - Unity Of The Universe_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2016-03-12_Oxford Lecture - Unity Of The Universe_readable_randyWIP.md
+data/pv/meetings_epc/deutsch/fx_archive/2016-03-12_Oxford Lecture - Unity Of The Universe_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2016-11-16_Sam Harris 2 - Finding Our Way in the Cosmos_brandon.md
+data/pv/meetings_epc/deutsch/fx_archive/2016-11-16_Sam Harris 2 - Finding Our Way in the Cosmos_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2016-11-16_Sam Harris 2 - Finding Our Way in the Cosmos_maefrom109.md
+data/pv/meetings_epc/deutsch/fx_archive/2016-11-16_Sam Harris 2 - Finding Our Way in the Cosmos_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2016-11-16_Sam Harris 2 - Finding Our Way in the Cosmos_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2017-02-01_Christian Transhumanists podcast with Micah Redding_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2017-02-01_Christian Transhumanists podcast with Micah Redding_qafixed_needstimestampfix.md
+data/pv/meetings_epc/deutsch/fx_archive/2017-02-01_Christian Transhumanists podcast with Micah Redding_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2017-02-01_Christian Transhumanists podcast with Micah Redding_vrb_needstimestampfix.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-03-14_Dirac Prize Talk_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-03-14_Dirac Prize Talk_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-03-14_Dirac Prize Talk_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-03-14_Dirac Prize Talk_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-03-14_Dirac Prize Talk_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-04-18_John Horgan interview_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-04-18_John Horgan interview_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-04-18_John Horgan interview_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-06-01_CBC Tapestry interview on AGI and other_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-06-01_CBC Tapestry interview on AGI and other_prepqa_qa_BUGGY.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-06-01_CBC Tapestry interview on AGI and other_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-06-01_CBC Tapestry interview on AGI and other_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-06-01_CBC Tapestry interview on AGI and other_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-06-01_CBC Tapestry interview on AGI and other_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-06-19_Are There Many Worlds with Markus Arndt_before.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-06-19_Are There Many Worlds with Markus Arndt_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-06-19_Are There Many Worlds with Markus Arndt_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-06-19_Are There Many Worlds with Markus Arndt_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-06-19_Are There Many Worlds with Markus Arndt.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-07-24_Visionaries interview with John Lobell_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-07-24_Visionaries interview with John Lobell_maeafteremilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-07-24_Visionaries interview with John Lobell_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-07-24_Visionaries interview with John Lobell_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-07-24_Visionaries interview with John Lobell_qafixed copy.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-07-24_Visionaries interview with John Lobell_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-07-24_Visionaries interview with John Lobell_vrb copy.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-07-24_Visionaries interview with John Lobell_vrb_WIPBert.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-07-24_Visionaries interview with John Lobell_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-10-23_TED interview 1 with Chris Anderson - The Infinite Reach of Knowledge_before.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-10-23_TED interview 1 with Chris Anderson - The Infinite Reach of Knowledge_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-10-23_TED interview 1 with Chris Anderson - The Infinite Reach of Knowledge_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-10-23_TED interview 1 with Chris Anderson - The Infinite Reach of Knowledge_qafixed_befoewDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-10-23_TED interview 1 with Chris Anderson - The Infinite Reach of Knowledge_reviewscanned.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-10-23_TED interview 1 with Chris Anderson - The Infinite Reach of Knowledge_vrb_Bert_befoewDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-10-23_TED interview 1 with Chris Anderson - The Infinite Reach of Knowledge_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-12-08_Constructor Theory with Joe Boswell_bertafteremilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-12-08_Constructor Theory with Joe Boswell_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-12-08_Constructor Theory with Joe Boswell_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-12-08_Constructor Theory with Joe Boswell_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-12-08_Constructor Theory with Joe Boswell_qafixed_BeforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-12-08_Constructor Theory with Joe Boswell_randyafterbert.md
+data/pv/meetings_epc/deutsch/fx_archive/2018-12-08_Constructor Theory with Joe Boswell_vrb_BeforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-02-12_Innovation Show interview with Aidan McCullen_emiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-02-12_Innovation Show interview with Aidan McCullen_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-02-12_Innovation Show interview with Aidan McCullen_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-02-12_Innovation Show interview with Aidan McCullen_qafixed_BeforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-02-12_Innovation Show interview with Aidan McCullen_vrb_BeforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-02-12_Innovation Show interview with Aidan McCullen.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-11-05_TED Talk - After Billions of Years of Monotony the Universe is Waking Up_emiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-11-05_TED Talk - After Billions of Years of Monotony the Universe is Waking Up_randy.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-11-05_TED Talk - After Billions of Years of Monotony the Universe is Waking Up_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-12-04_Brexit and Error Correction with Joe Boswell_bert_emiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-12-04_Brexit and Error Correction with Joe Boswell_emiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-12-04_Brexit and Error Correction with Joe Boswell_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-12-04_Brexit and Error Correction with Joe Boswell_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-12-04_Brexit and Error Correction with Joe Boswell_qafixed_randy_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-12-04_Brexit and Error Correction with Joe Boswell_theresa_quotecheck.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-12-04_Brexit and Error Correction with Joe Boswell_vrb_randy_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-12-13_What is the Fun Criterion with Lulie Tanett_emiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-12-13_What is the Fun Criterion with Lulie Tanett_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-12-13_What is the Fun Criterion with Lulie Tanett_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-12-13_What is the Fun Criterion with Lulie Tanett_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-12-13_What is the Fun Criterion with Lulie Tanett_qafixed_theresa.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-12-13_What is the Fun Criterion with Lulie Tanett_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2019-12-13_What is the Fun Criterion with Lulie Tanett_vrb_theresa.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-02-26_Dilemma podcast with Jay Shapiro and Coleman Hughes_before.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-02-26_Dilemma podcast with Jay Shapiro and Coleman Hughes_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-02-26_Dilemma podcast with Jay Shapiro and Coleman Hughes_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-02-26_Dilemma podcast with Jay Shapiro and Coleman Hughes_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-02-26_Dilemma podcast with Jay Shapiro and Coleman Hughes_reviewscanned.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-02-26_Dilemma podcast with Jay Shapiro and Coleman Hughes_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-03-17_Do Explain podcast with Christofer Lovgren_emiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-03-17_Do Explain podcast with Christofer Lovgren_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-03-17_Do Explain podcast with Christofer Lovgren_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-03-17_Do Explain podcast with Christofer Lovgren_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-03-17_Do Explain podcast with Christofer Lovgren_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-03-18_Interview by Visa about The Beginning of Infinity_emiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-03-18_Interview by Visa about The Beginning of Infinity_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-03-18_Interview by Visa about The Beginning of Infinity_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-03-18_Interview by Visa about The Beginning of Infinity_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-03-18_Interview by Visa about The Beginning of Infinity_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-03-18_Interview by Visa about The Beginning of Infinity_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-03-18_Interview by Visa about The Beginning of Infinity_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-05-26_CFI - Knowledge Creation and its Risks_emiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-05-26_CFI - Knowledge Creation and its Risks_maeafteremiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-05-26_CFI - Knowledge Creation and its Risks_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-05-26_CFI - Knowledge Creation and its Risks_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-05-26_CFI - Knowledge Creation and its Risks_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-05-26_CFI - Knowledge Creation and its Risks_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-09-24_Fallible Animals interview with Logan Chipkin_emiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-09-24_Fallible Animals interview with Logan Chipkin_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-09-24_Fallible Animals interview with Logan Chipkin_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-09-24_Fallible Animals interview with Logan Chipkin_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-09-24_Fallible Animals interview with Logan Chipkin_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-09-24_Fallible Animals interview with Logan Chipkin_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-09-24_Fallible Animals interview with Logan Chipkin_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-11-29_Popperian Podcast - Karl Popper and the Beginning of Infinity_emiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-11-29_Popperian Podcast - Karl Popper and the Beginning of Infinity_emiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-11-29_Popperian Podcast - Karl Popper and the Beginning of Infinity_maeafteremiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-11-29_Popperian Podcast - Karl Popper and the Beginning of Infinity_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-11-29_Popperian Podcast - Karl Popper and the Beginning of Infinity_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-11-29_Popperian Podcast - Karl Popper and the Beginning of Infinity_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-11-29_Popperian Podcast - Karl Popper and the Beginning of Infinity_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-11-29_Popperian Podcast - Karl Popper and the Beginning of Infinity_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2020-11-29_Popperian Podcast - Karl Popper and the Beginning of Infinity_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-01-09_Knowledge and Reality OurKarlPopper - Meeting David Deutsch_mae_afteremiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-01-09_Knowledge and Reality OurKarlPopper - Meeting David Deutsch_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-01-09_Knowledge and Reality OurKarlPopper - Meeting David Deutsch_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-01-09_Knowledge and Reality OurKarlPopper - Meeting David Deutsch_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-01-09_Knowledge and Reality OurKarlPopper - Meeting David Deutsch_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-01-09_Knowledge and Reality OurKarlPopper - Meeting David Deutsch_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-01-09_Knowledge and Reality OurKarlPopper - Meeting David Deutsch_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-03-01_Oxford Karl Popper Society - Musings about Statements Propositions and Truths_emiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-03-01_Oxford Karl Popper Society - Musings about Statements Propositions and Truths_emiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-03-01_Oxford Karl Popper Society - Musings about Statements Propositions and Truths_maeafteremiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-03-01_Oxford Karl Popper Society - Musings about Statements Propositions and Truths_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-03-01_Oxford Karl Popper Society - Musings about Statements Propositions and Truths_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-03-01_Oxford Karl Popper Society - Musings about Statements Propositions and Truths_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-03-01_Oxford Karl Popper Society - Musings about Statements Propositions and Truths_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-06-02_Conversations with Tyler Cowen interview_bert_afteremiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-06-02_Conversations with Tyler Cowen interview_emiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-06-02_Conversations with Tyler Cowen interview_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-06-02_Conversations with Tyler Cowen interview_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-06-02_Conversations with Tyler Cowen interview_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-06-02_Conversations with Tyler Cowen interview_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-06-25_TED interview 2 with Chris Anderson - The Limitless Potential of Human Knowledge_emiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-06-25_TED interview 2 with Chris Anderson - The Limitless Potential of Human Knowledge_yt.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-08-29_ Eli Tyler - Poppers problem-oriented epistemology_mae.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-08-29_ Eli Tyler - Poppers problem-oriented epistemology_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-08-29_ Eli Tyler - Poppers problem-oriented epistemology_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-09-20_Dennis Hackethal interview on German translation of BOI_before.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-09-20_Dennis Hackethal interview on German translation of BOI_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-09-20_Dennis Hackethal interview on German translation of BOI_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-09-20_Dennis Hackethal interview on German translation of BOI_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-10-08_Ripples - The Fun Criterion Objective Beauty and Artificial Intelligence_emiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-10-08_Ripples - The Fun Criterion Objective Beauty and Artificial Intelligence_maeafteremiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-10-08_Ripples - The Fun Criterion Objective Beauty and Artificial Intelligence_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-10-08_Ripples - The Fun Criterion Objective Beauty and Artificial Intelligence_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-10-08_Ripples - The Fun Criterion Objective Beauty and Artificial Intelligence_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-10-08_Ripples - The Fun Criterion Objective Beauty and Artificial Intelligence_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-11-30_TokCast interview with Brett Hall_emiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-11-30_TokCast interview with Brett Hall_maeafteremilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-11-30_TokCast interview with Brett Hall_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-11-30_TokCast interview with Brett Hall_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-11-30_TokCast interview with Brett Hall_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-11-30_TokCast interview with Brett Hall_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-11-30_TokCast interview with Brett Hall_theresa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-11-30_TokCast interview with Brett Hall_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-11-30_TokCast interview with Brett Hall_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-12-13_Robin Hanson conversation - To What Extent Can We Predict The Future_bert_afteremiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-12-13_Robin Hanson conversation - To What Extent Can We Predict The Future_emiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-12-13_Robin Hanson conversation - To What Extent Can We Predict The Future_emiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-12-13_Robin Hanson conversation - To What Extent Can We Predict The Future_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-12-13_Robin Hanson conversation - To What Extent Can We Predict The Future_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-12-13_Robin Hanson conversation - To What Extent Can We Predict The Future_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-12-13_Robin Hanson conversation - To What Extent Can We Predict The Future_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-12-13_Robin Hanson conversation - To What Extent Can We Predict The Future_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2021-12-13_Robin Hanson conversation - To What Extent Can We Predict The Future_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-01_Universal Constructor with Logan Chipkin_beforeemilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-01_Universal Constructor with Logan Chipkin_bert_quotecheck.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-01_Universal Constructor with Logan Chipkin_dgwhspm.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-01_Universal Constructor with Logan Chipkin_emiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-01_Universal Constructor with Logan Chipkin_maeafteremiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-01_Universal Constructor with Logan Chipkin_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-01_Universal Constructor with Logan Chipkin_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-01_Universal Constructor with Logan Chipkin_qafixed_randy_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-01_Universal Constructor with Logan Chipkin_vrb_randy_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-30_Lunar Society podcast - AI America Fun and Bayes_emiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-30_Lunar Society podcast - AI America Fun and Bayes_maeafteremiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-30_Lunar Society podcast - AI America Fun and Bayes_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-30_Lunar Society podcast - AI America Fun and Bayes_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-30_Lunar Society podcast - AI America Fun and Bayes_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-30_Lunar Society podcast - AI America Fun and Bayes_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-30_Lunar Society podcast - AI America Fun and Bayes_theresa.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-30_Lunar Society podcast - AI America Fun and Bayes_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-30_Lunar Society podcast - AI America Fun and Bayes_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-01-30_Lunar Society podcast - AI America Fun and Bayes_yt.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-04-25_Jolly Swagman podcast - Against Bayesianism_bert_quotecheck.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-04-25_Jolly Swagman podcast - Against Bayesianism_emiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-04-25_Jolly Swagman podcast - Against Bayesianism_maeafteremiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-04-25_Jolly Swagman podcast - Against Bayesianism_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-04-25_Jolly Swagman podcast - Against Bayesianism_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-04-25_Jolly Swagman podcast - Against Bayesianism_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-04-25_Jolly Swagman podcast - Against Bayesianism_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-04-25_Jolly Swagman podcast - Against Bayesianism_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-04-25_Jolly Swagman podcast - Against Bayesianism_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-05-16_Quantum Information in Many Worlds_bert_afteremiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-05-16_Quantum Information in Many Worlds_emiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-05-16_Quantum Information in Many Worlds_emiliav3.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-05-16_Quantum Information in Many Worlds_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-05-16_Quantum Information in Many Worlds_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-05-16_Quantum Information in Many Worlds_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-10-27_Why is Everettian quantum theory not in the consensus_emiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-05-16_Quantum Information in Many Worlds_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-05-16_Quantum Information in Many Worlds_theresa.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-05-16_Quantum Information in Many Worlds_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-05-16_Quantum Information in Many Worlds_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-10-27_Why is Everettian quantum theory not in the consensus_emiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2022-10-27_Why is Everettian quantum theory not in the consensus_readable_randyWIPmd
+data/pv/meetings_epc/deutsch/fx_archive/2022-10-27_Why is Everettian quantum theory not in the consensus_vrb_randyWIP.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-02-11_Naval interview - Knowledge Creation and The Human Race Part 1_qafixed_beforeDQmd
+data/pv/meetings_epc/deutsch/fx_archive/2023-02-11_Naval interview - Knowledge Creation and The Human Race Part 1_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-02-11_Naval Interview - Knowledge Creation and The Human Race Pt 1_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-02-11_Naval Interview - Knowledge Creation and The Human Race Pt 1_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-03-23_Tim Ferriss podcast - Naval David and Tim_before.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-03-23_Tim Ferriss podcast - Naval David and Tim_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-03-23_Tim Ferriss podcast - Naval David and Tim_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-03-23_Tim Ferriss podcast - Naval David and Tim_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-03-23_Tim Ferriss podcast - Naval David and Tim_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-03-23_Tim Ferriss podcast - Naval David and Tim_vrb_Mae_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-03-23_Tim Ferriss podcast - Naval David and Tim_vrb_Mae_OLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-08_Reason Is Fun podcast - Ep-1 AGI_dgwhspm.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-08_Reason Is Fun podcast - Ep-1 AGI_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-08_Reason Is Fun podcast - Ep-1 AGI_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-08_Reason Is Fun podcast - Ep-1 AGI_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-08_Reason Is Fun podcast - Ep-1 AGI_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-08_Reason Is Fun podcast - Ep-1 AGI_vrb_dq.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-08_Reason Is Fun podcast - Ep-1 AGI_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-08_Reason Is Fun podcast - Ep-1 AGI_vrbOLD .md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-22_Reason Is Fun podcast - Ep0 Effective Altruism_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-22_Reason Is Fun podcast - Ep0 Effective Altruism_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-22_Reason Is Fun podcast - Ep0 Effective Altruism_qafixed_dq.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-22_Reason Is Fun podcast - Ep0 Effective Altruism_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-22_Reason Is Fun podcast - Ep0 Effective Altruism_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-22_Reason Is Fun podcast - Ep0 Effective Altruism_vrb_dq.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-22_Reason Is Fun podcast - Ep0 Effective Altruism_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-22_Reason Is Fun podcast - Ep0 Effective Altruism_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-26_Foresight Institute podcast - Existential Hope On Beauty Knowledge and Progress_before.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-26_Foresight Institute podcast - Existential Hope On Beauty Knowledge and Progress_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-26_Foresight Institute podcast - Existential Hope On Beauty Knowledge and Progress_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-26_Foresight Institute podcast - Existential Hope On Beauty Knowledge and Progress_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-26_Foresight Institute podcast - Existential Hope On Beauty Knowledge and Progress_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-26_Foresight Institute podcast - Existential Hope On Beauty Knowledge and Progress_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-04-26_Foresight Institute podcast - Existential Hope On Beauty Knowledge and Progress_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-06_Reason Is Fun podcast - Ep1 Fun Fury Feeling_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-06_Reason Is Fun podcast - Ep1 Fun Fury Feeling_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-06_Reason Is Fun podcast - Ep1 Fun Fury Feeling_qafixed_dq.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-06_Reason Is Fun podcast - Ep1 Fun Fury Feeling_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-06_Reason Is Fun podcast - Ep1 Fun Fury Feeling_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-06_Reason Is Fun podcast - Ep1 Fun Fury Feeling_vrb_dq.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-06_Reason Is Fun podcast - Ep1 Fun Fury Feeling_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-06_Reason Is Fun podcast - Ep1 Fun Fury Feeling_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-09_Coleman Hughes Interview - Multiverse of Madness_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-09_Coleman Hughes Interview - Multiverse of Madness_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-09_Coleman Hughes Interview - Multiverse of Madness_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-09_Coleman Hughes Interview - Multiverse of Madness_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-09_Coleman Hughes Interview - Multiverse of Madness_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-09_Coleman Hughes Interview - Multiverse of Madness_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-23_Reason Is Fun Podcast - Ep2 Physics of Inexplicit Ideas_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-23_Reason Is Fun Podcast - Ep2 Physics of Inexplicit Ideas_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-23_Reason Is Fun Podcast - Ep2 Physics of Inexplicit Ideas_qafixed_dq.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-23_Reason Is Fun Podcast - Ep2 Physics of Inexplicit Ideas_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-23_Reason Is Fun Podcast - Ep2 Physics of Inexplicit Ideas_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-23_Reason Is Fun Podcast - Ep2 Physics of Inexplicit Ideas_vrb_dq.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-23_Reason Is Fun Podcast - Ep2 Physics of Inexplicit Ideas_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-05-23_Reason Is Fun Podcast - Ep2 Physics of Inexplicit Ideas_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-06-03_Reason Is Fun podcast - Ep3 Inexplicit Ideas and Embodiment_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-06-03_Reason Is Fun podcast - Ep3 Inexplicit Ideas and Embodiment_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-06-03_Reason Is Fun podcast - Ep3 Inexplicit Ideas and Embodiment_qafixed_dq.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-06-03_Reason Is Fun podcast - Ep3 Inexplicit Ideas and Embodiment_vrb_dq.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-06-28_Bennett and Deutsch - The Nature of Computation Incompleteness and Mathematics_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-06-28_Bennett and Deutsch - The Nature of Computation Incompleteness and Mathematics_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-08-11_Naval interview - Knowledge Creation and The Human Race Part 2_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-08-11_Naval interview - Knowledge Creation and The Human Race Part 2_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-08-11_Naval interview - Knowledge Creation and The Human Race Part 2_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-08-11_Naval Interview - Knowledge Creation and The Human Race Pt 2_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-08-11_Naval Interview - Knowledge Creation and The Human Race Pt 2_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-15_Deutsch Files 1 with Naval and Brett_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-15_Deutsch Files 1 with Naval and Brett_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-15_Deutsch Files 1 with Naval and Brett_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-15_Deutsch Files 1 with Naval and Brett_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-15_Deutsch Files 2 with Naval and Brett_bert.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-15_Deutsch Files 2 with Naval and Brett_dgwhspm.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-15_Deutsch Files 2 with Naval and Brett_nova2.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-15_Deutsch Files 2 with Naval and Brett_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-15_Deutsch Files 2 with Naval and Brett_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-15_Deutsch Files 2 with Naval and Brett_qafixed_randy_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-15_Deutsch Files 2 with Naval and Brett_vrb_randy_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-15_Deutsch Files 3 with Naval and Brett_bertafteremilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-15_Deutsch Files 3 with Naval and Brett_dgwhspm.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-15_Deutsch Files 3 with Naval and Brett_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-15_Deutsch Files 3 with Naval and Brett_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-15_Deutsch Files 3 with Naval and Brett_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-16_Sean Carrol Mindscapes - On Science, Complexity, and Explanation_nova2.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-16_Sean Carroll Mindscape - On Science Complexity and Explanation_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-16_Sean Carroll Mindscape - On Science Complexity and Explanation_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-16_Sean Carroll Mindscape - On Science Complexity and Explanation_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-16_Sean Carroll Mindscape - On Science Complexity and Explanation_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-16_Sean Carroll Mindscape - On Science Complexity and Explanation_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-10-16_Sean Carroll Mindscape - On Science Complexity and Explanation_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-19_Steven Pinker 1 on Joe Walker Podcast - on AGI Doom and Enemies of Civilization_bert.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-19_Steven Pinker 1 on Joe Walker Podcast - on AGI Doom and Enemies of Civilization_dgwhspm.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-19_Steven Pinker 1 on Joe Walker Podcast - on AGI Doom and Enemies of Civilization_mae.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-19_Steven Pinker 1 on Joe Walker Podcast - on AGI Doom and Enemies of Civilization_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-19_Steven Pinker 1 on Joe Walker Podcast - on AGI Doom and Enemies of Civilization_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-19_Steven Pinker 1 on Joe Walker Podcast - on AGI Doom and Enemies of Civilization_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-19_Steven Pinker 1 on Joe Walker Podcast - on AGI Doom and Enemies of Civilization_theresa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-19_Steven Pinker 1 on Joe Walker Podcast - on AGI Doom and Enemies of Civilization_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-23_Antisemitism in Britain_dgwhspm.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-23_Antisemitism in Britain_emiliav2_old.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-23_Antisemitism in Britain_emiliav2.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-23_Antisemitism in Britain_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-23_Antisemitism in Britain_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-23_Antisemitism in Britain_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-23_Antisemitism in Britain_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-23_Antisemitism in Britain_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2023-12-23_Antisemitism in Britain_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-01_Arjun Khemani interview on TCS_before.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-01_Arjun Khemani interview on TCS_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-01_Arjun Khemani interview on TCS_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-01_Arjun Khemani interview on TCS_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-01_Arjun Khemani interview on TCS_reviewscanned.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-01_Arjun Khemani interview on TCS_vrbMae.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-01_Arjun Khemani interview on TCS_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-03_Reason Is Fun podcast - Ep4 Decisions_dgwhspm.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-03_Reason Is Fun podcast - Ep4 Decisions_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-03_Reason Is Fun podcast - Ep4 Decisions_mae.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-03_Reason Is Fun podcast - Ep4 Decisions_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-03_Reason Is Fun podcast - Ep4 Decisions_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-03_Reason Is Fun podcast - Ep4 Decisions_qafixed_theresa.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-03_Reason Is Fun podcast - Ep4 Decisions_qafixed_theresaWIP.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-03_Reason Is Fun podcast - Ep4 Decisions_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-03_Reason Is Fun podcast - Ep4 Decisions_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-03_Reason Is Fun podcast - Ep4 Decisions_vrb_theresa.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-03_Reason Is Fun podcast - Ep4 Decisions_vrb_theresaWIP.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-03_Reason Is Fun podcast - Ep4 Decisions_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-03_Reason Is Fun podcast - Ep4 Decisions_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-04_Reason Is Fun podcast - Ep5 The Art of Decision Making_dgwhspm.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-04_Reason Is Fun podcast - Ep5 The Art of Decision Making_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-04_Reason Is Fun podcast - Ep5 The Art of Decision Making_emiliaplusmae.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-04_Reason Is Fun podcast - Ep5 The Art of Decision Making_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-04_Reason Is Fun podcast - Ep5 The Art of Decision Making_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-04_Reason Is Fun podcast - Ep5 The Art of Decision Making_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-04_Reason Is Fun podcast - Ep5 The Art of Decision Making_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-04_Reason Is Fun podcast - Ep5 The Art of Decision Making_vrb_Bert.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-04_Reason Is Fun podcast - Ep5 The Art of Decision Making_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-04_Reason Is Fun podcast - Ep5 The Art of Decision Making_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-11_Naval and Brett Hall - The Deutsch Files 1_dgwhspm.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-11_Naval and Brett Hall - The Deutsch Files 1_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-01-11_Naval and Brett Hall - The Deutsch Files 1_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-03-04_Alex OConnor Podcast - The Multiverse is Real_bertafteremilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-03-04_Alex OConnor Podcast - The Multiverse is Real_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-03-04_Alex OConnor Podcast - The Multiverse is Real_nova2.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-03-04_Alex OConnor Podcast - The Multiverse is Real_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-03-04_Alex OConnor Podcast - The Multiverse is Real_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-03-06_Peter Boghossian Podcast - Ideological Contagion_bertafteremilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-03-06_Peter Boghossian Podcast - Ideological Contagion_emilia.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-03-06_Peter Boghossian Podcast - Ideological Contagion_nova2.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-03-31_Sagenhaft und Sonderbar der Podcast_mae.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-03-31_Sagenhaft und Sonderbar der Podcast_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/2024-03-31_Sagenhaft und Sonderbar der Podcast_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/run_only.py
+data/pv/meetings_epc/deutsch/fx_archive/f_b_emilia_initial6/2016-11-16_Sam Harris interview 2 - Finding Our Way in the Cosmos_noreviewscanyet.md
+data/pv/meetings_epc/deutsch/fx_archive/f_b_emilia_initial6/2018-06-01_CBC Tapestry interview on AGI and other_noreviewscanyet.md
+data/pv/meetings_epc/deutsch/fx_archive/f_b_emilia_initial6/2018-06-19_Are There Many Worlds with Markus Arndt_noreviewscanyet.md
+data/pv/meetings_epc/deutsch/fx_archive/f_b_emilia_initial6/2019-02-12_Innovation Show interview with Aidan McCullen_randyafterbert.md
+data/pv/meetings_epc/deutsch/fx_archive/f_b_emilia_initial6/2019-02-12_Innovation Show interview with Aidan McCullen_whspmerge.md
+data/pv/meetings_epc/deutsch/fx_archive/f_b_emilia_initial6/2019-11-05_TED Talk - After Billions of Years of Monotony the Universe is Waking Up_randyafterbert.md
+data/pv/meetings_epc/deutsch/fx_archive/f_b_emilia_initial6/2019-11-05_TED Talk - After Billions of Years of Monotony the Universe is Waking Up_whspmerge.md
+data/pv/meetings_epc/deutsch/fx_archive/f_b_emilia_initial6/2022-10-27_Why is Everettian quantum theory not in the consensus_bert.md
+data/pv/meetings_epc/deutsch/fx_archive/f_b_emilia_initial6/2022-10-27_Why is Everettian quantum theory not in the consensus_randyafteremilia.md
+data/pv/meetings_epc/deutsch/fx_archive/f_b_emilia_initial6/2022-10-27_Why is Everettian quantum theory not in the consensus_whspmerge.md
+data/pv/meetings_epc/deutsch/fx_archive/f_b_emilia_initial6/review scan giidelines.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/1995-01-01_The Multiverse Documentary by Noorderlicht_readyprepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2007-01-16_TED Talk - Chemical Scum that Dreams of Distant Quasars_readyprepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2019-02-12_Innovation Show interview with Aidan McCullen_beforeemilia.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2019-11-05_TED Talk - After Billions of Years of Monotony the Universe is Waking Up.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2020-03-17_Do Explain podcast with Christofer Lovgren.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2020-03-18_Interview by Visa about The Beginning of Infinity.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2020-05-26_CFI - Knowledge Creation and its Risks.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2020-09-24_Fallible Animals interview with Logan Chipkin.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2020-11-29_Popperian Podcast - Karl Popper and the Beginning of Infinity.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2021-01-09_Knowledge and Reality OurKarlPopper - Meeting David Deutsch.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2021-03-01_Oxford Karl Popper Society - Musings about Statements Propositions and Truths.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2021-06-02_Conversations with Tyler Cowen interview.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2021-06-25_TED interview 2 with Chris Anderson - The Limitless Potential of Human Knowledge.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2021-10-08_Ripples - The Fun Criterion Objective Beauty and Artificial Intelligence.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2021-11-30_TokCast interview with Brett Hall.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2021-12-13_Robin Hanson conversation - To What Extent Can We Predict The Future.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2022-01-30_Lunar Society podcast - AI America Fun and Bayes.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2022-04-25_Jolly Swagman podcast - Against Bayesianism.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2022-05-16_Quantum Information in Many Worlds.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2022-10-27_Why is Everettian quantum theory not in the consensus.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2024-03-06_Peter Boghossian Podcast - Ideological Contagion_prepqa_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c1_needs_prepqa_onlyquickscan_ARCHIVE/2024-03-06_Peter Boghossian Podcast - Ideological Contagion_prepqa.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - Can Science Provide Ultimate Answers_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - Can Science Provide Ultimate Answers_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - Can Science Provide Ultimate Answers_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - Can Science Provide Ultimate Answers_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - Many Worlds of Quantum Theory_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - Many Worlds of Quantum Theory_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - Many Worlds of Quantum Theory_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - Many Worlds of Quantum Theory_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - What does quantum theory mean_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - What does quantum theory mean_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - What is Truth_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - What is Truth_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - What is Truth_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - What is Truth_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - What is Ultimate Reality_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - Why is the Quantum so Strange_qafixed_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - Why is the Quantum so Strange_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - Why is the Quantum so Strange_vrb_beforeDQ.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2013-05-08_Closer to Truth - Why is the Quantum so Strange_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2023-06-03_Reason Is Fun podcast - Ep3 Inexplicit Ideas and Embodiment_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2023-06-03_Reason Is Fun podcast - Ep3 Inexplicit Ideas and Embodiment_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2023-06-03_Reason Is Fun podcast - Ep3 Inexplicit Ideas and Embodiment_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2023-06-03_Reason Is Fun podcast - Ep3 Inexplicit Ideas and Embodiment_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2023-06-28_Bennett and Deutsch - The Nature of Computation Incompleteness and Mathematics_qafixed.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2023-06-28_Bennett and Deutsch - The Nature of Computation Incompleteness and Mathematics_qafixedOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2023-06-28_Bennett and Deutsch - The Nature of Computation Incompleteness and Mathematics_vrb.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2023-06-28_Bennett and Deutsch - The Nature of Computation Incompleteness and Mathematics_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/2023-08-11_Naval interview - Knowledge Creation and The Human Race Part 2_vrbOLD.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/log_qa.md
+data/pv/meetings_epc/deutsch/fx_archive/f_c5_done_beforeForesight/prompts_qa.md
+data/pv/meetings_epc/deutsch/misc/The Edge of the Universe_dgwhspm.json

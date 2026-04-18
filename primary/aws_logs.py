@@ -9,6 +9,7 @@ import io
 import subprocess
 from termcolor import colored
 from contextlib import redirect_stdout
+import pyperclip
     
 from primary.fileops import *
 from primary.aws import *
@@ -16,11 +17,12 @@ from primary.aws import *
 # ---API KEYS AND SECRETS---
 from dotenv import load_dotenv
 load_dotenv(override=True)  # Load environment variables from .env file
-JWT_TEST = os.environ['JWT_01-22']
+JWT_TEST = os.environ['JWT_03-24']
 
 
 # ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
 
+### AWS LOGGING
 LAMBDA_APIS_MAPPING = {
     'deepgram-callback': 'lsehufc3n2',
     'hash-store': 'wd3rapoqy7',
@@ -30,31 +32,29 @@ LAMBDA_APIS_MAPPING = {
     'send-email': 'lvyznjx395',
     'vrag-llm': 'n5yjgn8jak'
 }
-
-### AWS LOGGING
-def setup_api_gateway_logging(api_names=None):
+def setup_api_gateway_logging(api_gateway_names=None):
     """
     Set up detailed logging for API Gateway stages.
-    If api_names is None, will configure all APIs in LAMBDA_GLOBALS_MAPPING.
+    If api_gateway_names is None, will configure all APIs in LAMBDA_GLOBALS_MAPPING.
     
-    :param api_names: list of str, optional list of API names to configure
+    :param api_gateway_names: list of str, optional list of API names to configure
     :return: dict, results of configuration attempts
     """
     api_client = boto3.client('apigateway')
     results = {}
     
     # Use all APIs if none specified
-    if api_names is None:
-        api_names = LAMBDA_GLOBALS_MAPPING.keys()
+    if api_gateway_names is None:
+        api_gateway_names = LAMBDA_APIS_MAPPING.keys()
     
-    for api_name in api_names:
+    for api_gateway_name in api_gateway_names:
         try:
             # Get API ID without needing specific method or resource
             apis = api_client.get_rest_apis()['items']
-            api = next((api for api in apis if api['name'] == api_name), None)
+            api = next((api for api in apis if api['name'] == api_gateway_name), None)
             
             if not api:
-                results[api_name] = f"Failed to find API"
+                results[api_gateway_name] = f"Failed to find API"
                 continue
                 
             rest_api_id = api['id']
@@ -95,22 +95,24 @@ def setup_api_gateway_logging(api_names=None):
                     ]
                 )
                 
-                results[f"{api_name} ({stage_name})"] = "Successfully configured logging"
+                results[f"{api_gateway_name} ({stage_name})"] = "Successfully configured logging"
                 
         except Exception as e:
-            results[api_name] = f"Error: {str(e)}"
+            results[api_gateway_name] = f"Error: {str(e)}"
     
     return results
 def mrun_setup_api_gateway_logging():
     pass
 #if __name__ == "__main__":
     # Configure all APIs
-    results = setup_api_gateway_logging()
+    #results = setup_api_gateway_logging()
+
+    # Configure single API
+    cur_lambda_function_name = 'hash-store'
+    results = setup_api_gateway_logging([cur_lambda_function_name])
     print("\nAPI Gateway Logging Configuration Results:")
     for api, result in results.items():
         print(f"{api}: {result}")
-
-### o1-pro refactored version
 def fetch_log_streams(client, log_group_name, limit=5, end_time=None):
     """
     Fetch up to 'limit' log streams from 'log_group_name', in descending order
@@ -438,6 +440,7 @@ def get_recent_api_call_logs(lambda_function_name, hours_ago=5, num_streams=5, p
         from 'hours_ago' until now (or less).
       - Correlates them by requestId, etc.
       - Writes a file with everything.
+      - Copies latest Lambda stream to clipboard.
     
     :param lambda_function_name: str
     :param hours_ago: int
@@ -445,6 +448,7 @@ def get_recent_api_call_logs(lambda_function_name, hours_ago=5, num_streams=5, p
     :param prompt_overwrite: bool, prompt user if file already exists
     :return: dict with 'correlated' logs and raw lists
     """
+    folder_path = 'logs/aws_api_call_logs'
     print(f"Starting log collection for: {lambda_function_name}")
     
     # Prepare the log group names
@@ -470,7 +474,7 @@ def get_recent_api_call_logs(lambda_function_name, hours_ago=5, num_streams=5, p
     
     # Build a filename for the logs
     now_str = datetime.now().strftime('%Y-%m-%d_%H%M%S')
-    file_path = f"logs/aws_logs/{now_str}_API-trace_{lambda_function_name}.md"
+    file_path = f"{folder_path}/{now_str}_API-trace_{lambda_function_name}.md"
     
     if os.path.exists(file_path):
         if prompt_overwrite:
@@ -589,6 +593,8 @@ def get_recent_api_call_logs(lambda_function_name, hours_ago=5, num_streams=5, p
         fh.write("## Events from most recent log streams\n")
         
         # Get the 2 most recent streams from each group
+        latest_lambda_stream_text = None  # Store the text for clipboard
+        
         for group_name, data in [
             ("Access Log Streams", access_data[:2]), 
             ("Execution Log Streams", execution_data[:2]), 
@@ -603,29 +609,44 @@ def get_recent_api_call_logs(lambda_function_name, hours_ago=5, num_streams=5, p
                 request_id = s.get('access_request_id') or s.get('execution_request_id') or s.get('lambda_request_id') or 'N/A'
                 
                 # Write section header for this stream
-                fh.write(f"\n### EVENTS FROM {group_name[:-8]}STREAM ID: {stream['logStreamName']}  {ts}  {method}  {status}  {request_id}\n\n")
+                header = f"\n### EVENTS FROM {group_name[:-8]}STREAM ID: {stream['logStreamName']}  {ts}  {method}  {status}  {request_id}\n\n"
+                fh.write(header)
                 
-                # Write all events from this stream
+                # Build event text
+                event_text = ""
                 for event in stream.get('events', []):
                     event_ts = datetime.fromtimestamp(event['timestamp']/1000).strftime('%Y-%m-%d %H:%M:%S UTC')
-                    fh.write(f"{event_ts}:\n{event['message']}\n\n")
+                    event_text += f"{event_ts}:\n{event['message']}\n\n"
+                
+                fh.write(event_text)
+                
+                # If this is the first Lambda stream, store its text for clipboard
+                if group_name == "Lambda Log Streams" and latest_lambda_stream_text is None:
+                    latest_lambda_stream_text = header + event_text
         
         fh.write("\n")
     
     print(f"Correlated logs written to: {file_path}")
+
+    # Copy latest Lambda stream to clipboard if available
+    if latest_lambda_stream_text:
+        pyperclip.copy(latest_lambda_stream_text)
+        print("Latest Lambda stream copied to clipboard")
+
     return {
         'access': access_data,
         'execution': execution_data,
         'lambda': lambda_data,
         'correlated': correlated
     }
-
 def mrun_get_recent_api_call_logs():
     pass
 if __name__ == "__main__":
-    cur_lambda_function_name = 'qrag-llm'
+    #cur_lambda_function_name = 'hash-store'
+    cur_lambda_function_name = 'send-email'
     #cur_lambda_function_name = 'qrag-routing'
-    get_recent_api_call_logs(cur_lambda_function_name)
+    #cur_lambda_function_name = 'qrag-llm'
+    get_recent_api_call_logs(cur_lambda_function_name, hours_ago=2)
 
 
 def check_cloudwatch_alarms():
@@ -655,7 +676,7 @@ def check_cloudwatch_alarms():
                     monitored_apis.add(dim['Value'])
                     if alarm['StateValue'] == 'ALARM':
                         alarms_triggered.append({
-                            'api_name': dim['Value'],
+                            'api_gateway_name': dim['Value'],
                             'alarm_name': alarm['AlarmName'],
                             'metric': alarm['MetricName'],
                             'current_value': alarm.get('StateReason', 'No reason provided')
@@ -669,7 +690,7 @@ def check_cloudwatch_alarms():
         else:
             print("\nStatus: ALARMS TRIGGERED")
             for alarm in alarms_triggered:
-                print(f"  API: {alarm['api_name']}")
+                print(f"  API: {alarm['api_gateway_name']}")
                 print(f"  Alarm: {alarm['alarm_name']}")
                 print(f"  Metric: {alarm['metric']}")
                 print(f"  Reason: {alarm['current_value']}")
@@ -704,7 +725,7 @@ def check_cloudwatch_alarm_status():
                     monitored_apis.add(dim['Value'])
                     if alarm['StateValue'] == 'ALARM':
                         alarms_triggered.append({
-                            'api_name': dim['Value'],
+                            'api_gateway_name': dim['Value'],
                             'alarm_name': alarm['AlarmName'],
                             'metric': alarm['MetricName'],
                             'current_value': alarm.get('StateReason', 'No reason provided')
@@ -718,7 +739,7 @@ def check_cloudwatch_alarm_status():
         else:
             print(colored("\nStatus: ALARMS TRIGGERED", 'red'))
             for alarm in alarms_triggered:
-                print(f"  API: {alarm['api_name']}")
+                print(f"  API: {alarm['api_gateway_name']}")
                 print(f"  Alarm: {alarm['alarm_name']}")
                 print(f"  Metric: {alarm['metric']}")
                 print(f"  Reason: {alarm['current_value']}")

@@ -39,7 +39,11 @@ def mtest_check_and_warn_file_overwrite():
 
 ### SUFFIX
 def mtest_get_suffix():
-    cur_file_path = "tests/test_manual_files/1900-01-01_Test file for do fileop_prepqa.md"
+    pass
+if __name__ == "__main__":
+    cur_file_path = "data/floodlamp/guides/Resulting Decision (Single Triplicate Re-run) Flow Chart v1.2_fixed"
+    print(get_suffix(cur_file_path))
+    #cur_file_path = "tests/test_manual_files/1900-01-01_Test file for do fileop_prepqa.md"
     #print(get_suffix("data/test file string.md")) # expected: None
     #print(get_suffix("data/test file string_vrb.md")) # expected: '_vrb'
     #print(get_suffix("data/test file string with a extra .period_vrb.md")) # expected: Value Error
@@ -102,7 +106,7 @@ def mtest_convert_timezone_to_utc():
     print(convert_timezone_to_utc("ABC"))  # Expected output: ValueError: Time zone not recognized: ABC
 def mtest_get_current_datetime():
     pass
-if __name__ == "__main__":        
+#if __name__ == "__main__":        
     print(get_current_datetime_humanfriendly(include_timezone=False))  # expected see below
     print(get_current_datetime_humanfriendly())  # expected see below
     print(get_current_datetime_filefriendly())  # expected see below
@@ -224,7 +228,7 @@ def mtest_remove_timestamp_links():
     remove_timestamp_links(cur_file_path)
 def mtest_add_timestamp_links_to_content():
     cur_file_path = "tests/test_manual_files/timestamp_link_tests/youtube watch - timestamp link test_removetimestamplinks.md"
-    _, content = read_header_and_content_from_file(cur_file_path)
+    _, content = read_metadata_and_content(cur_file_path)
     print(add_timestamp_links_to_content(content, "dummylink"))
 def mtest_add_timestamp_links():
     pass

@@ -1,3 +1,5 @@
+# ===== START OF FILE docs/codeindex/create_codeindex.py =====
+
 import os
 import re
 import ast
@@ -63,18 +65,56 @@ from primary.fileops import *
 from primary.transcribe import *
 from primary.llm import *
 from primary.aws import *
+from primary.aws_valid import *
 from primary.rag import *
 from primary.vectordb import *
 from primary.rag_prompts_routes import *
+from secondary.video import *
+from primary.webflow_api import *
+from primary.dbgen import *
 from docs.vis.codebase_graph_vis import *
 
 CONTROLLER_FUNCTIONS = ['apply_to_folder']
+SKIP_FUNCTIONS = ['mrun', 'mtest']
 
 ### CORE FUNCTION CALL EXTRACTION USING AST PACKAGE
-def find_user_defined_functions(ast_node, module_name):
-    '''Find user-defined functions in an AST ast_node and prefix them with the module name.'''
+def find_user_defined_functions(ast_node, module_name, exclude_nested=True):
+    '''
+    Find user-defined functions in an AST ast_node and prefix them with the module name.
+    
+    :param ast_node: AST node to search
+    :param module_name: name of the module being processed
+    :param exclude_nested: if True, exclude nested function definitions
+    :return: list of function names prefixed with module name
+    '''
     module_noext = module_name.rsplit('.', 1)[0]  # remove extension, e.g filops.py -> fileops
-    return [f"{module_noext}.{child.name}" for child in ast.walk(ast_node) if isinstance(child, ast.FunctionDef)]
+    functions = []
+    
+    # First pass: collect all function nodes and their parents
+    function_nodes = {}
+    for node in ast.walk(ast_node):
+        if isinstance(node, ast.FunctionDef):
+            # Find the parent function if it exists
+            parent_func = None
+            for parent in ast.walk(ast_node):
+                if (isinstance(parent, ast.FunctionDef) and 
+                    parent.lineno < node.lineno and 
+                    parent.end_lineno > node.lineno):
+                    parent_func = parent
+                    break
+            
+            # Skip functions that start with any of the SKIP_FUNCTIONS prefixes
+            if any(node.name.startswith(skip) for skip in SKIP_FUNCTIONS):
+                continue
+            
+            # Check if this function is nested
+            if exclude_nested and parent_func is not None:
+                print(f"Excluding nested function: {node.name} (nested in {parent_func.name}) in {module_name}")
+                continue
+            
+            functions.append(f"{module_noext}.{node.name}")
+    
+    return functions
 
 def get_full_call_line(source_code, parent_function_name, child_function_name):
     '''
@@ -216,6 +256,8 @@ def process_files_for_user_defined_functions_and_asts(file_paths):
             user_defined_functions = find_user_defined_functions(tree, module_name)
             all_user_defined_functions.extend(user_defined_functions)
     print(f"Module_names: {module_names}")
+    print(f"Number of modules: {len(module_names)}")
+    print(f"Total user-defined functions found: {len(all_user_defined_functions)}")
     return all_user_defined_functions, ast_trees, module_names
 
 def find_function_definition(function_name, source_code):
@@ -223,7 +265,13 @@ def find_function_definition(function_name, source_code):
     Find the exact function definition line and ensure it appears only once.
     :return: the start position of the function definition.
     '''
-    pattern = rf"def {re.escape(function_name)}\s*\("
+    #print(f"DEBUG: function_name received: {function_name}")  # Debug print
+    
+    # Split into module and function name
+    parts = function_name.split('.')
+    func_name = parts[-1]  # Take last part in case of duplicated names
+    
+    pattern = rf"def {re.escape(func_name)}\s*\("
     matches = list(re.finditer(pattern, source_code))
 
     # Check if the function name is found exactly once
@@ -357,67 +405,45 @@ def generate_graph_data(all_source_code, ast_trees, user_defined_functions, modu
     special_edge_count = 0
     invalid_node_id_count = 0
 
-    for tree, module_name in zip(ast_trees, module_names):
-        # Process nodes (functions)
-        temp_nodes = []
-        for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef):
-                module_noext = module_name.rsplit('.', 1)[0]
-                node_id = f"{module_noext}.{node.name}"
-                temp_nodes.append({
-                    "id": node_id,
-                    "label": node.name,
-                    "group": 'function',
-                    "module": module_name,
-                    "submodule": get_heading_from_function(node.name, all_source_code),
-                    "def": get_function_def_line(node.name, all_source_code),
-                    "line": node.lineno,
-                    "docstring": get_docstring_from_function(node.name, all_source_code)
-                })
-        temp_nodes.sort(key=lambda x: x["line"])
-        graph_nodes.extend(temp_nodes)
+    # Instead of walking the AST again, iterate through user_defined_functions
+    for function in user_defined_functions:
+        module_noext, func_name = function.rsplit('.', 1)
+        module_name = module_noext + '.py'
+        
+        node_data = {
+            "id": function,
+            "label": func_name,
+            "group": 'function',
+            "module": module_name,
+            "submodule": get_heading_from_function(function, all_source_code),
+            "def": get_function_def_line(function, all_source_code),
+            "line": None,
+            "docstring": get_docstring_from_function(function, all_source_code)
+        }
+        graph_nodes.append(node_data)
 
-        # Process edges (function calls)
+    # Process edges using the existing AST walk for function calls
+    for tree, module_name in zip(ast_trees, module_names):
         for ast_node in ast.walk(tree):
             if isinstance(ast_node, ast.FunctionDef):
                 module_noext = module_name.rsplit('.', 1)[0]
                 node_id = f"{module_noext}.{ast_node.name}"
-                logging.info(f"Processing node_id: {node_id}  ast_node.name: {ast_node.name}")
-                called_functions = find_function_children(all_source_code, ast_node, user_defined_functions)
-                for called_func in called_functions:
-                    edge_data = {"from": node_id}
-                    if " WITH " in called_func:
-                        #print(f"SPECIAL EDGE: Controller-Worker in applies_to_function:{node_id} controller-worker: {called_func}")
-                        controller_func, worker_func = called_func.split(" WITH ")
-                        edge_data["from"] = controller_func
-                        edge_data["to"] = worker_func
-                        edge_data["type"] = "controller_to_worker"
-                        edge_data["applies_to_functions"] = [node_id]
-                        special_edge_count += 1
-                        # Add the original edge from node_id to controller_func
-                        graph_edges.append({"from": node_id, "to": controller_func})
-                    else:
-                        edge_data["to"] = called_func
-                    
-                    if edge_data["to"] not in user_defined_functions:
-                        print(f"NOT IN USER DEFINED FUNCTIONS - called_func: {repr(called_func)}")
-                        search_string = 'qa.count_blocks'
-                        matching_ids = [func for func in user_defined_functions if search_string in func]
-                        print(f"Search results for '{search_string}' in user defined functions:")
-                        if matching_ids:
-                            print("  Found!!!")
+                # Only process edges for functions that are in our filtered list
+                if node_id in user_defined_functions:
+                    called_functions = find_function_children(all_source_code, ast_node, user_defined_functions)
+                    for called_func in called_functions:
+                        edge_data = {"from": node_id}
+                        if " WITH " in called_func:
+                            controller_func, worker_func = called_func.split(" WITH ")
+                            edge_data["from"] = controller_func
+                            edge_data["to"] = worker_func
+                            edge_data["type"] = "controller_to_worker"
+                            edge_data["applies_to_functions"] = [node_id]
+                            special_edge_count += 1
+                            graph_edges.append({"from": node_id, "to": controller_func})
                         else:
-                            print("  Not found")
-                        if edge_data["to"] not in [edge["to"] for edge in graph_edges]:
-                            for func in user_defined_functions:
-                                if edge_data["to"] in func:
-                                    print(f"  {repr(func)}")
-                            warnings.warn(f"Node ID {repr(edge_data['to'])} not found in current list of user defined functions")
-                            for key, value in edge_data.items():
-                                print(f"{key}: {value}")
-                            print("**\n\n**")
-                            invalid_node_id_count += 1
-                    graph_edges.append(edge_data)
+                            edge_data["to"] = called_func
+                        graph_edges.append(edge_data)
 
     print(f"Number of special edges: {special_edge_count}")
     print(f"Number of invalid node IDs: {invalid_node_id_count}")
@@ -431,7 +457,8 @@ def get_all_source_code(file_paths):
     for file_path in file_paths:
         with open(file_path, 'r') as file:
             source_code = file.readlines()
-        edited_source_code = [line.replace('# ', '#') if line.startswith('# ') else line for line in source_code]
+        # Update the pattern to handle any amount of whitespace after #
+        edited_source_code = [line.replace(re.match(r'#\s+', line).group(), '#') if re.match(r'#\s+', line) else line for line in source_code]
         relative_path = file_path.replace(base_path, "")
         headering1 = f"## {relative_path}\n"  # Markdown level one header with the relative file path
         all_source_code += headering1 + ''.join(edited_source_code) + '\n\n\n\n'
@@ -448,10 +475,12 @@ def get_all_source_defs_docstrings(all_source_code):
     in_docstring = False
     docstring_content = []
     
-
     for line in lines:
         # Keep strict markdown headings
         if re.match(r'^#{1,6}\s', line):
+            # Add blank line before each module heading (level 2)
+            if line.startswith('## '):
+                filtered_lines.append('')  # Add blank line before module heading
             filtered_lines.append(line)
         # Keep function definitions
         elif line.strip().startswith('def '):
@@ -690,11 +719,15 @@ if __name__ == "__main__":
         'primary/vectordb.py',
         'primary/rag.py',
         'primary/conversion.py',
-        'primary/docwork.py',
         'primary/structured.py',
         'primary/corpuses.py',
         'primary/aws.py',
-        'primary/rag_prompts_routes.py'
+        'primary/aws_valid.py',
+        'primary/rag_prompts_routes.py',
+        'primary/video.py',
+        'primary/webflow_api.py',
+        'primary/dbgen.py',
+        #'primary/speakerid.py'
         ]  # NOTE - All of these files must be imported at the top of this file as well.   
     # TEST CODE FOR A SINGLE FUNCTION
     # cur_target_function = 'get_suffix'
@@ -720,3 +753,4 @@ if __name__ == "__main__":
 '''
 consider All of this code and then review the current output format and the desired output format at the end. What I want to do is add the module names and a dot for the function strings. So where is the best place in this code to do that and give me the modified function. Hopefully it'll just involve a single function. The all user-defined functions should also include this format, which has the file name and a dot, and then the function string.
 '''
+# ===== END OF FILE docs/codeindex/create_codeindex.py =====

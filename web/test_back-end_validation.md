@@ -2,7 +2,7 @@
 
 
 
-## ====== Testing qrag-llm  2025-02-16_044010 ======
+## ====== Testing qrag-llm  2026-03-22_071842 ======
 
 
 ## ====== clean_requests for qrag-llm ======
@@ -32,8 +32,8 @@ Original: {
       "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
       "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
       "quoted_qa": "",
-      "ai_answer": "WAITING FOR LLM RESPONSE",
-      "chunks": {
+      "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+      "retrieved_content": {
         "max_sim": "0.216",
         "max_stars": 5,
         "chunks": []
@@ -65,8 +65,8 @@ Complete: {
       "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
       "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
       "quoted_qa": "",
-      "ai_answer": "WAITING FOR LLM RESPONSE",
-      "chunks": {
+      "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+      "retrieved_content": {
         "max_sim": "0.216",
         "max_stars": 5,
         "chunks": []
@@ -84,7 +84,7 @@ Lambda response payload: {
   },
   "multiValueHeaders": {},
   "statusCode": 200,
-  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"llm_model\": \"o3-mini\"}, \"content\": {\"user_question\": \"What should I eat for lunch?\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"David Deutsch\\u2019s approach to understanding the world is all about seeking good explanations and appreciating the power of ideas\\u2014which means that even a seemingly mundane question like \\u201cWhat should I eat for lunch?\\u201d can be considered in a thoughtful, exploratory way.\\n\\nFrom a Deutsch-inspired perspective you might ask yourself:\\n\\u2022 What are the \\u201cgood explanations\\u201d for why certain foods fuel creativity and robust thinking?  \\n\\u2022 How can you use your meal as a small experiment\\u2014a chance to challenge the status quo of your daily routine and try something new while nourishing both body and mind?\\n\\nSo rather than simply picking what\\u2019s convenient, consider lunch as an opportunity to blend nourishment with innovation. For example:\\n\\u2022 A balanced meal that combines lean proteins, whole grains, and plenty of vegetables might be seen as analogous to a robust theory: each ingredient plays its part and contributes essential \\u201cexplanatory power\\u201d to your overall health.  \\n\\u2022 Alternatively, if you\\u2019re feeling adventurous, why not experiment with a cuisine you\\u2019ve never tried before? In the spirit of seeking new ideas (and as Deutsch would appreciate, a good explanation with surprising insights), a dish with unfamiliar spices or unconventional combinations might inspire a fresh perspective and expand your culinary horizons.\\n\\nUltimately, Deutsch would advocate for an approach that isn\\u2019t dogmatic or based solely on tradition. Instead, let your choice reflect your commitment to seeking out better explanations of how to live well\\u2014even in something as everyday as lunch.\\n\\nSo, what should you eat? Consider crafting a meal that\\u2019s both healthy and innovative\\u2014a creative salad with a mix of greens, perhaps some quinoa or whole grains, a lean protein (like grilled chicken, tofu, or legumes), and a surprising twist in the form of an interesting dressing or a sprinkle of nuts. This way, you nourish yourself while also embracing the spirit of inquiry and creativity that lies at the heart of Deutsch\\u2019s philosophy.\\n\\nBon app\\u00e9tit and may your lunch spark new ideas!\", \"chunks\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"cost_pennies_mycalc\": 0.516}}}"
+  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"llm_model\": \"gpt-5.4\", \"reasoning_effort\": \"low\"}, \"content\": {\"user_question\": \"What should I eat for lunch?\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"In a David Deutsch-ish spirit: don\\u2019t ask \\u201cWhat is the correct lunch?\\u201d Ask \\u201cWhat problem am I trying to solve, and what\\u2019s a good conjectured solution I can test?\\u201d\\n\\nSo:\\n\\n1. Define the problem:\\n   - Hunger?\\n   - Need steady energy?\\n   - Want something healthy?\\n   - Limited time?\\n   - Want enjoyment too?\\n\\n2. Propose a decent explanation-based solution:\\n   - A lunch with protein, vegetables, and something filling but not heavy is often a good guess.\\n\\n3. Critically prefer options that solve more problems at once.\\n\\nA good Deutsch-compatible lunch recommendation would be:\\n\\n- Grilled chicken or tofu\\n- Rice, potatoes, or bread\\n- A lot of vegetables\\n- Fruit or yogurt if you want something extra\\n\\nFor example:\\n- Chicken bowl with rice, beans, and salad\\n- Tofu stir-fry with vegetables and noodles\\n- Turkey or hummus sandwich with salad and fruit\\n- Omelet with vegetables and toast\\n\\nIf you want the most Deutsch-sounding answer:\\n> Eat something that is a good, improvable explanation for your current nutritional and practical needs \\u2014 then criticize the result afterward and do better tomorrow.\\n\\nIf you want, I can also give you:\\n- the \\u201cDeutsch would approve\\u201d healthy lunch,\\n- the fastest possible lunch,\\n- or the tastiest lunch.\", \"retrieved_content\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"input_tokens\": 47, \"output_tokens\": 340, \"reasoning_tokens\": 57, \"cost_pennies_mycalc\": 0.522}}}"
 }
 Result:
 {
@@ -95,7 +95,7 @@ Result:
   },
   "multiValueHeaders": {},
   "statusCode": 200,
-  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"llm_model\": \"o3-mini\"}, \"content\": {\"user_question\": \"What should I eat for lunch?\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"David Deutsch\\u2019s approach to understanding the world is all about seeking good explanations and appreciating the power of ideas\\u2014which means that even a seemingly mundane question like \\u201cWhat should I eat for lunch?\\u201d can be considered in a thoughtful, exploratory way.\\n\\nFrom a Deutsch-inspired perspective you might ask yourself:\\n\\u2022 What are the \\u201cgood explanations\\u201d for why certain foods fuel creativity and robust thinking?  \\n\\u2022 How can you use your meal as a small experiment\\u2014a chance to challenge the status quo of your daily routine and try something new while nourishing both body and mind?\\n\\nSo rather than simply picking what\\u2019s convenient, consider lunch as an opportunity to blend nourishment with innovation. For example:\\n\\u2022 A balanced meal that combines lean proteins, whole grains, and plenty of vegetables might be seen as analogous to a robust theory: each ingredient plays its part and contributes essential \\u201cexplanatory power\\u201d to your overall health.  \\n\\u2022 Alternatively, if you\\u2019re feeling adventurous, why not experiment with a cuisine you\\u2019ve never tried before? In the spirit of seeking new ideas (and as Deutsch would appreciate, a good explanation with surprising insights), a dish with unfamiliar spices or unconventional combinations might inspire a fresh perspective and expand your culinary horizons.\\n\\nUltimately, Deutsch would advocate for an approach that isn\\u2019t dogmatic or based solely on tradition. Instead, let your choice reflect your commitment to seeking out better explanations of how to live well\\u2014even in something as everyday as lunch.\\n\\nSo, what should you eat? Consider crafting a meal that\\u2019s both healthy and innovative\\u2014a creative salad with a mix of greens, perhaps some quinoa or whole grains, a lean protein (like grilled chicken, tofu, or legumes), and a surprising twist in the form of an interesting dressing or a sprinkle of nuts. This way, you nourish yourself while also embracing the spirit of inquiry and creativity that lies at the heart of Deutsch\\u2019s philosophy.\\n\\nBon app\\u00e9tit and may your lunch spark new ideas!\", \"chunks\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"cost_pennies_mycalc\": 0.516}}}"
+  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"llm_model\": \"gpt-5.4\", \"reasoning_effort\": \"low\"}, \"content\": {\"user_question\": \"What should I eat for lunch?\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"In a David Deutsch-ish spirit: don\\u2019t ask \\u201cWhat is the correct lunch?\\u201d Ask \\u201cWhat problem am I trying to solve, and what\\u2019s a good conjectured solution I can test?\\u201d\\n\\nSo:\\n\\n1. Define the problem:\\n   - Hunger?\\n   - Need steady energy?\\n   - Want something healthy?\\n   - Limited time?\\n   - Want enjoyment too?\\n\\n2. Propose a decent explanation-based solution:\\n   - A lunch with protein, vegetables, and something filling but not heavy is often a good guess.\\n\\n3. Critically prefer options that solve more problems at once.\\n\\nA good Deutsch-compatible lunch recommendation would be:\\n\\n- Grilled chicken or tofu\\n- Rice, potatoes, or bread\\n- A lot of vegetables\\n- Fruit or yogurt if you want something extra\\n\\nFor example:\\n- Chicken bowl with rice, beans, and salad\\n- Tofu stir-fry with vegetables and noodles\\n- Turkey or hummus sandwich with salad and fruit\\n- Omelet with vegetables and toast\\n\\nIf you want the most Deutsch-sounding answer:\\n> Eat something that is a good, improvable explanation for your current nutritional and practical needs \\u2014 then criticize the result afterward and do better tomorrow.\\n\\nIf you want, I can also give you:\\n- the \\u201cDeutsch would approve\\u201d healthy lunch,\\n- the fastest possible lunch,\\n- or the tastiest lunch.\", \"retrieved_content\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"input_tokens\": 47, \"output_tokens\": 340, \"reasoning_tokens\": 57, \"cost_pennies_mycalc\": 0.522}}}"
 }
 
 ### API GATEWAY INVOCATION
@@ -122,8 +122,8 @@ Request being sent to API Gateway:
     "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
     "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
     "quoted_qa": "",
-    "ai_answer": "WAITING FOR LLM RESPONSE",
-    "chunks": {
+    "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+    "retrieved_content": {
       "max_sim": "0.216",
       "max_stars": 5,
       "chunks": []
@@ -149,20 +149,24 @@ Result:
           "routes_dict_name": "ROUTES_DICT_DEUTSCH_M1"
         }
       },
-      "llm_model": "o3-mini"
+      "llm_model": "gpt-5.4",
+      "reasoning_effort": "low"
     },
     "content": {
       "user_question": "What should I eat for lunch?",
       "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
       "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
       "quoted_qa": "",
-      "ai_answer": "Drawing on David Deutsch\u2019s approach to knowledge and problem-solving, you might view even a decision as seemingly mundane as \u201cwhat to eat for lunch\u201d as an opportunity to experiment, learn, and refine your understanding. Deutsch stresses that progress comes from taking risks in our ideas and testing them rigorously\u2014so why not apply that to your meal planning, too? Here are a few thoughts inspired by his philosophy:\n\n1.\u2002Treat lunch as an experiment in creativity and nourishment. Rather than defaulting to the usual options, consider a balanced meal that challenges your palate. For example, you could assemble a fresh salad featuring a mix of textures and flavors\u2014a base of leafy greens paired with an array of colorful vegetables, a carefully chosen protein (like grilled chicken, tofu, or legumes), and a drizzle of an innovative dressing you haven\u2019t tried before.\n\n2.\u2002Embrace the idea of \u201coptimism about the future\u201d by choosing food that not only satisfies your hunger today but also fuels your curiosity and productivity tomorrow. Just as Deutsch advocates for seeking better explanations of the world, aim for a meal that elevates both your physical well\u2010being and mental clarity. Whole grains, lean proteins, and healthy fats can help keep your mind sharp so you\u2019re ready to tackle new problems with enthusiasm.\n\n3.\u2002See this decision as a microcosm of the creative process: assemble different ingredients (or ideas) together to see what emerges. Maybe experiment with a fusion dish that blends culinary traditions\u2014a bit like combining diverse theories to gain a more comprehensive understanding of reality. This approach mirrors Deutsch\u2019s view that progress comes from boldly mixing ideas and then letting the best survive criticism.\n\n4.\u2002Finally, if you\u2019re inclined to be methodical like Deutsch, consider gathering data about what works best for you. Over time, keep a mental (or literal) record of meals that give you the energy and clarity to engage with complex problems. Treat your lunch as another domain in which you\u2019re testing hypotheses on how best to live.\n\nIn summary, while I can\u2019t tell you unequivocally \u201cwhat to eat for lunch\u201d without knowing your dietary needs or preferences, you might take a page out of David Deutsch\u2019s book by approaching the choice with curiosity, experimentation, and a commitment to learning. Whether you decide on a vibrant salad with a creative twist, a hearty bowl of soup, or even a daring new fusion dish, let your choice be a reflection of your willingness to test new ideas and refine your \u201ctheory\u201d of what makes a satisfying and nourishing lunch. Enjoy the process\u2014and your meal!",
-      "chunks": {
+      "ai_answer": "In a vaguely David-Deutsch-ish spirit:\n\nThere is no authoritative \u201ccorrect lunch\u201d handed down by tradition, instinct, or nutritional mysticism. There are only conjectures about what would work well, and then criticism of those conjectures.\n\nSo:\n\n1. Make a guess that solves the actual problem.\n   Your problem is probably some mix of:\n   - hunger\n   - nutrition\n   - enjoyment\n   - convenience\n   - not feeling awful afterward\n\n2. Reject bad explanations.\n   For example:\n   - \u201cI should eat this because people always eat it at lunch\u201d \u2014 bad explanation.\n   - \u201cI crave sugar, therefore sugar is what I need\u201d \u2014 bad explanation.\n   - \u201cThis meal has protein, fiber, and won\u2019t wreck my afternoon energy\u201d \u2014 better explanation.\n\n3. Choose something good enough, not \u201ccertain.\u201d\n\nA decent Deutsch-compatible lunch conjecture would be:\n\n- protein\n- vegetables\n- something starchy if you need energy\n- something you actually like\n\nExample:\n- grilled chicken or tofu\n- rice or potatoes\n- salad or roasted vegetables\n\nIf you want a single concrete answer:\nEat a chicken bowl with rice, beans, vegetables, and some salsa \u2014 or the tofu equivalent.\n\nThat\u2019s not \u201ctrue by authority\u201d; it\u2019s just a reasonably good explanation-backed proposal.\n\nIf you want, I can also answer this in:\n- \u201cDavid Deutsch actually speaking\u201d style\n- \u201cBeginning of Infinity\u201d style\n- or as a more practical lunch recommendation based on what food you have.",
+      "retrieved_content": {
         "max_sim": "0.216",
         "max_stars": 5,
         "chunks": []
       },
-      "cost_pennies_mycalc": 0.603
+      "input_tokens": 47,
+      "output_tokens": 399,
+      "reasoning_tokens": 78,
+      "cost_pennies_mycalc": 0.61
     }
   }
 }
@@ -201,8 +205,8 @@ Complete: {
       "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
       "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
       "quoted_qa": "",
-      "ai_answer": "WAITING FOR LLM RESPONSE",
-      "chunks": {
+      "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+      "retrieved_content": {
         "max_sim": "0.216",
         "max_stars": 5,
         "chunks": []
@@ -220,7 +224,7 @@ Lambda response payload: {
   },
   "multiValueHeaders": {},
   "statusCode": 200,
-  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"large_context_filename\": \"deutsch_large_context_v1.md\", \"llm_model\": \"o3-mini\"}, \"content\": {\"user_question\": \"What should I eat for lunch?\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"Drawing on a Deutsch-like approach to solving problems, you might view your lunch not as a trivial decision but as an opportunity to experiment, learn, and improve your state of well-being\\u2014just as we improve our theories by creatively correcting errors and seeking better explanations.\\n\\nConsider your lunch as fuel for creative thought and progress. Instead of defaulting to a habitual meal, why not try something balanced that offers both nourishment and a hint of novelty? For example, you might experiment with a Mediterranean quinoa salad: a composition of fresh greens, protein (such as grilled chicken or tofu), colorful vegetables, a sprinkle of nuts or seeds for both texture and healthy fats, and a drizzle of olive oil and lemon for flavor.\\n\\nThis choice embodies several Deutschian ideas:\\n1. Creativity: Trying a new recipe or mixing ingredients encourages you to break out of rote habits\\u2014mirroring how innovative ideas emerge from challenging standard assumptions.\\n2. Error-Correction: Just as scientific theories are improved by testing and refining, you can adjust the proportions or ingredients next time if you feel something is \\u201coff.\\u201d\\n3. Progress: Fuelling your body with a meal that is both nourishing and engaging can help optimize both physical and mental energy, supporting the kind of creative thinking that drives meaningful progress.\\n\\nUltimately, the best lunch is one that aligns with your nutritional needs, tastes, and desire to be open to new ideas\\u2014much like how good explanations in science are hard to vary once they are fully understood and refined.\\n\\nSo, if you\\u2019re open to a little culinary exploration, why not give a creative, nutrient-rich Mediterranean quinoa salad a try today? Enjoy the process of experimenting with flavors as much as the meal itself, and let that spirit of inquiry carry over into the rest of your day.\", \"chunks\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"large_context_filename\": \"deutsch_large_context_v1.md\", \"cost_pennies_mycalc\": 1.823}}}"
+  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"large_context_filename\": \"deutsch_large_context_v1.md\", \"llm_model\": \"gpt-5.4\", \"reasoning_effort\": \"low\"}, \"content\": {\"user_question\": \"What should I eat for lunch?\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"A Deutschian answer would be something like:\\n\\nDon\\u2019t ask \\u201cWhat is the correct lunch?\\u201d as if there were an authority or algorithm that can justify it.\\n\\nAsk instead: **what problem is lunch supposed to solve today?**\\n\\nFor example:\\n\\n- **Fuel/health problem:** you want something nutritious that won\\u2019t make you sluggish.\\n- **Time problem:** you need something fast.\\n- **Enjoyment problem:** lunch should also be pleasant.\\n- **Productivity problem:** you want stable energy for the afternoon.\\n- **Experimentation problem:** you may want to try improving your eating habits.\\n\\nSo the rational move is to **conjecture a few options** and **criticize them**.\\n\\nA generally good, hard-to-vary lunch candidate is:\\n\\n**A meal built around protein + vegetables + a slow carb + something you actually like.**\\n\\nExamples:\\n- grilled chicken, rice, salad\\n- omelet with vegetables and toast\\n- beans, quinoa, roasted vegetables\\n- salmon sandwich with fruit\\n- tofu stir-fry with rice\\n\\nWhy this is \\u201cDeutsch-compatible\\u201d:\\n- it solves multiple problems at once\\n- it\\u2019s adaptable without being arbitrary\\n- it avoids both blind rule-following and random impulse\\n- it treats lunch as a problem-solving activity, not obedience to diet authority\\n\\nIf you want one concrete answer:\\n\\n**Eat a bowl with chicken or tofu, rice or potatoes, lots of vegetables, and a flavorful sauce.**\\n\\nIf you want, I can also give you:\\n1. a **David Deutsch-style decision procedure for lunch**, or  \\n2. **3 lunch options based on your actual constraints**.\", \"retrieved_content\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"large_context_filename\": \"deutsch_large_context_v1.md\", \"input_tokens\": 12573, \"output_tokens\": 388, \"reasoning_tokens\": 49, \"cost_pennies_mycalc\": 3.725}}}"
 }
 Result:
 {
@@ -231,7 +235,7 @@ Result:
   },
   "multiValueHeaders": {},
   "statusCode": 200,
-  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"large_context_filename\": \"deutsch_large_context_v1.md\", \"llm_model\": \"o3-mini\"}, \"content\": {\"user_question\": \"What should I eat for lunch?\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"Drawing on a Deutsch-like approach to solving problems, you might view your lunch not as a trivial decision but as an opportunity to experiment, learn, and improve your state of well-being\\u2014just as we improve our theories by creatively correcting errors and seeking better explanations.\\n\\nConsider your lunch as fuel for creative thought and progress. Instead of defaulting to a habitual meal, why not try something balanced that offers both nourishment and a hint of novelty? For example, you might experiment with a Mediterranean quinoa salad: a composition of fresh greens, protein (such as grilled chicken or tofu), colorful vegetables, a sprinkle of nuts or seeds for both texture and healthy fats, and a drizzle of olive oil and lemon for flavor.\\n\\nThis choice embodies several Deutschian ideas:\\n1. Creativity: Trying a new recipe or mixing ingredients encourages you to break out of rote habits\\u2014mirroring how innovative ideas emerge from challenging standard assumptions.\\n2. Error-Correction: Just as scientific theories are improved by testing and refining, you can adjust the proportions or ingredients next time if you feel something is \\u201coff.\\u201d\\n3. Progress: Fuelling your body with a meal that is both nourishing and engaging can help optimize both physical and mental energy, supporting the kind of creative thinking that drives meaningful progress.\\n\\nUltimately, the best lunch is one that aligns with your nutritional needs, tastes, and desire to be open to new ideas\\u2014much like how good explanations in science are hard to vary once they are fully understood and refined.\\n\\nSo, if you\\u2019re open to a little culinary exploration, why not give a creative, nutrient-rich Mediterranean quinoa salad a try today? Enjoy the process of experimenting with flavors as much as the meal itself, and let that spirit of inquiry carry over into the rest of your day.\", \"chunks\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"large_context_filename\": \"deutsch_large_context_v1.md\", \"cost_pennies_mycalc\": 1.823}}}"
+  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"large_context_filename\": \"deutsch_large_context_v1.md\", \"llm_model\": \"gpt-5.4\", \"reasoning_effort\": \"low\"}, \"content\": {\"user_question\": \"What should I eat for lunch?\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"A Deutschian answer would be something like:\\n\\nDon\\u2019t ask \\u201cWhat is the correct lunch?\\u201d as if there were an authority or algorithm that can justify it.\\n\\nAsk instead: **what problem is lunch supposed to solve today?**\\n\\nFor example:\\n\\n- **Fuel/health problem:** you want something nutritious that won\\u2019t make you sluggish.\\n- **Time problem:** you need something fast.\\n- **Enjoyment problem:** lunch should also be pleasant.\\n- **Productivity problem:** you want stable energy for the afternoon.\\n- **Experimentation problem:** you may want to try improving your eating habits.\\n\\nSo the rational move is to **conjecture a few options** and **criticize them**.\\n\\nA generally good, hard-to-vary lunch candidate is:\\n\\n**A meal built around protein + vegetables + a slow carb + something you actually like.**\\n\\nExamples:\\n- grilled chicken, rice, salad\\n- omelet with vegetables and toast\\n- beans, quinoa, roasted vegetables\\n- salmon sandwich with fruit\\n- tofu stir-fry with rice\\n\\nWhy this is \\u201cDeutsch-compatible\\u201d:\\n- it solves multiple problems at once\\n- it\\u2019s adaptable without being arbitrary\\n- it avoids both blind rule-following and random impulse\\n- it treats lunch as a problem-solving activity, not obedience to diet authority\\n\\nIf you want one concrete answer:\\n\\n**Eat a bowl with chicken or tofu, rice or potatoes, lots of vegetables, and a flavorful sauce.**\\n\\nIf you want, I can also give you:\\n1. a **David Deutsch-style decision procedure for lunch**, or  \\n2. **3 lunch options based on your actual constraints**.\", \"retrieved_content\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"large_context_filename\": \"deutsch_large_context_v1.md\", \"input_tokens\": 12573, \"output_tokens\": 388, \"reasoning_tokens\": 49, \"cost_pennies_mycalc\": 3.725}}}"
 }
 
 ### API GATEWAY INVOCATION
@@ -259,8 +263,8 @@ Request being sent to API Gateway:
     "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
     "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
     "quoted_qa": "",
-    "ai_answer": "WAITING FOR LLM RESPONSE",
-    "chunks": {
+    "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+    "retrieved_content": {
       "max_sim": "0.216",
       "max_stars": 5,
       "chunks": []
@@ -287,21 +291,167 @@ Result:
         }
       },
       "large_context_filename": "deutsch_large_context_v1.md",
-      "llm_model": "o3-mini"
+      "llm_model": "gpt-5.4",
+      "reasoning_effort": "low"
     },
     "content": {
       "user_question": "What should I eat for lunch?",
       "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
       "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
       "quoted_qa": "",
-      "ai_answer": "Drawing on David Deutsch\u2019s philosophy\u2014where creativity, the pursuit of good explanations, and the willingness to challenge conventional boundaries are central\u2014you might approach your lunch decision as an experiment in nourishing both body and mind.\n\nConsider this: rather than automatically selecting the familiar, use your lunchtime as an opportunity to try something that isn\u2019t only healthy but also invites new ideas, perhaps even blending elements from different culinary traditions. For example, you could prepare a thoughtfully composed meal that is both nutritionally balanced and creatively satisfying. A mixed salad featuring a variety of textures and flavors (imagine crisp greens, roasted vegetables, nuts or seeds, a touch of cheese or a plant-based protein) paired with a side of whole-grain bread or an inventive grain bowl could serve as a kind of \u201cexplanatory synthesis\u201d for your body\u2019s needs. \n\nThis approach mirrors Deutsch\u2019s idea that progress is achieved by testing new ideas and being willing to depart from rote habits. Just as the growth of knowledge arises from conjecture and criticism, you can treat your meal as a small, personal experiment: try adding a new spice or ingredient you haven\u2019t used before, or mix elements of different cuisines.\n\nUltimately, the \u201cbest\u201d lunch is one that not only satisfies your immediate nutritional needs but also encourages you to think differently\u2014transforming a routine decision into a creative act. In other words, opt for a lunch that is both nourishing and innovative, one that supports your continual quest for knowledge and improvement. Enjoy your experiment!",
-      "chunks": {
+      "ai_answer": "In a Deutschian spirit: don\u2019t ask for an authority-approved lunch. Treat it as a problem-solving exercise.\n\nA good lunch is one that solves your actual constraints:\n- hunger\n- time\n- energy later\n- enjoyment\n- health\n- cost\n\nSo the best answer is:\n\n**Eat something you\u2019re likely to enjoy, that won\u2019t make your afternoon worse, and that fits your constraints.**\n\nA simple hard-to-vary heuristic:\n1. **Protein**\n2. **Some plants/fiber**\n3. **Not so much junk that you crash after**\n4. **Something easy enough that you\u2019ll actually do it**\n\nSo, if you want a concrete recommendation:\n\n- **If you want the safest default:** a chicken/rice/vegetable bowl, or tofu/grain/vegetable bowl\n- **If you want fast and decent:** sandwich or wrap with protein + salad/fruit\n- **If you want comfort without self-sabotage:** burrito bowl, not a giant greasy meal\n- **If you want cheap:** eggs, beans, rice, yogurt, fruit\n- **If you\u2019re mentally tired:** choose the option with the fewest decisions and highest reliability\n\nIf I were applying Deutsch\u2019s philosophy more explicitly, I\u2019d say:\n- there is no infallible lunch authority;\n- you should make a conjecture about what will work;\n- criticize it using your actual afternoon plans;\n- then eat and update next time.\n\nSo my practical answer is:\n\n**Have a bowl or wrap with protein, vegetables, and a carb you tolerate well.**  \nExample: **chicken or tofu, rice, greens, beans, salsa.**\n\nIf you want, I can turn this into a **\u201cDavid Deutsch-style lunch chooser\u201d** based on your goals: tasty, healthy, cheap, fast, or high-energy.",
+      "retrieved_content": {
         "max_sim": "0.216",
         "max_stars": 5,
         "chunks": []
       },
       "large_context_filename": "deutsch_large_context_v1.md",
-      "cost_pennies_mycalc": 1.09
+      "input_tokens": 12573,
+      "output_tokens": 441,
+      "reasoning_tokens": 57,
+      "cached_input_tokens": 12032,
+      "cost_pennies_mycalc": 1.098
+    }
+  }
+}
+
+## clean_requests           Request 3: Test retry flag
+Original: {
+  "description": "Test retry flag",
+  "request": {
+    "metadata": {
+      "is_retry": true
+    }
+  }
+}
+Complete: {
+  "description": "Test retry flag",
+  "request": {
+    "metadata": {
+      "timestamp": "2024-06-13T11:46:33.651753",
+      "user_id": "default",
+      "vector_index_name": "deutsch-transcript-qrag-83f-20250202",
+      "bot_version": "2.0",
+      "routes_info": {
+        "routes_flow_name": "3 routes, separate route prompts",
+        "upper_sim_bound": 0.9,
+        "lower_sim_bound": 0.3,
+        "max_sim": "0.216",
+        "max_stars": 5,
+        "routes_dict_content": {
+          "routes_dict_name": "ROUTES_DICT_DEUTSCH_M1"
+        }
+      },
+      "is_retry": true
+    },
+    "content": {
+      "user_question": "What should I eat for lunch?",
+      "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
+      "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
+      "quoted_qa": "",
+      "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+      "retrieved_content": {
+        "max_sim": "0.216",
+        "max_stars": 5,
+        "chunks": []
+      }
+    }
+  }
+}
+
+### DIRECT LAMBDA INVOCATION
+Lambda response payload: {
+  "headers": {
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type,Authorization",
+    "Access-Control-Allow-Origin": "https://www.focusonfoundations.org"
+  },
+  "multiValueHeaders": {},
+  "statusCode": 200,
+  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"is_retry\": true, \"llm_model\": \"gpt-5.4\", \"reasoning_effort\": \"none\"}, \"content\": {\"user_question\": \"What should I eat for lunch?\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"David Deutsch would probably say this is not a question with a single authoritative answer waiting to be \\u201cderived.\\u201d It\\u2019s a problem of **creating good explanations** and then **choosing based on your preferences, constraints, and willingness to correct errors**.\\n\\nSo, in a Deutsch-ish spirit:\\n\\n## Good lunch-choice method\\nAsk:\\n1. **What are your constraints?**\\n   - Hungry now?\\n   - Need cheap?\\n   - Need fast?\\n   - Want healthy?\\n   - Need something that won\\u2019t make you sleepy?\\n2. **What problem are you trying to solve?**\\n   - Pleasure?\\n   - Nutrition?\\n   - Convenience?\\n   - Social lunch?\\n3. **Pick the best current conjecture**, then improve next time if it was wrong.\\n\\n## My best conjecture without more info\\nEat something that is:\\n- **simple**\\n- **nutritious**\\n- **unlikely to cause an afternoon crash**\\n\\nA solid default:\\n- **Grilled chicken or tofu bowl**\\n- with **rice or potatoes**\\n- and **vegetables**\\n- plus water\\n\\nIf you want something more universally practical:\\n- **A sandwich or wrap with protein, vegetables, and fruit on the side**\\n\\n## Deutsch-flavored principle\\nDon\\u2019t seek certainty about lunch.  \\nChoose a **good, testable option**, then if it\\u2019s bad, you\\u2019ve learned something and can improve tomorrow.\\n\\n## Short answer\\n**Have a protein-and-vegetable-based lunch with some carbs: e.g. a chicken/tofu rice bowl or a good sandwich.**\\n\\nIf you want, I can answer this in a **more specifically David Deutsch style**, or help you pick lunch based on:\\n- what food you have\\n- your budget\\n- whether you want healthy vs indulgent\\n- whether you want what Deutsch himself might plausibly choose rhetorically.\", \"retrieved_content\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"input_tokens\": 47, \"output_tokens\": 381, \"cost_pennies_mycalc\": 0.583}}}"
+}
+Result:
+{
+  "headers": {
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type,Authorization",
+    "Access-Control-Allow-Origin": "https://www.focusonfoundations.org"
+  },
+  "multiValueHeaders": {},
+  "statusCode": 200,
+  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"is_retry\": true, \"llm_model\": \"gpt-5.4\", \"reasoning_effort\": \"none\"}, \"content\": {\"user_question\": \"What should I eat for lunch?\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"David Deutsch would probably say this is not a question with a single authoritative answer waiting to be \\u201cderived.\\u201d It\\u2019s a problem of **creating good explanations** and then **choosing based on your preferences, constraints, and willingness to correct errors**.\\n\\nSo, in a Deutsch-ish spirit:\\n\\n## Good lunch-choice method\\nAsk:\\n1. **What are your constraints?**\\n   - Hungry now?\\n   - Need cheap?\\n   - Need fast?\\n   - Want healthy?\\n   - Need something that won\\u2019t make you sleepy?\\n2. **What problem are you trying to solve?**\\n   - Pleasure?\\n   - Nutrition?\\n   - Convenience?\\n   - Social lunch?\\n3. **Pick the best current conjecture**, then improve next time if it was wrong.\\n\\n## My best conjecture without more info\\nEat something that is:\\n- **simple**\\n- **nutritious**\\n- **unlikely to cause an afternoon crash**\\n\\nA solid default:\\n- **Grilled chicken or tofu bowl**\\n- with **rice or potatoes**\\n- and **vegetables**\\n- plus water\\n\\nIf you want something more universally practical:\\n- **A sandwich or wrap with protein, vegetables, and fruit on the side**\\n\\n## Deutsch-flavored principle\\nDon\\u2019t seek certainty about lunch.  \\nChoose a **good, testable option**, then if it\\u2019s bad, you\\u2019ve learned something and can improve tomorrow.\\n\\n## Short answer\\n**Have a protein-and-vegetable-based lunch with some carbs: e.g. a chicken/tofu rice bowl or a good sandwich.**\\n\\nIf you want, I can answer this in a **more specifically David Deutsch style**, or help you pick lunch based on:\\n- what food you have\\n- your budget\\n- whether you want healthy vs indulgent\\n- whether you want what Deutsch himself might plausibly choose rhetorically.\", \"retrieved_content\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"input_tokens\": 47, \"output_tokens\": 381, \"cost_pennies_mycalc\": 0.583}}}"
+}
+
+### API GATEWAY INVOCATION
+Request being sent to API Gateway:
+{
+  "metadata": {
+    "timestamp": "2024-06-13T11:46:33.651753",
+    "user_id": "default",
+    "vector_index_name": "deutsch-transcript-qrag-83f-20250202",
+    "bot_version": "2.0",
+    "routes_info": {
+      "routes_flow_name": "3 routes, separate route prompts",
+      "upper_sim_bound": 0.9,
+      "lower_sim_bound": 0.3,
+      "max_sim": "0.216",
+      "max_stars": 5,
+      "routes_dict_content": {
+        "routes_dict_name": "ROUTES_DICT_DEUTSCH_M1"
+      }
+    },
+    "is_retry": true
+  },
+  "content": {
+    "user_question": "What should I eat for lunch?",
+    "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
+    "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
+    "quoted_qa": "",
+    "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+    "retrieved_content": {
+      "max_sim": "0.216",
+      "max_stars": 5,
+      "chunks": []
+    }
+  }
+}
+Result:
+{
+  "status": "Success",
+  "response": {
+    "metadata": {
+      "timestamp": "2024-06-13T11:46:33.651753",
+      "user_id": "default",
+      "vector_index_name": "deutsch-transcript-qrag-83f-20250202",
+      "bot_version": "2.0",
+      "routes_info": {
+        "routes_flow_name": "3 routes, separate route prompts",
+        "upper_sim_bound": 0.9,
+        "lower_sim_bound": 0.3,
+        "max_sim": "0.216",
+        "max_stars": 5,
+        "routes_dict_content": {
+          "routes_dict_name": "ROUTES_DICT_DEUTSCH_M1"
+        }
+      },
+      "is_retry": true,
+      "llm_model": "gpt-5.4",
+      "reasoning_effort": "none"
+    },
+    "content": {
+      "user_question": "What should I eat for lunch?",
+      "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
+      "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
+      "quoted_qa": "",
+      "ai_answer": "David Deutsch would probably reject the idea that there is one authoritative, \u201ccorrect\u201d lunch dictated by expertise or tradition.\n\nA Deutsch-ish answer would be:\n\n- Your lunch choice is a problem-solving task.\n- Good choices come from conjecture and criticism.\n- So: propose some lunch options, then criticize them against your aims.\n\nFor example, ask:\n- Do you want energy for the afternoon?\n- Do you care about health?\n- Speed?\n- Cost?\n- Pleasure?\n- What ingredients do you actually have access to?\n\nThen form a testable guess:\n- \u201cA lunch with protein, vegetables, and something filling will keep me alert better than fast sugar.\u201d\n- \u201cIf I eat something too heavy, I may get sluggish.\u201d\n- \u201cIf I optimize only for health and ignore enjoyment, I may not sustain the habit.\u201d\n\nA reasonable provisional solution:\n- A grain bowl or salad with chicken, beans, tofu, or eggs\n- A sandwich with good protein and vegetables\n- Soup plus bread and fruit\n- Rice, vegetables, and some protein\n\nThe Deutsch angle is not \u201ceat X because authority says so,\u201d but:\n- create options\n- criticize them\n- choose the best current explanation for what will solve your lunch problem\n- be ready to improve next time\n\nSo the most Deutsch-like answer is:\nEat the lunch that best solves your current problem after criticism\u2014probably something nutritious, enjoyable, and unlikely to make you sleepy. If you want, I can make this more specifically Deutsch-like, funny, or actually practical based on what food you have.",
+      "retrieved_content": {
+        "max_sim": "0.216",
+        "max_stars": 5,
+        "chunks": []
+      },
+      "input_tokens": 47,
+      "output_tokens": 318,
+      "cost_pennies_mycalc": 0.489
     }
   }
 }
@@ -342,8 +492,8 @@ Complete: {
       "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
       "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
       "quoted_qa": "",
-      "ai_answer": "WAITING FOR LLM RESPONSE",
-      "chunks": {
+      "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+      "retrieved_content": {
         "max_sim": "0.216",
         "max_stars": 5,
         "chunks": []
@@ -361,7 +511,7 @@ Lambda response payload: {
   },
   "multiValueHeaders": {},
   "statusCode": 200,
-  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"llm_model\": \"o3-mini\"}, \"content\": {\"user_question\": \"What should I eat for lunch?\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"Drawing inspiration from David Deutsch\\u2019s approach to rational problem-solving and his emphasis on seeking the best explanations, you might treat your lunch decision as a small experiment in critical thinking. Deutsch would urge you to consider the evidence available\\u2014your hunger level, nutritional needs, available ingredients, and even your mood\\u2014and to choose a meal that contributes to both your immediate well-being and your long\\u2010term potential for creative, error\\u2010correcting progress.\\n\\nHere\\u2019s a way to apply that philosophy:\\n\\n1. Identify your objective clearly. Are you looking for fuel to power your afternoon\\u2019s work? Do you need a meal that\\u2019s both nutritious and light to keep your mind agile?\\n\\n2. Gather your \\u201cevidence.\\u201d Consider what ingredients you have available, whether you\\u2019re cooking or buying. Think about your nutritional goals (balanced protein, healthy fats, complex carbohydrates, fresh vegetables) as if they\\u2019re pieces of a theory that must work together harmoniously.\\n\\n3. Propose a hypothesis. For example, \\u201cA lunch that blends both tradition and innovation\\u2014say, a hearty salad with grilled chicken (or a protein of your choice), mixed greens, nuts, and a tangy dressing\\u2014will fuel my body and mind in a way that promotes clarity and optimism.\\u201d\\n\\n4. Critically test and refine. Reflect on past lunches. Did a similar meal boost your productivity? Did you feel balanced afterwards? Adjust based on that feedback.\\n\\nSo, if you\\u2019re looking for a concrete suggestion in the spirit of rational inquiry, you might consider:\\n\\n\\u2022 A well-balanced salad featuring mixed greens, a lean protein (like grilled chicken, tofu, or legumes), a mix of colorful vegetables, and a handful of nuts or seeds for healthy fat.  \\n\\u2022 Accompany it with a slice of whole-grain bread or a small serving of quinoa to incorporate some complex carbohydrates.  \\n\\u2022 Optionally, a side of fresh fruit to round out the meal with natural sweetness and additional nutrients.\\n\\nThis choice not only meets nutritional criteria but also reflects the kind of thoughtful decision-making process Deutsch encourages\\u2014a commitment to improving one\\u2019s situation based on the best available explanations and evidence.\\n\\nOf course, if you\\u2019re in a different mood or have a craving for something else, just apply the same critical approach. Examine your choices, consider how they align with your goals (whether those are health, enjoyment, or even sustainability), and select the option that best advances your well-being both practically and intellectually. Enjoy your lunch and the ongoing experiment of learning from every decision!\", \"chunks\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"cost_pennies_mycalc\": 0.539}}}"
+  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"llm_model\": \"gpt-5.4\", \"reasoning_effort\": \"low\"}, \"content\": {\"user_question\": \"What should I eat for lunch?\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"David Deutsch would probably say there is no authoritative, final answer to \\u201cwhat should I eat for lunch?\\u201d\\n\\nA Deutsch-style answer would be:\\n\\n- Form a few good conjectures.\\n- Critically evaluate them.\\n- Choose the one that best solves your current problem.\\n\\nSo first ask: what problem is lunch solving today?\\n\\n- **Need sustained energy?** Eat something with protein, fiber, and slow carbs.\\n- **Need speed/convenience?** Choose the simplest decent option you can get quickly.\\n- **Want enjoyment?** Pick something you\\u2019ll actually like.\\n- **Trying to improve your habits?** Treat lunch as an experiment and see what leaves you feeling best afterward.\\n\\nA good fallible-but-decent conjecture is:\\n\\n**A bowl or plate with:**\\n- protein: chicken, tofu, beans, eggs, fish\\n- vegetables\\n- a carb: rice, potatoes, whole grain bread, pasta\\n- something tasty enough that you\\u2019re glad you ate it\\n\\nFor example:\\n- **Chicken rice bowl with vegetables**\\n- **Bean burrito bowl**\\n- **Omelet with salad and toast**\\n- **Salmon, potatoes, and greens**\\n- **Tofu stir-fry with rice**\\n\\nVery Deutschian summary:\\n\\n**There is no perfect lunch, only better explanations for why one lunch may suit your purposes today.**\\n\\nIf you want, I can also give you:\\n1. a **Deutsch-style decision procedure** for lunch, or  \\n2. a **single concrete lunch recommendation** based on your goals.\", \"retrieved_content\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"input_tokens\": 47, \"output_tokens\": 375, \"reasoning_tokens\": 56, \"cost_pennies_mycalc\": 0.574}}}"
 }
 Result:
 {
@@ -372,7 +522,7 @@ Result:
   },
   "multiValueHeaders": {},
   "statusCode": 200,
-  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"llm_model\": \"o3-mini\"}, \"content\": {\"user_question\": \"What should I eat for lunch?\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"Drawing inspiration from David Deutsch\\u2019s approach to rational problem-solving and his emphasis on seeking the best explanations, you might treat your lunch decision as a small experiment in critical thinking. Deutsch would urge you to consider the evidence available\\u2014your hunger level, nutritional needs, available ingredients, and even your mood\\u2014and to choose a meal that contributes to both your immediate well-being and your long\\u2010term potential for creative, error\\u2010correcting progress.\\n\\nHere\\u2019s a way to apply that philosophy:\\n\\n1. Identify your objective clearly. Are you looking for fuel to power your afternoon\\u2019s work? Do you need a meal that\\u2019s both nutritious and light to keep your mind agile?\\n\\n2. Gather your \\u201cevidence.\\u201d Consider what ingredients you have available, whether you\\u2019re cooking or buying. Think about your nutritional goals (balanced protein, healthy fats, complex carbohydrates, fresh vegetables) as if they\\u2019re pieces of a theory that must work together harmoniously.\\n\\n3. Propose a hypothesis. For example, \\u201cA lunch that blends both tradition and innovation\\u2014say, a hearty salad with grilled chicken (or a protein of your choice), mixed greens, nuts, and a tangy dressing\\u2014will fuel my body and mind in a way that promotes clarity and optimism.\\u201d\\n\\n4. Critically test and refine. Reflect on past lunches. Did a similar meal boost your productivity? Did you feel balanced afterwards? Adjust based on that feedback.\\n\\nSo, if you\\u2019re looking for a concrete suggestion in the spirit of rational inquiry, you might consider:\\n\\n\\u2022 A well-balanced salad featuring mixed greens, a lean protein (like grilled chicken, tofu, or legumes), a mix of colorful vegetables, and a handful of nuts or seeds for healthy fat.  \\n\\u2022 Accompany it with a slice of whole-grain bread or a small serving of quinoa to incorporate some complex carbohydrates.  \\n\\u2022 Optionally, a side of fresh fruit to round out the meal with natural sweetness and additional nutrients.\\n\\nThis choice not only meets nutritional criteria but also reflects the kind of thoughtful decision-making process Deutsch encourages\\u2014a commitment to improving one\\u2019s situation based on the best available explanations and evidence.\\n\\nOf course, if you\\u2019re in a different mood or have a craving for something else, just apply the same critical approach. Examine your choices, consider how they align with your goals (whether those are health, enjoyment, or even sustainability), and select the option that best advances your well-being both practically and intellectually. Enjoy your lunch and the ongoing experiment of learning from every decision!\", \"chunks\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"cost_pennies_mycalc\": 0.539}}}"
+  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"llm_model\": \"gpt-5.4\", \"reasoning_effort\": \"low\"}, \"content\": {\"user_question\": \"What should I eat for lunch?\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"David Deutsch would probably say there is no authoritative, final answer to \\u201cwhat should I eat for lunch?\\u201d\\n\\nA Deutsch-style answer would be:\\n\\n- Form a few good conjectures.\\n- Critically evaluate them.\\n- Choose the one that best solves your current problem.\\n\\nSo first ask: what problem is lunch solving today?\\n\\n- **Need sustained energy?** Eat something with protein, fiber, and slow carbs.\\n- **Need speed/convenience?** Choose the simplest decent option you can get quickly.\\n- **Want enjoyment?** Pick something you\\u2019ll actually like.\\n- **Trying to improve your habits?** Treat lunch as an experiment and see what leaves you feeling best afterward.\\n\\nA good fallible-but-decent conjecture is:\\n\\n**A bowl or plate with:**\\n- protein: chicken, tofu, beans, eggs, fish\\n- vegetables\\n- a carb: rice, potatoes, whole grain bread, pasta\\n- something tasty enough that you\\u2019re glad you ate it\\n\\nFor example:\\n- **Chicken rice bowl with vegetables**\\n- **Bean burrito bowl**\\n- **Omelet with salad and toast**\\n- **Salmon, potatoes, and greens**\\n- **Tofu stir-fry with rice**\\n\\nVery Deutschian summary:\\n\\n**There is no perfect lunch, only better explanations for why one lunch may suit your purposes today.**\\n\\nIf you want, I can also give you:\\n1. a **Deutsch-style decision procedure** for lunch, or  \\n2. a **single concrete lunch recommendation** based on your goals.\", \"retrieved_content\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"input_tokens\": 47, \"output_tokens\": 375, \"reasoning_tokens\": 56, \"cost_pennies_mycalc\": 0.574}}}"
 }
 
 ### API GATEWAY INVOCATION
@@ -399,8 +549,8 @@ Request being sent to API Gateway:
     "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
     "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
     "quoted_qa": "",
-    "ai_answer": "WAITING FOR LLM RESPONSE",
-    "chunks": {
+    "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+    "retrieved_content": {
       "max_sim": "0.216",
       "max_stars": 5,
       "chunks": []
@@ -445,8 +595,8 @@ Complete: {
       "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
       "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
       "quoted_qa": "",
-      "ai_answer": "WAITING FOR LLM RESPONSE",
-      "chunks": {
+      "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+      "retrieved_content": {
         "max_sim": "0.216",
         "max_stars": 5,
         "chunks": []
@@ -464,7 +614,7 @@ Lambda response payload: {
   },
   "multiValueHeaders": {},
   "statusCode": 200,
-  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"llm_model\": \"o3-mini\"}, \"content\": {\"user_question\": \"\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"Could you please clarify what specific aspect of David Deutsch or his philosophy you\\u2019d like to discuss? For example, are you interested in his ideas on quantum computation, his advocacy of the many\\u2010worlds interpretation, his views on epistemology as presented in The Fabric of Reality and The Beginning of Infinity, or something else? Let me know so I can provide the most relevant information.\", \"chunks\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"cost_pennies_mycalc\": 0.324}}}"
+  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"llm_model\": \"gpt-5.4\", \"reasoning_effort\": \"low\"}, \"content\": {\"user_question\": \"\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"It looks like the actual question and quoted Q&A didn\\u2019t come through \\u2014 both sections are empty.\\n\\nPlease paste:\\n\\n1. Your question inside `<USER_QUESTION> ... </USER_QUESTION>`\\n2. The quoted material inside `<QUOTED_QA> ... </QUOTED_QA>`\\n\\nThen I can analyze it in light of David Deutsch\\u2019s views \\u2014 e.g. on:\\n- fallibilism\\n- optimism\\n- explanation vs authority\\n- epistemology / conjecture and criticism\\n- many-worlds\\n- morality and progress\\n- AGI / creativity / universality\\n\\nIf you want, you can also just paste the raw text without the tags.\", \"retrieved_content\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"input_tokens\": 40, \"output_tokens\": 196, \"reasoning_tokens\": 51, \"cost_pennies_mycalc\": 0.304}}}"
 }
 Result:
 {
@@ -475,7 +625,7 @@ Result:
   },
   "multiValueHeaders": {},
   "statusCode": 200,
-  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"llm_model\": \"o3-mini\"}, \"content\": {\"user_question\": \"\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"Could you please clarify what specific aspect of David Deutsch or his philosophy you\\u2019d like to discuss? For example, are you interested in his ideas on quantum computation, his advocacy of the many\\u2010worlds interpretation, his views on epistemology as presented in The Fabric of Reality and The Beginning of Infinity, or something else? Let me know so I can provide the most relevant information.\", \"chunks\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"cost_pennies_mycalc\": 0.324}}}"
+  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"llm_model\": \"gpt-5.4\", \"reasoning_effort\": \"low\"}, \"content\": {\"user_question\": \"\", \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"It looks like the actual question and quoted Q&A didn\\u2019t come through \\u2014 both sections are empty.\\n\\nPlease paste:\\n\\n1. Your question inside `<USER_QUESTION> ... </USER_QUESTION>`\\n2. The quoted material inside `<QUOTED_QA> ... </QUOTED_QA>`\\n\\nThen I can analyze it in light of David Deutsch\\u2019s views \\u2014 e.g. on:\\n- fallibilism\\n- optimism\\n- explanation vs authority\\n- epistemology / conjecture and criticism\\n- many-worlds\\n- morality and progress\\n- AGI / creativity / universality\\n\\nIf you want, you can also just paste the raw text without the tags.\", \"retrieved_content\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"input_tokens\": 40, \"output_tokens\": 196, \"reasoning_tokens\": 51, \"cost_pennies_mycalc\": 0.304}}}"
 }
 
 ### API GATEWAY INVOCATION
@@ -502,8 +652,8 @@ Request being sent to API Gateway:
     "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
     "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
     "quoted_qa": "",
-    "ai_answer": "WAITING FOR LLM RESPONSE",
-    "chunks": {
+    "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+    "retrieved_content": {
       "max_sim": "0.216",
       "max_stars": 5,
       "chunks": []
@@ -548,8 +698,8 @@ Complete: {
       "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
       "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
       "quoted_qa": "",
-      "ai_answer": "WAITING FOR LLM RESPONSE",
-      "chunks": {
+      "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+      "retrieved_content": {
         "max_sim": "0.216",
         "max_stars": 5,
         "chunks": []
@@ -567,7 +717,7 @@ Lambda response payload: {
   },
   "multiValueHeaders": {},
   "statusCode": 200,
-  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"llm_model\": \"o3-mini\"}, \"content\": {\"user_question\": 12345, \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"I notice that you mentioned David Deutsch and his philosophy, but the specific question (\\u201c12345\\u201d) isn\\u2019t entirely clear to me. Could you please clarify what you\\u2019d like to know? For example, are you interested in:\\n\\n\\u2022 Deutsch\\u2019s views on quantum mechanics and the multiverse?\\n\\u2022 His ideas about explanation, knowledge, and progress as discussed in works like The Fabric of Reality or The Beginning of Infinity?\\n\\u2022 How his philosophy connects to matters like optimism in science or the philosophy of objectivity?\\n\\nAny additional details you provide will help me give you a more focused and useful answer.\", \"chunks\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"cost_pennies_mycalc\": 0.37}}}"
+  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"llm_model\": \"gpt-5.4\", \"reasoning_effort\": \"low\"}, \"content\": {\"user_question\": 12345, \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"I don\\u2019t see an actual question there\\u2014just `12345` inside the `<USER_QUESTION>` tags.\\n\\nIf you want, send me the real question and I can answer it in a David Deutsch\\u2013style frame, for example emphasizing:\\n\\n- fallibilism\\n- conjecture and criticism\\n- good explanations\\n- optimism about knowledge creation\\n- the open-endedness of progress\\n- the importance of error correction\\n\\nPaste the actual question and I\\u2019ll take it from there.\", \"retrieved_content\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"input_tokens\": 43, \"output_tokens\": 197, \"reasoning_tokens\": 91, \"cost_pennies_mycalc\": 0.306}}}"
 }
 Result:
 {
@@ -578,7 +728,7 @@ Result:
   },
   "multiValueHeaders": {},
   "statusCode": 200,
-  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"llm_model\": \"o3-mini\"}, \"content\": {\"user_question\": 12345, \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"I notice that you mentioned David Deutsch and his philosophy, but the specific question (\\u201c12345\\u201d) isn\\u2019t entirely clear to me. Could you please clarify what you\\u2019d like to know? For example, are you interested in:\\n\\n\\u2022 Deutsch\\u2019s views on quantum mechanics and the multiverse?\\n\\u2022 His ideas about explanation, knowledge, and progress as discussed in works like The Fabric of Reality or The Beginning of Infinity?\\n\\u2022 How his philosophy connects to matters like optimism in science or the philosophy of objectivity?\\n\\nAny additional details you provide will help me give you a more focused and useful answer.\", \"chunks\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"cost_pennies_mycalc\": 0.37}}}"
+  "body": "{\"status\": \"Success\", \"response\": {\"metadata\": {\"timestamp\": \"2024-06-13T11:46:33.651753\", \"user_id\": \"default\", \"vector_index_name\": \"deutsch-transcript-qrag-83f-20250202\", \"bot_version\": \"2.0\", \"routes_info\": {\"routes_flow_name\": \"3 routes, separate route prompts\", \"upper_sim_bound\": 0.9, \"lower_sim_bound\": 0.3, \"max_sim\": \"0.216\", \"max_stars\": 5, \"routes_dict_content\": {\"routes_dict_name\": \"ROUTES_DICT_DEUTSCH_M1\"}}, \"llm_model\": \"gpt-5.4\", \"reasoning_effort\": \"low\"}, \"content\": {\"user_question\": 12345, \"route_preamble\": \"Your question is not addressed in David Deutsch's interviews.\", \"prompt_initial\": \"Given your knowledge of David Deutsch and his philosophy...\", \"quoted_qa\": \"\", \"ai_answer\": \"I don\\u2019t see an actual question there\\u2014just `12345` inside the `<USER_QUESTION>` tags.\\n\\nIf you want, send me the real question and I can answer it in a David Deutsch\\u2013style frame, for example emphasizing:\\n\\n- fallibilism\\n- conjecture and criticism\\n- good explanations\\n- optimism about knowledge creation\\n- the open-endedness of progress\\n- the importance of error correction\\n\\nPaste the actual question and I\\u2019ll take it from there.\", \"retrieved_content\": {\"max_sim\": \"0.216\", \"max_stars\": 5, \"chunks\": []}, \"input_tokens\": 43, \"output_tokens\": 197, \"reasoning_tokens\": 91, \"cost_pennies_mycalc\": 0.306}}}"
 }
 
 ### API GATEWAY INVOCATION
@@ -605,8 +755,8 @@ Request being sent to API Gateway:
     "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
     "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
     "quoted_qa": "",
-    "ai_answer": "WAITING FOR LLM RESPONSE",
-    "chunks": {
+    "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+    "retrieved_content": {
       "max_sim": "0.216",
       "max_stars": 5,
       "chunks": []
@@ -636,8 +786,8 @@ Complete: {
       "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
       "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
       "quoted_qa": "",
-      "ai_answer": "WAITING FOR LLM RESPONSE",
-      "chunks": {
+      "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+      "retrieved_content": {
         "max_sim": "0.216",
         "max_stars": 5,
         "chunks": []
@@ -655,7 +805,7 @@ Lambda response payload: {
   },
   "multiValueHeaders": {},
   "statusCode": 500,
-  "body": "{\"error\": \"'metadata'\", \"error_type\": \"KeyError\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"/var/task/app.py\\\", line 72, in handle_qrag_llm\\n    received_request_data['metadata']['llm_model'] = SERVER_SIDE_LLM_MODEL\\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\\nKeyError: 'metadata'\\n\"}"
+  "body": "{\"error\": \"'metadata'\", \"error_type\": \"KeyError\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"/var/task/app.py\\\", line 212, in handle_qrag_llm\\n    raise result['error']\\n  File \\\"/var/task/app.py\\\", line 167, in llm_worker\\n    result['response'] = qrag_llm_call(\\n                         ^^^^^^^^^^^^^^\\n  File \\\"/var/task/chalicelib/rag.py\\\", line 504, in qrag_llm_call\\n    qrag_json_object['metadata']['llm_model'] = llm_model\\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^\\nKeyError: 'metadata'\\n\"}"
 }
 Result:
 {
@@ -666,7 +816,7 @@ Result:
   },
   "multiValueHeaders": {},
   "statusCode": 500,
-  "body": "{\"error\": \"'metadata'\", \"error_type\": \"KeyError\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"/var/task/app.py\\\", line 72, in handle_qrag_llm\\n    received_request_data['metadata']['llm_model'] = SERVER_SIDE_LLM_MODEL\\n    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^\\nKeyError: 'metadata'\\n\"}"
+  "body": "{\"error\": \"'metadata'\", \"error_type\": \"KeyError\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"/var/task/app.py\\\", line 212, in handle_qrag_llm\\n    raise result['error']\\n  File \\\"/var/task/app.py\\\", line 167, in llm_worker\\n    result['response'] = qrag_llm_call(\\n                         ^^^^^^^^^^^^^^\\n  File \\\"/var/task/chalicelib/rag.py\\\", line 504, in qrag_llm_call\\n    qrag_json_object['metadata']['llm_model'] = llm_model\\n    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^\\nKeyError: 'metadata'\\n\"}"
 }
 
 ### API GATEWAY INVOCATION
@@ -677,8 +827,8 @@ Request being sent to API Gateway:
     "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
     "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
     "quoted_qa": "",
-    "ai_answer": "WAITING FOR LLM RESPONSE",
-    "chunks": {
+    "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+    "retrieved_content": {
       "max_sim": "0.216",
       "max_stars": 5,
       "chunks": []
@@ -722,8 +872,8 @@ Complete: {
       "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
       "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
       "quoted_qa": "",
-      "ai_answer": "WAITING FOR LLM RESPONSE",
-      "chunks": {
+      "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+      "retrieved_content": {
         "max_sim": "0.216",
         "max_stars": 5,
         "chunks": []
@@ -741,7 +891,7 @@ Lambda response payload: {
   },
   "multiValueHeaders": {},
   "statusCode": 500,
-  "body": "{\"error\": \"Missing required fields in JSON object: user_question\", \"error_type\": \"ValueError\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"/var/task/app.py\\\", line 100, in handle_qrag_llm\\n    response_json_object = qrag_llm_call(\\n                           ^^^^^^^^^^^^^^\\n  File \\\"/var/task/chalicelib/rag.py\\\", line 398, in qrag_llm_call\\n    raise ValueError(f\\\"Missing required fields in JSON object: {', '.join(missing_fields)}\\\")\\nValueError: Missing required fields in JSON object: user_question\\n\"}"
+  "body": "{\"error\": \"Missing required fields in JSON object: user_question\", \"error_type\": \"ValueError\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"/var/task/app.py\\\", line 212, in handle_qrag_llm\\n    raise result['error']\\n  File \\\"/var/task/app.py\\\", line 167, in llm_worker\\n    result['response'] = qrag_llm_call(\\n                         ^^^^^^^^^^^^^^\\n  File \\\"/var/task/chalicelib/rag.py\\\", line 496, in qrag_llm_call\\n    raise ValueError(f\\\"Missing required fields in JSON object: {', '.join(missing_fields)}\\\")\\nValueError: Missing required fields in JSON object: user_question\\n\"}"
 }
 Result:
 {
@@ -752,7 +902,7 @@ Result:
   },
   "multiValueHeaders": {},
   "statusCode": 500,
-  "body": "{\"error\": \"Missing required fields in JSON object: user_question\", \"error_type\": \"ValueError\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"/var/task/app.py\\\", line 100, in handle_qrag_llm\\n    response_json_object = qrag_llm_call(\\n                           ^^^^^^^^^^^^^^\\n  File \\\"/var/task/chalicelib/rag.py\\\", line 398, in qrag_llm_call\\n    raise ValueError(f\\\"Missing required fields in JSON object: {', '.join(missing_fields)}\\\")\\nValueError: Missing required fields in JSON object: user_question\\n\"}"
+  "body": "{\"error\": \"Missing required fields in JSON object: user_question\", \"error_type\": \"ValueError\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"/var/task/app.py\\\", line 212, in handle_qrag_llm\\n    raise result['error']\\n  File \\\"/var/task/app.py\\\", line 167, in llm_worker\\n    result['response'] = qrag_llm_call(\\n                         ^^^^^^^^^^^^^^\\n  File \\\"/var/task/chalicelib/rag.py\\\", line 496, in qrag_llm_call\\n    raise ValueError(f\\\"Missing required fields in JSON object: {', '.join(missing_fields)}\\\")\\nValueError: Missing required fields in JSON object: user_question\\n\"}"
 }
 
 ### API GATEWAY INVOCATION
@@ -778,8 +928,8 @@ Request being sent to API Gateway:
     "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
     "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
     "quoted_qa": "",
-    "ai_answer": "WAITING FOR LLM RESPONSE",
-    "chunks": {
+    "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+    "retrieved_content": {
       "max_sim": "0.216",
       "max_stars": 5,
       "chunks": []
@@ -828,8 +978,8 @@ Complete: {
       "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
       "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
       "quoted_qa": "",
-      "ai_answer": "WAITING FOR LLM RESPONSE",
-      "chunks": {
+      "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+      "retrieved_content": {
         "max_sim": "0.216",
         "max_stars": 5,
         "chunks": []
@@ -847,7 +997,7 @@ Lambda response payload: {
   },
   "multiValueHeaders": {},
   "statusCode": 500,
-  "body": "{\"error\": \"'list' object has no attribute 'startswith'\", \"error_type\": \"AttributeError\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"/var/task/app.py\\\", line 118, in handle_qrag_llm\\n    if vector_index_name.startswith(\\\"deutsch\\\"):\\n       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAttributeError: 'list' object has no attribute 'startswith'\\n\"}"
+  "body": "{\"error\": \"'list' object has no attribute 'startswith'\", \"error_type\": \"AttributeError\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"/var/task/app.py\\\", line 230, in handle_qrag_llm\\n    if vector_index_name.startswith(\\\"deutsch\\\"):\\n       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAttributeError: 'list' object has no attribute 'startswith'\\n\"}"
 }
 Result:
 {
@@ -858,7 +1008,7 @@ Result:
   },
   "multiValueHeaders": {},
   "statusCode": 500,
-  "body": "{\"error\": \"'list' object has no attribute 'startswith'\", \"error_type\": \"AttributeError\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"/var/task/app.py\\\", line 118, in handle_qrag_llm\\n    if vector_index_name.startswith(\\\"deutsch\\\"):\\n       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAttributeError: 'list' object has no attribute 'startswith'\\n\"}"
+  "body": "{\"error\": \"'list' object has no attribute 'startswith'\", \"error_type\": \"AttributeError\", \"traceback\": \"Traceback (most recent call last):\\n  File \\\"/var/task/app.py\\\", line 230, in handle_qrag_llm\\n    if vector_index_name.startswith(\\\"deutsch\\\"):\\n       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\\nAttributeError: 'list' object has no attribute 'startswith'\\n\"}"
 }
 
 ### API GATEWAY INVOCATION
@@ -887,8 +1037,8 @@ Request being sent to API Gateway:
     "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
     "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
     "quoted_qa": "",
-    "ai_answer": "WAITING FOR LLM RESPONSE",
-    "chunks": {
+    "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+    "retrieved_content": {
       "max_sim": "0.216",
       "max_stars": 5,
       "chunks": []
@@ -934,8 +1084,8 @@ Complete: {
       "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
       "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
       "quoted_qa": "",
-      "ai_answer": "WAITING FOR LLM RESPONSE",
-      "chunks": {
+      "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+      "retrieved_content": {
         "max_sim": "0.216",
         "max_stars": 5,
         "chunks": []
@@ -992,8 +1142,8 @@ Request being sent to API Gateway:
     "route_preamble": "Your question is not addressed in David Deutsch's interviews.",
     "prompt_initial": "Given your knowledge of David Deutsch and his philosophy...",
     "quoted_qa": "",
-    "ai_answer": "WAITING FOR LLM RESPONSE",
-    "chunks": {
+    "ai_answer": "WAITING FOR AI ANSWER - USING HIGH QUALITY REASONING MODEL SO IT MAY TAKE 30-60 SECONDS...",
+    "retrieved_content": {
       "max_sim": "0.216",
       "max_stars": 5,
       "chunks": []
@@ -1008,14 +1158,18 @@ Result:
 }
 
 ## ===== API Gateway Validation Test Summary qrag-llm =====
+API Gateway name: qrag-llm
+API endpoint URL: https://sz901mb96d.execute-api.us-west-2.amazonaws.com/api/qrag-llm
 
-clean_requests (2 tests):
+clean_requests (3 tests):
   Lambda Results: (expected SUCCESS)  ✓
     test 1:  SUCCESS
     test 2:  SUCCESS
+    test 3:  SUCCESS
   Gateway Results: (expected SUCCESS)  ✓
     test 1:  SUCCESS
     test 2:  SUCCESS
+    test 3:  SUCCESS
 
 schema_invalid_requests (3 tests):
   Lambda Results: (expected SUCCESS)  ✓
@@ -1039,4 +1193,4 @@ function_invalid_requests (4 tests):
     test 3:  ERROR
     test 4:  ERROR
 
-Test Results: 18 passed, 0 failed  ✓
+Test Results: 20 passed, 0 failed  ✓

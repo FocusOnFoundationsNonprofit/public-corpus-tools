@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 # Read the contents of your requirements file
-with open('dependencies/requirements_2024-09-26_add.txt') as f:
+with open('dependencies/requirements_2024-09-26_add_CURRENT.txt') as f:
     requirements = f.read().splitlines()
 
 setup(

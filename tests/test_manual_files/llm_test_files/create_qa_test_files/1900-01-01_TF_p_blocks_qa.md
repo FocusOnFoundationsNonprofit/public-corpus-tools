@@ -5,6 +5,8 @@ link: https://www.youtube.com/watch?v=SDZ454K_lBY
 
 ## content
 
+### qa
+
 QUESTION: Mocked question
 TIMESTAMP: [0:00](https://www.youtube.com/watch?v=SDZ454K_lBY&t=0)
 ANSWER: The multiverse theory comes about as an explanation of the predictions of our best theory of physics, which is quantum mechanics. Quantum mechanics makes very accurate predictions, the most accurate predictions that any theory of physics has ever made. But if you want to explain why these predictions are so, how these physical events come about, there's no alternative but to postulate that what we see around us is not the whole of reality, that reality is much more varied and has a great multiplicity. This is what we call multiple universes.

@@ -6,7 +6,10 @@ import os
 import json
 import warnings
 import requests
-import tiktoken
+try:
+    import tiktoken
+except ImportError:
+    tiktoken = None
 from openai import OpenAI
 import anthropic
 from termcolor import colored
@@ -29,12 +32,32 @@ DEEPSEEK_API_KEY = os.environ["DEEPSEEK_API_KEY_LOCAL"]
 # ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
 
 # OpenAI model name - comment one out
-OPENAI_MODEL = "gpt-4o-mini"
+OPENAI_MODEL = "gpt-5.4"
+#OPENAI_MODEL = "gpt-5.4-pro"
+#OPENAI_MODEL = "gpt-5.2"
+#OPENAI_MODEL = "gpt-5.1"
+#OPENAI_MODEL = "gpt-5"
+#OPENAI_MODEL = "gpt-5-mini"
+#OPENAI_MODEL = "gpt-5-nano"
+#OPENAI_MODEL = "gpt-4.1"
+#OPENAI_MODEL = "gpt-4.1-mini"
+#OPENAI_MODEL = "gpt-4.1-nano"
+#OPENAI_MODEL = "gpt-4o"
+#OPENAI_MODEL = "gpt-4o-mini"
+#OPENAI_MODEL = "gpt-4o-2024-05-13"
 #OPENAI_MODEL = "o1"
-#OPENAI_MODEL = "gpt-4o-2024-11-20"
+#OPENAI_MODEL = "o3"
+#OPENAI_MODEL = "o3-pro"
 #OPENAI_MODEL = "o3-mini"
+#OPENAI_MODEL = "o4-mini"
 
-ANTHROPIC_MODEL = "claude-3-5-sonnet-20241022"
+# Anthropic model name - comment one out
+ANTHROPIC_MODEL = "claude-sonnet-4-6"
+#ANTHROPIC_MODEL = "claude-opus-4-6"
+#ANTHROPIC_MODEL = "claude-opus-4-5-20251101"
+#ANTHROPIC_MODEL = "claude-sonnet-4-5-20250929"
+#ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
+#ANTHROPIC_MODEL = "claude-3-5-sonnet-20241022"
 
 
 # Set the warnings to use a custom format
@@ -149,18 +172,46 @@ def count_tokens(input_string):  # no unittests
     :param input_string: string of text to be tokenized.
     :return: integer representing the number of tokens in the input string.
     """
+    if tiktoken is None:
+        raise ImportError("tiktoken is required for count_tokens but is not installed")
     encoding = tiktoken.get_encoding('cl100k_base')
     token_count = len(encoding.encode(input_string))
     return token_count
-TOKEN_PRICE_DICT = {  # last updated 02-13-25 RT
-    'gpt-4o':{'input_token_price':2.50, 'output_token_price':10.00, 'cached_input_token_price': 1.25},  # costs in $/million tokens
-    'gpt-4o-mini':{'input_token_price':.15, 'output_token_price':.60, 'cached_input_token_price': 0.075},
+TOKEN_PRICE_DICT = {  # last updated 03-03-26 by BA — prices are $/million tokens, OpenAI Standard tier
+    # === OpenAI GPT-5.x ===
+    'gpt-5.4':{'input_token_price':2.50, 'output_token_price':15.00, 'cached_input_token_price': 0.25},         # NEW — prices for <272K context
+    'gpt-5.4-pro':{'input_token_price':30.00, 'output_token_price':180.00, 'cached_input_token_price': 0},      # NEW — no cached pricing listed
+    'gpt-5.2':{'input_token_price':1.75, 'output_token_price':14.00, 'cached_input_token_price': 0.175},        # NEW — flagship as of Dec 2025
+    'gpt-5.1':{'input_token_price':1.25, 'output_token_price':10.00, 'cached_input_token_price': 0.125},        # NEW — Nov 2025
+    'gpt-5':{'input_token_price':1.25, 'output_token_price':10.00, 'cached_input_token_price': 0.125},
+    'gpt-5-mini':{'input_token_price':0.25, 'output_token_price':2.00, 'cached_input_token_price': 0.025},
+    'gpt-5-nano':{'input_token_price':0.05, 'output_token_price':0.40, 'cached_input_token_price': 0.005},
+    # === OpenAI GPT-4.1 / 4o ===
+    'gpt-4.1':{'input_token_price':2.00, 'output_token_price':8.00, 'cached_input_token_price': 0.50},
+    'gpt-4.1-mini':{'input_token_price':0.40, 'output_token_price':1.60, 'cached_input_token_price': 0.10},
+    'gpt-4.1-nano':{'input_token_price':0.10, 'output_token_price':0.40, 'cached_input_token_price': 0.025},    # NEW
+    'gpt-4o':{'input_token_price':2.50, 'output_token_price':10.00, 'cached_input_token_price': 1.25},
+    'gpt-4o-mini':{'input_token_price':0.15, 'output_token_price':0.60, 'cached_input_token_price': 0.075},
+    'gpt-4o-2024-05-13':{'input_token_price':5.00, 'output_token_price':15.00, 'cached_input_token_price': 0},
+    # === OpenAI reasoning models ===
     'o1':{'input_token_price':15.00, 'output_token_price':60.00, 'cached_input_token_price': 7.50},
+    'o3':{'input_token_price':2.00, 'output_token_price':8.00, 'cached_input_token_price': 0.50},               # NEW
+    'o3-pro':{'input_token_price':20.00, 'output_token_price':80.00, 'cached_input_token_price': 0},             # NEW — no caching
     'o3-mini':{'input_token_price':1.10, 'output_token_price':4.40, 'cached_input_token_price': 0.55},
-    'claude-3-5-sonnet-20241022':{'input_token_price':3.00, 'output_token_price':15.00, 'cached_input_token_price': 0.30},  # but Anthropic requires upfront explicit prompt caching and is not automatic
+    'o4-mini':{'input_token_price':1.10, 'output_token_price':4.40, 'cached_input_token_price': 0.275},          # NEW
+    # === Anthropic Claude 4.6 ===
+    'claude-opus-4-6':{'input_token_price':5.00, 'output_token_price':25.00, 'cached_input_token_price': 0.50},      # NEW
+    'claude-sonnet-4-6':{'input_token_price':3.00, 'output_token_price':15.00, 'cached_input_token_price': 0.30},    # NEW
+    # === Anthropic Claude 4.5 ===
+    'claude-opus-4-5-20251101':{'input_token_price':5.00, 'output_token_price':25.00, 'cached_input_token_price': 0.50},
+    'claude-sonnet-4-5-20250929':{'input_token_price':3.00, 'output_token_price':15.00, 'cached_input_token_price': 0.30},
+    'claude-haiku-4-5-20251001':{'input_token_price':1.00, 'output_token_price':5.00, 'cached_input_token_price': 0.10},
+    # === Anthropic Claude legacy ===
+    'claude-3-5-sonnet-20241022':{'input_token_price':3.00, 'output_token_price':15.00, 'cached_input_token_price': 0.30},
+    # === DeepSeek ===
     'deepseek-reasoner':{'input_token_price':0.55, 'output_token_price':2.19, 'cached_input_token_price': 0.14},
-    'deepseek-chat':{'input_token_price':0.27, 'output_token_price':1.10, 'cached_input_token_price': 0.07}
-    }
+    'deepseek-chat':{'input_token_price':0.27, 'output_token_price':1.10, 'cached_input_token_price': 0.07},
+}
 def cost_llm_on_file(file_path, prompt, model, token_price_dict, is_cached_input=False, verbose=False, chunking_function=None, chunking_function_args=(), output_tokens_ratio=1, output_tokens_fixed=0):  # no unittests
     """
     Calculates the cost of processing a file using a language model, based on the number of input and output tokens.
@@ -346,6 +397,7 @@ def add_token_counts_to_headings(text):
     first_line, *rest = result.split('\n', 1)
     result = f"{first_line} ({total_tokens:,} tokens)\n" + (rest[0] if rest else "")
     return result
+
 
 # NOT UPDATED FOR CACHED INPUTS
 def print_cost_table(table_data, title=None):
@@ -912,7 +964,7 @@ def test_openai_chat(model=OPENAI_MODEL):
     except Exception as e:
         print(f"An error occurred: {e}")
 @retry(wait=wait_random_exponential(multiplier=1, max=40), stop=stop_after_attempt(3))
-def openai_chat_completion_request(messages, tools=None, tool_choice=None, model=OPENAI_MODEL):  # APIMOCK unittests 2
+def openai_chat_completion_request(messages, tools=None, tool_choice=None, model=OPENAI_MODEL, temperature=None):  # APIMOCK unittests 2
     """
     Send a chat completion request to the OpenAI API with the provided messages and optional tools and tool choice.
 
@@ -920,6 +972,7 @@ def openai_chat_completion_request(messages, tools=None, tool_choice=None, model
     :param tools: optional list of tools to include in the request
     :param tool_choice: optional tool choice to include in the request
     :param model: the model to use for the chat completion request
+    :param temperature: optional float to control randomness
     :return: the response object from the OpenAI API request
     """
     headers = {
@@ -931,6 +984,8 @@ def openai_chat_completion_request(messages, tools=None, tool_choice=None, model
         json_data.update({"tools": tools})
     if tool_choice is not None:
         json_data.update({"tool_choice": tool_choice})
+    if temperature is not None:
+        json_data.update({"temperature": temperature})
     try:
         response = requests.post(
             "https://api.openai.com/v1/chat/completions",
@@ -1012,7 +1067,7 @@ def simple_openai_chat_completion_request(prompt, model):  # no unittests
         print(f"Exception: {e}")
         return str(e)
 @retry(wait=wait_random_exponential(multiplier=1, max=40), stop=stop_after_attempt(3))
-def openai_function_call(prompt, content, tools, model=OPENAI_MODEL, verbose=False):
+def openai_function_call(prompt, content, tools, model=OPENAI_MODEL, verbose=False, temperature=None):
     """
     Send a function call request to the OpenAI API and process the response.
 
@@ -1021,6 +1076,7 @@ def openai_function_call(prompt, content, tools, model=OPENAI_MODEL, verbose=Fal
     :param tools: list, function definitions for tool calling
     :param model: str, OpenAI model to use for completion
     :param verbose: bool, whether to print debug information
+    :param temperature: float or None, optional randomness control
     :return response: str or dict, processed response from the API. Fields are in tool_calls[0].function.arguments
     """
     try:
@@ -1034,6 +1090,8 @@ def openai_function_call(prompt, content, tools, model=OPENAI_MODEL, verbose=Fal
             "messages": messages,
             "model": model
         }
+        if temperature is not None:
+            request_params["temperature"] = temperature
         
         # Only add tools if provided and non-empty
         if tools and len(tools) > 0:
@@ -1853,7 +1911,7 @@ You are an expert in copyediting interview transcripts. Your task is to refine t
 - Don't remove words if unnecessary or if it does not fall in any of the following guidelines mentioned.
 
 2. Speaker Transitions and Segmentation based on context:
-- Correct unsplit speaker segments based on context and conversation flow.
+- Do not add new line breaks inside one speaker segment.
 
 3. Proper Names and Terminology:
 - Correct and standardize spelling of proper names, places, and specialized terms.
@@ -1869,9 +1927,8 @@ You are an expert in copyediting interview transcripts. Your task is to refine t
 - Use appropriate punctuation: commas, periods, question marks.
 - Use double quotation marks ("") for quoted speech or phrase, meaning when the speaker is quoting someone else's words.
 - Don't use exclamation marks (!) replace them with periods (.).
-- If there are any forward slash (/) or backslash (\), replace them with dashes (-).
 - Don't use semicolons (;) and colons (:), if needed then use commas (,) instead.
-- Don't use hyphens (—) or dashes (-), if needed then use commas (,) instead.
+- Don't use hyphens (—) or dashes (-) for sentence punctuation, if needed then use commas (,) instead.
 - Don't use this format of ellipsis '…', use three periods (...) instead.
 
 6. Disfluencies and Filler Words:
@@ -1889,40 +1946,48 @@ You are an expert in copyediting interview transcripts. Your task is to refine t
 - Spell out currency types (e.g., change $123 to 123 dollars).
 - Use the special character '&' only if needed in the proper name (e.g., AT&T).
 - Replace special characters with their standard English equivalents (e.g., Gödel to Godel).
+- Change % to the word percent.
 
 9. Quotations and Specific Terms:
 - Use double quotation marks if the speaker is quoting someone's words (e.g., Popper said, "Science must begin with myths, and with criticism of myths.").
 - Follow the American style for quotations, place periods and commas inside quotation marks.
+- Use double quotes for book titles.
 
 Here are examples with explanations of the kinds of edits I'm looking:
 <example1>
-Before: Dale Pfau (EPC Chair)  [9:14](https://youtu.be/hNFjjFll1EY&t=554)
+Input:
+Dale Pfau (EPC Chair)  [9:14](https://youtu.be/hNFjjFll1EY&t=554)
 When the new ones come out? We we will probably review them at least in September. We'll review full committing yet. Do you have any do you have any idea when that might happen?
 
-After: Dale Pfau (EPC Chair)  [9:14](https://youtu.be/hNFjjFll1EY&t=554)
+Output:
+Dale Pfau (EPC Chair)  [9:14](https://youtu.be/hNFjjFll1EY&t=554)
 When the new ones come out? We will probably review them at least in subcommittee and may bring them to full committee. Yeah. Do you have any idea when that might happen?
 
-Explanation:
+</example1>
+Explanation of changes made in example 1: (this is not included in the output)
 - Removed repetition of "we".
 - Corrected "full committing" to "full committee" based on context.
 - Removed repetition of "do you have any".
 - Added "Yeah." to separate the response to the previous question from the new question.
-</example1>
+
 
 <example2>
-Before: Dale Pfau (EPC Chair)  [15:30](https://youtu.be/hNFjjFll1EY&t=930)
+Input:
+Dale Pfau (EPC Chair)  [15:30](https://youtu.be/hNFjjFll1EY&t=930)
 To add to that. I've had Starlink a little over a year now. I use it. I primarily got it as a backup to another Internet connection I have that goes out. StarLink never goes out. As long as you've got power, it's gonna be there. So even AT and T Fiber goes out occasionally when they lose power.
 
-After: Dale Pfau (EPC Chair)  [15:30](https://youtu.be/hNFjjFll1EY&t=930)
+Output:
+Dale Pfau (EPC Chair)  [15:30](https://youtu.be/hNFjjFll1EY&t=930)
 To add to that, I've had Starlink a little over a year now. I use it. I primarily got it as a backup to another internet connection I have that goes out. Starlink never goes out. As long as you've got power, it's going to be there. So even AT&T Fiber goes out occasionally when they lose power.
 
-Explanation:
+</example2>
+Explanation of changes made in example 2: (this is not included in the output)
 - Added a comma after "To add to that".
 - Changed "Internet" to lowercase "internet" as it's not a proper noun.
 - Corrected the proper noun "StarLink" to "Starlink".
 - Changed "gonna" to "going to" for formality.
 - Corrected the proper noun "AT and T" to "AT&T".
-</example2>
+
 
 Please apply the necessary corrections to the transcript while maintaining the integrity of the spoken content. Remember that when in doubt and it's not specified in the given guidelines, prioritize preserving the original speech over making grammatical improvements. If you're unsure about a potential edit, flag it for human review, add *** in the beginning and end of the word or phrase that needs to be reviewed.
 
@@ -2051,11 +2116,11 @@ The question should capture the essence of the original query posed by the inter
 FCALL_PROMPT_QA_DIALOGUE_FROMANSWER = """
 You are an expert text analyzer that is trained in identifying questions or implied questions. You will be given dialogue and your role is to return a create a general, simple question from the provided answer of the speaker {speaker}. This created general question may or may not be related to the question actually asked in the dialogue preceding the answer. The created general question will be part of a question and answer set used for Retrieval Augmented Generation. The question must not mention any speaker names. You will use your tool to only return exact JSON in the format specified.
 """
-FCALL_PROMPT_QA_DEUTSCH = """
-You are an expert text analyzer that is trained in identifying questions or implied questions. You will be given dialogue and your role is to return a create a general, simple question from the provided answer. This created general question may or may not be related to the question actually asked by the speaker in the dialogue preceding the answer. The created general question will be part of a question and answer set used for Retrieval Augmented Generation. The question must not mention the speaker name. The question should be written in such a way that it assumes that the answer provided is the best knowledge humanity has about this topic at present moment.  Some specific phrases to use include: 1) 'multiverse quantum theory' - rather than 'many-worlds interpretation of quantum'. You will use your tool to only return exact JSON in the format specified. 
-"""
 CUSTOM_INSTRUCTIONS_DEUTSCH_GENERALQ = """
 Analyze the following passage and create a general, simple question for which the answer will be the response. This will be part of a question and answer set such that new questions are compared against the questions, and answers retrieved. The question should not mention the author, or David Deutsch. The question should be written in such a way that it assumes that the answer provided is the best knowledge humanity has about this topic at present moment. Use the phrase 'multiverse quantum theory' rather than 'many-worlds interpretation of quantum'
+"""
+FCALL_PROMPT_QA_DEUTSCH = """
+You are an expert text analyzer that is trained in identifying questions or implied questions. You will be given dialogue and your role is to return a create a general, simple question from the provided answer. This created general question may or may not be related to the question actually asked by the speaker in the dialogue preceding the answer. The created general question will be part of a question and answer set used for Retrieval Augmented Generation. The question must not mention the speaker name. The question should be written in such a way that it assumes that the answer provided is the best knowledge humanity has about this topic at present moment.  Some specific phrases to use include: 1) 'multiverse quantum theory' - rather than 'many-worlds interpretation of quantum'. You will use your tool to only return exact JSON in the format specified. 
 """
 def tools_qa_speaker(speaker):
     """
@@ -2117,7 +2182,7 @@ def fcall_qa_speaker(block_file_path, speaker, fcall_prompt, suffix_new="_qa"): 
     print(colored(f"System Prompt: {fcall_prompt}\n", "red"))
     pretty_print_function_descriptions(tools_qa_speaker(speaker), "red")
     
-    qa_content = "## content\n\n"
+    qa_content = "## content\n\n### qa\n\n"
     for i, block in enumerate(blocks):
         print(f"\n\nQA BLOCK NUMBER: {i+1}")
         qa_response = openai_function_call(fcall_prompt, block, tools_qa_speaker(speaker)) # Finish function to return textual output 
@@ -4182,7 +4247,7 @@ def mrun_visualize_question_similarities():
     print(f"\n\nVisualization HTML saved to: {html_viz_file}")
     print(f"Visualization PNG saved to: {png_viz_file}")
 
-### ************************** START OF CODE BEING REFACTORED **************************
+### ************************** START OF REFACTORED CODE **************************
 ### QA BY SECTIONS - Q ONLY
 def create_extract_log_header(fcall_prompt, provider, model, round_num, round_name):
     """
@@ -5510,7 +5575,7 @@ def mrun_auto_check_qa_qonly_folder():
     for i, qa_file_path in enumerate(qa_files_to_run, 1):
         print(colored(f"\n{qa_file_path}", "blue"))
         search_for_no_answers_in_qa_blocks(qa_file_path)
-### ************************** END OF CODE BEING REFACTORED **************************
+### ************************** END OF REFACTORED CODE **************************
 
 
 ### QA QONLY REFACTOR
@@ -6645,6 +6710,7 @@ def mrun_section_titles():
     for i, file_path in enumerate(files_to_run, 1):
         #write_section_titles(file_path, SCALL_PROMPT_SECTION_TITLE)
         propagate_section_titles_to_qa(file_path)
+
 #NOT USED
 SCALL_PROMPT_SECTION_TITLE = """
 You will receive a single section of text. From that text, generate one section title that is no more than ten words. Aim for six words if possible. The title should capture the main idea, question, or topic in a condensed format.
@@ -6732,6 +6798,311 @@ def write_section_titles(source_file_path, scall_prompt, provider="openai", head
     print(colored("New file written to " + new_file_path, "green"))
     return new_file_path
 
+### MULTI QUESTIONS
+FCALL_PROMPT_QA_MULTI = """
+You are an expert text analyzer, trained in identifying multiple relevant questions or implied questions from a given answer that adequately cover the content of the answer.
+Your job:
+  - Take the provided answer and generate several clear, consise questions covering the major topics of the answer.
+  - The questions must not mention speaker names or personal details.
+  - The questions should treat the answer as authoritative knowledge.
+  - Always return EXACT JSON, matching the specified schema, where the property 'questions' is an array of question strings.
+
+You are an expert text analyzer, trained in identifying multiple relevant questions or implied questions from a given answer that adequately cover the content of the answer.
+Your job:
+  - Take the provided answer and generate several clear, concise questions covering the major topics of the answer.
+  - The questions must not mention speaker names or personal details.
+  - The questions should treat the answer as authoritative knowledge.
+  - Use full names for people instead of just last names, such as "Alan Turing" and "Karl Popper". Do this for every question not just the first one.
+  - Use "AGI (artificial general intelligence)" instead of just "AGI".
+  - Use double quotes instead of single quotes for quoted text in the questions.
+  - Always return EXACT JSON, matching the specified schema, where the property 'questions' is an array of question strings.
+
+DO NOT Do the following:
+  - DO NOT create questions that are too similar to existing questions
+  - DO NOT generate questions that are overly specific about minor details
+  - DO NOT create questions that require knowledge not contained in the answer
+  - DO NOT include questions that are too broad or vague
+  - DO NOT include examples or scenarios that are not essential to the main ideas of the question
+  - DO NOT generate questions that misrepresent the content of the answer
+  - DO NOT create questions that use jargon not explained in the answer
+  - DO NOT include questions that make assumptions beyond what's stated in the answer
+  - DO NOT generate questions that are leading or contain implicit assumptions
+  - DO NOT include phrases like "in the text," "according to the speaker/answer," "in this passage," etc.
+  - DO NOT reference the answer or quote the speaker in any way
+  - DO NOT create questions that aren't standalone (questions must make sense without seeing the answer)
+  - DO NOT use meta-references like "How does the author describe..." or "What does the passage say about..."
+
+Use terminology and concepts that are provided in the answer.
+"""
+TOOLS_QA_MULTI = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_multi_qa", 
+            "description": "Extract or create multiple new questions from the provided answer text.",
+            "strict": True,  # For structured (JSON) output
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "questions": {
+                        "type": "array",
+                        "description": "A list of new questions derived from the answer text. Do not duplicate questions - these questions should be sufficiently different from the provided current question or questions. Do not mention speaker names. Avoid overly specific questions about minor details. Questions must be answerable using only the information in the answer. Do not create questions that are too broad, vague, or that misrepresent the content. Never include phrases like 'in the text,' 'according to the speaker,' 'in this passage,' etc. Questions must be completely standalone without referencing the answer or quoting the speaker. Avoid meta-references like 'How does the author describe...' or 'What does the passage say about...'",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": ["questions"],
+                "additionalProperties": False
+            },
+        },
+    }
+]
+def get_existing_questions(block_text):
+    """
+    Extract all questions from a block of text by finding fields that contain 'QUESTION' in their name.
+
+    :param block_text: string, the text block to parse for questions
+    :return: list, list of question strings found in the block
+    """
+    from structured import get_all_fields_dict
+    fields_dict = get_all_fields_dict(block_text)
+    questions = []
+    
+    # Find all fields that contain 'QUESTION' in their name
+    for field_name, field_value in fields_dict.items():
+        if 'QUESTION' in field_name and field_value:
+            questions.append(field_value)
+            
+    return questions
+def generate_new_questions(existing_questions, answer_text, fcall_prompt=FCALL_PROMPT_QA_MULTI, fcall_tools=TOOLS_QA_MULTI, model='o3-mini', provider="openai"):
+    """
+    Generate new questions based on existing questions and answer text.
+
+    :param existing_questions: list, list of existing questions
+    :param answer_text: string, the answer text to generate new questions from
+    :param fcall_prompt: string, the prompt to use for function calling
+    :param fcall_tools: list, the tools to use for function calling
+    :param model: string, the model to use for function calling
+    :param provider: string, the provider to use ("openai" or "anthropic")
+    :return: list, list of new questions
+    """
+    fcall_content = "<CURRENT EXISTING QUESTIONS>\n" + "\n".join(existing_questions) + "\n</CURRENT EXISTING QUESTIONS>\n"
+    fcall_content += "<ANSWER>\n" + answer_text + "\n</ANSWER>\n"
+    
+    # Make the appropriate function call based on provider
+    if provider == "openai":
+        fcall_response = openai_function_call(fcall_prompt, fcall_content, fcall_tools, model=model)
+    elif provider == "anthropic":
+        fcall_response = anthropic_function_call(fcall_prompt, fcall_content, fcall_tools, model=model)
+    else:
+        raise ValueError("Provider must be either 'openai' or 'anthropic'")
+    
+    # Parse the response using the common parser
+    arguments = parse_function_call_response(fcall_response, provider)
+    
+    if not arguments:
+        raise Exception("Failed to parse function call response")
+    
+    new_questions = arguments['questions']
+    return new_questions
+def create_qa_multi_file_from_qa(qa_file_path, fcall_prompt=FCALL_PROMPT_QA_MULTI, fcall_tools=TOOLS_QA_MULTI, model='o3-mini', provider="openai", suffix_new="_qa-multi", verbose=False, max_workers=50):
+    """
+    Processes an existing QA file to generate multiple numbered questions per block 
+    via multi-question extraction. Uses parallel processing for faster execution.
+
+    :param qa_file_path: string, path to the existing QA file
+    :param suffix_new: string, suffix to add to the output file name
+    :param verbose: boolean, whether to print verbose output
+    :param max_workers: int, maximum number of parallel workers
+    :return: string, path to the generated QA multi file
+    """
+    import concurrent.futures
+    from structured import get_blocks_from_file, get_all_fields_dict
+    print("Running create_qa_multi_file_from_qa on file: " + qa_file_path)
+
+    blocks = get_blocks_from_file(qa_file_path, heading="### qa")
+    print(f"Found {len(blocks)} blocks to process")
+    
+    # Define a function to process a single block
+    def process_block(block_data):
+        index, block = block_data
+        verbose_print(verbose, f"  Starting processing for QA block number: {index+1}/{len(blocks)}")
+        
+        # Use get_all_fields_dict to extract all fields from the block
+        fields_dict = get_all_fields_dict(block)
+        
+        # Extract answer from fields_dict
+        answer_text = fields_dict.get("ANSWER", "")
+        
+        if not answer_text:
+            verbose_print(verbose, f"  No answer text found for block {index+1}. Keeping as is.")
+            return index, block
+            
+        # Get existing questions from the block
+        existing_questions = get_existing_questions(block)
+        
+        try:
+            # Generate new questions from the answer using default parameters
+            new_questions = generate_new_questions(existing_questions, answer_text, fcall_prompt, fcall_tools, model, provider)
+            
+            # Combine existing + new questions
+            combined_questions = existing_questions + new_questions
+            
+            # Create new dictionary starting with numbered questions
+            new_fields_dict = {}
+            
+            # Add numbered questions first
+            for q_idx, question in enumerate(combined_questions, 1):
+                new_fields_dict[f"QUESTION {q_idx}"] = question
+                
+            # Add remaining fields that don't have 'QUESTION' in the name
+            for k, v in fields_dict.items():
+                if 'QUESTION' not in k:
+                    # Handle TOPICS field properly whether it's a list or string
+                    if k == 'TOPICS':
+                        if isinstance(v, list):
+                            # If it's already a list, join it directly
+                            new_fields_dict[k] = ', '.join(v) if v else ''
+                        elif isinstance(v, str):
+                            # If it's a string representation of a list like "['item1', 'item2']"
+                            if v.startswith('[') and v.endswith(']') and "'" in v:
+                                try:
+                                    # Try to convert string representation to actual list
+                                    items = v[1:-1].replace("'", "").split(', ')
+                                    new_fields_dict[k] = ', '.join(items)
+                                except:
+                                    # If conversion fails, keep as is
+                                    new_fields_dict[k] = v
+                            else:
+                                # Regular string, keep as is
+                                new_fields_dict[k] = v
+                        else:
+                            # For any other type, convert to string
+                            new_fields_dict[k] = str(v)
+                    else:
+                        # For all other fields, keep as is
+                        new_fields_dict[k] = v
+                    
+            # Create block lines from updated dictionary
+            new_block_lines = [f"{field}: {value}" for field, value in new_fields_dict.items()]
+            
+            # Join the lines to form the new block
+            new_block = "\n".join(new_block_lines)
+            verbose_print(verbose, f"  Completed processing for QA block number: {index+1}/{len(blocks)}")
+            return index, new_block
+            
+        except Exception as e:
+            print(colored(f"Error processing block {index+1}: {str(e)}", "red"))
+            # Return the original block if there's an error
+            return index, block
+
+    # Process blocks in parallel
+    processed_blocks_dict = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all blocks for processing
+        future_to_block = {
+            executor.submit(process_block, (i, block)): i 
+            for i, block in enumerate(blocks)
+        }
+        
+        # Collect results as they complete
+        for future in concurrent.futures.as_completed(future_to_block):
+            block_idx = future_to_block[future]
+            try:
+                idx, processed_block = future.result()
+                processed_blocks_dict[idx] = processed_block
+                verbose_print(verbose, f"  ***** Block {idx+1}/{len(blocks)} completed *****")
+            except Exception as exc:
+                verbose_print(verbose, f"  ***** Block {block_idx+1} generated an exception: {exc} *****")
+                # Keep the original block in case of error
+                processed_blocks_dict[block_idx] = blocks[block_idx]
+    
+    # Reassemble blocks in the original order
+    processed_blocks = [processed_blocks_dict[i] for i in range(len(blocks))]
+    
+    # Join all processed blocks with a blank line between them
+    qa_multi_content = "## content\n\n### qa\n\n" + "\n\n".join(processed_blocks)
+
+    # Write out to new file
+    metadata, _ = read_metadata_and_content(qa_file_path)
+    metadata = set_metadata_field(metadata, "model qa-multi", model)
+    qa_multi_file_path = write_metadata_and_content(qa_file_path, metadata, qa_multi_content, suffix_new, overwrite='no-sub')
+    set_last_updated(qa_multi_file_path, "Created multi-QA")
+    print("Multi-QA written to " + qa_multi_file_path)
+
+    return qa_multi_file_path
+def create_qa_multi_file_from_qa_sequential(qa_file_path, suffix_new="_qa-multi", verbose=False):
+    """
+    Processes an existing QA file to generate multiple numbered questions per block 
+    via multi-question extraction.
+
+    :param qa_file_path: string, path to the existing QA file
+    :param suffix_new: string, suffix to add to the output file name
+    :return: string, path to the generated QA multi file
+    """
+    from structured import get_blocks_from_file, get_all_fields_dict
+    print("Running create_qa_multi_file_from_qa on file: " + qa_file_path)
+
+    blocks = get_blocks_from_file(qa_file_path, heading="### qa")
+    
+    # Accumulate all the processed blocks here
+    processed_blocks = []
+
+    for i, block in enumerate(blocks):
+        verbose_print(verbose, f"  Processing QA block number: {i+1}/{len(blocks)}")
+        
+        # Use get_all_fields_dict to extract all fields from the block
+        fields_dict = get_all_fields_dict(block)
+        
+        # Extract answer from fields_dict
+        answer_text = fields_dict.get("ANSWER", "")
+        
+        if not answer_text:
+            print("No answer text found for this block. Keeping as is.")
+            processed_blocks.append(block)
+            continue
+            
+        # Get existing questions from the block
+        existing_questions = get_existing_questions(block)
+        
+        # Generate new questions from the answer
+        new_questions = generate_new_questions(existing_questions, answer_text)
+        
+        # Combine existing + new questions
+        combined_questions = existing_questions + new_questions
+        
+        # Create new dictionary starting with numbered questions
+        new_fields_dict = {}
+        
+        # Add numbered questions first
+        for idx, question in enumerate(combined_questions, 1):
+            new_fields_dict[f"QUESTION {idx}"] = question
+            
+        # Add remaining fields that don't have 'QUESTION' in the name
+        for k,v in fields_dict.items():
+            if 'QUESTION' not in k:
+                new_fields_dict[k] = v
+                
+        fields_dict = new_fields_dict
+            
+        # Create block lines from updated dictionary
+        new_block_lines = [f"{field}: {value}" for field, value in fields_dict.items()]
+        
+        # Join the lines to form the new block
+        new_block = "\n".join(new_block_lines)
+        processed_blocks.append(new_block)
+
+    # Join all processed blocks with a blank line between them
+    qa_multi_content = "## content\n\n" + "\n\n".join(processed_blocks)
+
+    # Write out to new file
+    metadata, _ = read_metadata_and_content(qa_file_path)
+    qa_multi_file_path = write_metadata_and_content(qa_file_path, metadata, qa_multi_content, suffix_new, overwrite='no-sub')
+    set_last_updated(qa_multi_file_path, "Created multi-QA")
+    print("Multi-QA written to " + qa_multi_file_path)
+
+    return qa_multi_file_path
 
 ### OLD PROMPTS
 def tools_qonly_explicit_list():  # not tried - think this is incorrect format
@@ -6842,7 +7213,6 @@ Remember:
 - Do not include any speaker labels or personal identifiers in the clarified questions.
 - Ensure each question is clearly standalone in wording.
 """
-
 ### NOT USED - LLM SECTIONS
 PROMPT_MEETING_SECTIONS_1 = """
 Please analyze the following transcript of a meeting and identify the line numbers where a delimiter ('---') should be applied to break the text into sections for structured question and answer extraction.

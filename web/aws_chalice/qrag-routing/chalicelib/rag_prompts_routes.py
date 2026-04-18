@@ -11,7 +11,7 @@ ROUTES_DICT_SOVEREIGN_CHILD_M1 = {
         "Use as background context your knowledge of the parenting philosophy Taking Children Seriously, as well as the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.\n\n"
     ),
     'route_preamble_good_match': (
-        "There is a GOOD MATCH in our extracted quotes. Below is the official source Q&A followed by an AI ANSWER that synthesizes these official sources with your specific question.\n"
+        "There is a GOOD MATCH in our extracted quotes. These are used to create the AI ANSWER along with the book text from 'The Sovereign Child' as well as the model's background knowledge of the philosophy of Taking Children Seriously and the ideas of David Deutsch.\n"
     ),
 
     # For the "partial match" scenario
@@ -23,8 +23,7 @@ ROUTES_DICT_SOVEREIGN_CHILD_M1 = {
         "Use as background context your knowledge of the parenting philosophy Taking Children Seriously, as well as the ideas of David Deutsch in his books The Fabric of Reality and The Beginning of Infinity.\n\n"
     ),
     'route_preamble_partial_match': (
-        "There is a PARTIAL MATCH in our extracted quotes. Please see the Q&A below, "
-        "then do your best to synthesize an answer."
+        "There is a PARTIAL MATCH in our extracted quotes. These are used to create the AI ANSWER along with the book text from 'The Sovereign Child' as well as the model's background knowledge of the philosophy of Taking Children Seriously and the ideas of David Deutsch.\n"
     ),
 
     # For the "no match" scenario
@@ -37,7 +36,7 @@ ROUTES_DICT_SOVEREIGN_CHILD_M1 = {
     ),
     'route_preamble_no_match': (
         "There is NO MATCH in the extracted quotes.\n"
-        "The AI ANSWER below is uses the book text from 'The Sovereign Child' as well as the model's background knowledge of the philosophy of Taking Children Seriously and the ideas of David Deutsch."
+        "The AI ANSWER below uses the book text from 'The Sovereign Child' as well as the model's background knowledge of the philosophy of Taking Children Seriously and the ideas of David Deutsch.\n"
     ),
 
     # Template for formatting chunked Q&A items
@@ -79,8 +78,7 @@ ROUTES_DICT_FDA_TOWNHALLS_M1 = {
         "Use as background context your knowledge of FDA Town Hall meetings—covering test modifications, bridging studies, validation requirements, and other relevant regulatory guidelines.\n\n"
     ),
     'route_preamble_partial_match': (
-        "There is a PARTIAL MATCH in our extracted quotes. Please see the Q&A below, "
-        "then do your best to synthesize an answer."
+        "There is a PARTIAL MATCH in our extracted quotes. Below is the official FDA Q&A followed by an AI ANSWER that synthesizes these official sources with your specific question.\n"
     ),
 
     # For the "no match" scenario
@@ -150,8 +148,7 @@ ROUTES_DICT_PV_EVAC_M1 = {
         "DO NOT use strong adjectives in your response, such as 'comprehensive' and 'thorough', to describe plans or approaches because significantly more work is needed by both authorities and parents to prepare for emergency evacuation of the schools and especially the shelter-in-place scenario.\n\n"
     ),
     'route_preamble_partial_match': (
-        "There is a PARTIAL MATCH in our extracted quotes. Please see the Q&A below, "
-        "then do your best to synthesize an answer."
+        "There is a PARTIAL MATCH in our extracted quotes. Below is the official source Q&A followed by an AI ANSWER that synthesizes these official sources with current evacuation protocols and your specific question.\n"
     ),
 
     # For the "no match" scenario
@@ -189,6 +186,7 @@ ROUTES_DICT_DEUTSCH_M1 = {
         "Answer the USER QUESTION below the following multiple sources of context:\n"
         "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
         "There is a GOOD MATCH in the QUOTED QA so make sure to stay faithful to the QUOTED QA while answering the USER QUESTION.\n"
+        "Use the LARGE CONTEXT which is a summary of David Deutsch's philosophy of deep optimism as additional important context.\n"
         "Use as background context your knowledge of David Deutsch and his philosophy of deep optimism.\n\n"
     ),
     'route_preamble_good_match': (
@@ -200,22 +198,23 @@ ROUTES_DICT_DEUTSCH_M1 = {
         "Answer the USER QUESTION below the following multiple sources of context:\n"
         "Use as the top priority context the QUOTED QA which have been extracted from the sources that are the primary subject for this AI tool.\n"
         "There is only a PARTIAL MATCH in the QUOTED QA so use the QUOTED QA while answering the USER QUESTION but also make sure to synthesize the QUOTED QA with the other context in order to answer the USER QUESTION.\n"
+        "Use the LARGE CONTEXT which is a summary of David Deutsch's philosophy of deep optimism as additional important context.\n"
         "Use as background context your knowledge of David Deutsch and his philosophy of deep optimism.\n\n"
     ),
     'route_preamble_partial_match': (
-        "There is a PARTIAL MATCH in our extracted quotes. Please see the Q&A below, "
-        "then do your best to synthesize an answer."
+        "There is a PARTIAL MATCH in our extracted quotes. elow is the official source Q&A followed by an AI ANSWER that synthesizes these quotes with David Deutsch's philosophy and your specific question.\n"
     ),
 
     # For the "no match" scenario
     'prompt_initial_no_match': (
         "Answer the USER QUESTION below the following multiple sources of context:\n"
         "No match was found so no QUOTED QA is provided.\n"
+        "Use the LARGE CONTEXT which is a summary of David Deutsch's philosophy of deep optimism as additional important context.\n"
         "Use as background context your knowledge of David Deutsch and his philosophy of deep optimism.\n\n"
     ),
     'route_preamble_no_match': (
         "There is NO MATCH in the extracted quotes.\n"
-        "The AI ANSWER below uses the model's background knowledge of David Deutsch's philosophy and ideas."
+        "The AI ANSWER below uses a summary of David Deutsch's philosophy of deep optimism along with the model's background knowledge of David Deutsch's philosophy and ideas."
     ),
 
     # Template for formatting chunked Q&A items

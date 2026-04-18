@@ -1,10 +1,12 @@
+# START OF FILE primary/fileops.py
 # Library of functions and execution code to do support tasks on files
+
 import os
 import glob
 import csv
 import re
 import inspect
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 import time
 import shutil
@@ -12,9 +14,14 @@ import json
 import inspect
 from termcolor import colored
 import warnings
+from collections import defaultdict
+import pickle
 
 # Naming Conventions - see Coding Log - 2024 gdoc for WIP version
 # https://docs.google.com/document/d/1y2zuy5L15b_9KCleT1Fcw31q6yyWz-F7czJLVC0h678/edit?usp=sharing
+
+# ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
+
 
 ### INITIAL
 def custom_formatwarning(msg, category, filename, lineno, line=None):
@@ -73,28 +80,29 @@ def get_suffix(file_str, delimiter='_'):
     :param delimiter: string representing the delimiter used to separate the suffix from the rest of the file string. Default is "_".
     :return: string of the extracted suffix or None if no valid suffix is found.
     """
-    # Count the occurrences of the file extension delimiter (.) only in the end portion of the string before a '/'
+    # Get the base name of the file
     file_base = os.path.basename(file_str)
-    period_count = file_base.count('.')
-    # Throw a ValueError if there's more than one period
-    if period_count > 1:
-        raise ValueError("in get_suffix: More than one period found in the input file string.")
 
     # Find the last occurrence of the delimiter
     delimiter_index = file_base.rfind(delimiter)
     # Find the last occurrence of the file extension delimiter (.)
     extension_index = file_base.rfind('.')
 
-    # Check if the delimiter is found and before the extension, or if there is no extension
-    if delimiter_index != -1 and (extension_index == -1 or delimiter_index < extension_index):
+    # Check if the delimiter is found
+    if delimiter_index != -1:
         # Check if the part of the file string preceding the delimiter is a date in the format 'YYYY-MM-DD'
         preceding_str = file_base[:delimiter_index]
         #print(f"DEBUG preceeding_str: {preceding_str}")
         if re.match(r'\d{4}-\d{2}-\d{2}$', preceding_str):
             return None  # Return None if the preceding part is a date
 
-        # Extract and return the suffix including the delimiter
-        suffix_end_index = extension_index if extension_index != -1 else len(file_base)
+        # Determine suffix end: if delimiter is after the period, the period is part of the filename, not an extension
+        if extension_index == -1 or delimiter_index < extension_index:
+            suffix_end_index = extension_index if extension_index != -1 else len(file_base)
+        else:
+            # delimiter is after the period, so period is part of filename, not extension
+            suffix_end_index = len(file_base)
+        
         suffix = file_base[delimiter_index:suffix_end_index]
         # Throw a ValueError if the extracted suffix contains invalid characters
         if not all(char.isalnum() or char == '-' for char in suffix.strip(delimiter)):
@@ -160,11 +168,17 @@ def remove_all_suffixes_in_str(file_str, delimiter='_'): # DS, cat 1, unitests 7
     """
     # Find the last occurrence of the file extension delimiter (.)
     extension_index = file_str.rfind('.')
-    # Extract the extension if it exists
-    extension = file_str[extension_index:] if extension_index != -1 else ''
+    delimiter_index = file_str.rfind(delimiter)
     
-    # Remove the extension from the file string to avoid removing it as a suffix
-    file_str_without_extension = file_str[:extension_index] if extension_index != -1 else file_str
+    # If delimiter is after the period, the period is part of the filename, not an extension
+    if extension_index != -1 and delimiter_index > extension_index:
+        extension = ''
+        file_str_without_extension = file_str
+    else:
+        # Extract the extension if it exists
+        extension = file_str[extension_index:] if extension_index != -1 else ''
+        # Remove the extension from the file string to avoid removing it as a suffix
+        file_str_without_extension = file_str[:extension_index] if extension_index != -1 else file_str
     
     # Continuously strip suffixes until no more can be stripped
     while True:
@@ -205,9 +219,31 @@ def copy_file_and_append_suffix(file_path, suffix_new):
     shutil.copy(file_path, new_file_path)
 
     return new_file_path
+def copy_file_and_replace_suffix(file_path, suffix_new):
+    """
+    Copies the file with a new suffix replacing any existing suffix before the file extension.
+
+    :param file_path: string of the path to the original file.
+    :param suffix_new: string of the suffix to replace any existing suffix in the filename.
+    :return: string of the path to the newly created file with the replaced suffix.
+    """
+    if not os.path.isfile(file_path):
+        raise ValueError(f"The file path does not exist or is invalid for {file_path}.")
+
+    # Split the file path into directory and base name
+    file_dir, file_base = os.path.split(file_path)
+
+    # Create the new file path using sub_suffix_in_str to handle the suffix replacement
+    new_file_base = sub_suffix_in_str(file_base, suffix_new)
+    new_file_path = os.path.join(file_dir, new_file_base)
+
+    # Copy the original file to the new file path
+    shutil.copy(file_path, new_file_path)
+
+    return new_file_path
 def sub_suffix_in_file(file_path, suffix_new):
     """
-    Substitutes the suffix in the file name of the given file path with a new suffix.
+    Renames the actual file - substitutes the suffix in the file name of the given file path with a new suffix.
     If new_suffix is empty '' then it will remove the last suffix of the file.
 
     :param file_path: string, the path to the original file.
@@ -336,9 +372,9 @@ def apply_to_folder(worker_function, folder_path, *args, suffixpat_include=None,
     return results
 
 ### READ WRITE
-def read_complete_text(file_path):
+def read_complete_text(file_path):  # UPDATED 11-18-24 to use UTF-8 encoding
     """
-    Reads the entire text from a file.
+    Reads the entire text from a file using UTF-8 encoding.
 
     :param file_path: string of the file path which can be absolute or relative.
     :return: string of the complete text read from the file.
@@ -346,7 +382,7 @@ def read_complete_text(file_path):
     if not os.path.isfile(file_path):
         raise ValueError(f"The file path does not exist or is invalid for {file_path}.")
     
-    with open(file_path, 'r') as file:
+    with open(file_path, 'r', encoding='utf-8') as file:
         complete_text = file.read()
     return complete_text
 def read_metadata_and_content(file_path):
@@ -379,7 +415,8 @@ def read_metadata_and_content(file_path):
         content_start = complete_text.find('CONTENT')
         
         if metadata_start != -1 and content_start != -1:
-            metadata = complete_text[metadata_start + len('METADATA'):content_start].strip()
+            # Changed to include the METADATA and CONTENT markers
+            metadata = complete_text[metadata_start:content_start].strip()
             content = complete_text[content_start:].strip()
         else:
             raise ValueError(f"File does not contain both metadata and content sections in the required format.\n{file_path}")
@@ -524,6 +561,7 @@ def write_metadata_and_content(file_path, metadata, content, suffix_new='_temp',
     """
     Writes the metadata and content text to a new file with a specified suffix and handles overwrite logic.
     Insert 2 blank lines between the metadata and content sections if metadata is present or empty string.
+    Preserves the format style (Format 1: ## metadata/## content or Format 2: METADATA/CONTENT) based on metadata.
 
     :param file_path: string, the path to the original file.
     :param metadata: string or None, the metadata section to be written to the new file, inclusive of '## metadata' or 'METADATA'.
@@ -534,6 +572,11 @@ def write_metadata_and_content(file_path, metadata, content, suffix_new='_temp',
     :return: string, the path to the final file after applying overwrite logic.
     """
     if metadata is not None:
+        # Check if using Format 2 (all caps METADATA/CONTENT)
+        if metadata.lstrip().startswith('METADATA'):
+            # If content starts with '## content', replace it with 'CONTENT'
+            if content.lstrip().startswith('## content'):
+                content = 'CONTENT' + content[len('## content'):]
         # If metadata is present (even if it's an empty string), include it with two blank lines between metadata and content
         complete_text = metadata.rstrip('\n') + '\n\n\n' + content.rstrip('\n') + '\n'
     else:
@@ -541,54 +584,74 @@ def write_metadata_and_content(file_path, metadata, content, suffix_new='_temp',
         complete_text = content.rstrip('\n') + '\n'
 
     return write_complete_text(file_path, complete_text, suffix_new, overwrite, verbose)
-### JSON
-def pretty_print_json_structure(json_file_path, level_limit=None, save_to_file=False):
-    """
-    Prints the structure of a JSON file and optionally saves it to a file with a '.pretty' extension.
 
-    :param json_file_path: string of the path to the json file.
-    :param level_limit: integer of the maximum level of nesting to print. None means no limit.
-    :param save_to_file: boolean indicating whether to save the output to a file. defaults to true.
-    :return: None.
+### JSON - NO UNIT TESTS
+def pretty_print_json_data(json_data, level_limit=None, print_values=True):
     """
-    # Define colors for different levels of JSON structure with high contrast
+    Prints the structure of JSON data with colored output for different levels.
+
+    :param json_data: dict or list, the JSON data to print.
+    :param level_limit: int, the maximum level of nesting to print. None means no limit.
+    :param print_values: bool, whether to print values at leaf nodes.
+    :return: list, the output lines generated (without color).
+    """
     colors = ['green', 'blue', 'red', 'magenta', 'yellow', 'white', 'grey']
     output_lines = []
 
-    if not os.path.exists(json_file_path):
-        warnings.warn(f"File {json_file_path} does not exist.")
-        return
-
     def print_json_structure(data, indent=0, parent_key='', level=0):
-        # Stop printing if the current level exceeds the level limit
         if level_limit is not None and level > level_limit:
             return
 
-        # Select color based on the current level, cycling through the colors list
         color = colors[level % len(colors)]
 
         if isinstance(data, dict):
-            for key in data:
-                if isinstance(data[key], list):
-                    # Print list information with the selected color
-                    line = ' ' * indent + f"{key} (list of {len(data[key])} items)"
-                    print(colored(line, color))
-                    output_lines.append(line)
-                    if data[key]:
-                        print_json_structure(data[key][0], indent + 4, key, level + 1)
+            for key, value in data.items():
+                if isinstance(value, (dict, list)):
+                    # Handle nested structures
+                    if isinstance(value, list):
+                        line = ' ' * indent + f"{key} (list of {len(value)} items)"
+                        print(colored(line, color))
+                        output_lines.append(line)
+                        if value:
+                            print_json_structure(value[0], indent + 4, key, level + 1)
+                    else:
+                        line = ' ' * indent + str(key)
+                        print(colored(line, color))
+                        output_lines.append(line)
+                        print_json_structure(value, indent + 4, key, level + 1)
                 else:
-                    # Print dictionary keys with the selected color
-                    line = ' ' * indent + str(key)
-                    print(colored(line, color))
+                    # Handle leaf nodes
+                    if print_values:
+                        # Print key in color, value in default color
+                        print(colored(' ' * indent + str(key) + ": ", color) + str(value))
+                        line = ' ' * indent + f"{key}: {value}"
+                    else:
+                        line = ' ' * indent + str(key)
+                        print(colored(line, color))
                     output_lines.append(line)
-                    print_json_structure(data[key], indent + 4, key, level + 1)
         elif isinstance(data, list) and parent_key != '':
             if data:
                 print_json_structure(data[0], indent, parent_key, level)
 
+    print_json_structure(json_data)
+    return output_lines
+def pretty_print_json_file(json_file_path, level_limit=None, save_to_file=False):
+    """
+    Prints the structure of a JSON file and optionally saves it to a file with a '.pretty' extension.
+
+    :param json_file_path: string, path to the json file.
+    :param level_limit: int, the maximum level of nesting to print. None means no limit.
+    :param save_to_file: bool, whether to save the output to a file.
+    :return: None.
+    """
+    if not os.path.exists(json_file_path):
+        warnings.warn(f"File {json_file_path} does not exist.")
+        return
+
     with open(json_file_path, 'r') as file:
         data = json.load(file)
-        print_json_structure(data)
+    
+    output_lines = pretty_print_json_data(data, level_limit)
 
     if save_to_file:
         output_file_path = json_file_path + '.pretty'
@@ -596,11 +659,12 @@ def pretty_print_json_structure(json_file_path, level_limit=None, save_to_file=F
             for line in output_lines:
                 output_file.write(line + '\n')
         print(f"Saved pretty printed JSON structure to {output_file_path}")
-def write_json_file_from_object(json_object, file_path, overwrite="no"):
+def write_json_file_from_json_data(json_data, file_path, overwrite="no"):
     """ 
     Writes a JSON object to a file at the specified path.
+    Strictly speaking in JSON “object” means the key–value mapping, here the functions allow lists too.
 
-    :param json_object: dictionary or list to be written as JSON.
+    :param json_data: dictionary or list to be written as JSON.
     :param file_path: string of the path where the JSON file will be written.
     :param overwrite: string of either "yes" or "no" to determine if existing files should be overwritten. default is "no".
     :return: None.
@@ -613,17 +677,159 @@ def write_json_file_from_object(json_object, file_path, overwrite="no"):
 
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, 'w') as json_file:
-        json.dump(json_object, json_file, indent=4)
-def read_json_object_from_file(file_path):  # consider moving to fileops
+        json.dump(json_data, json_file, indent=4)
+def get_json_data_from_json_file(json_file_path): 
     """ 
     Reads a JSON object from a file at the specified path.
 
-    :param file_path: string of the path to the JSON file to be read.
-    :return: dictionary or list representing the JSON object read from the file.
+    :param json_file_path: string of the path to the JSON file to be read.
+    :return: dictionary or list representing the JSON data read from the file.
     """
-    with open(file_path, 'r') as json_file:
-        json_object = json.load(json_file)
-    return json_object
+    with open(json_file_path, 'r') as json_file:
+        json_data = json.load(json_file)
+    return json_data
+
+def count_non_json_compatible(data):
+    """
+    Recursively counts the number of non-JSON-compatible items in the data.
+    JSON-compatible types are: dict (with string keys), list, str, int, float, bool, and None.
+    
+    :param data: any Python data structure.
+    :return: int, the number of non-JSON-compatible items found.
+    """
+    if isinstance(data, dict):
+        count = 0
+        for key, value in data.items():
+            if not isinstance(key, str):
+                count += 1  # key is not a JSON string key
+            count += count_non_json_compatible(value)
+        return count
+    elif isinstance(data, list):
+        return sum(count_non_json_compatible(item) for item in data)
+    elif isinstance(data, (str, int, float, bool)) or data is None:
+        return 0
+    else:
+        return 1
+def convert_data_object_to_json_data(data_object, default_handler=None, verbose=False, print_analysis=False, print_values=False):
+    """
+    Recursively converts a Python data object to a JSON-compatible Python structure.
+    
+    JSON-compatible data includes dicts (with string keys), lists, strings, numbers, booleans, and None.
+    For non-compatible types, attempts to convert to dict first, then falls back to default_handler.
+    
+    :param data_object: The Python object to convert.
+    :param default_handler: Optional function to convert non-JSON-compatible objects.
+    :param verbose: bool, if True prints diagnostic messages.
+    :param print_analysis: bool, if True, prints the analyzed structure.
+    :param print_values: bool, passed to pretty_print_json_data to control leaf value printing.
+    :return: A JSON-compatible Python object (e.g. dict or list).
+    """
+    if default_handler is None:
+        default_handler = lambda o: str(o)
+    
+    if isinstance(data_object, dict):
+        new_dict = {}
+        non_compatible_count = 0
+        for key, value in data_object.items():
+            new_key = key if isinstance(key, str) else str(key)
+            if not isinstance(key, str):
+                non_compatible_count += 1
+            new_dict[new_key] = convert_data_object_to_json_data(value, default_handler, verbose, print_analysis=False, print_values=print_values)
+        if verbose and non_compatible_count > 0:
+            print(f"Converted {non_compatible_count} non-string key(s) to strings in a dict.")
+        result = new_dict
+    elif isinstance(data_object, list):
+        result = [convert_data_object_to_json_data(item, default_handler, verbose, print_analysis=False, print_values=print_values)
+                  for item in data_object]
+    elif isinstance(data_object, (str, int, float, bool)) or data_object is None:
+        result = data_object
+    else:
+        # Try to convert to dictionary first
+        if hasattr(data_object, 'model_dump'):
+            if verbose:
+                print(f"Converting {type(data_object)} using model_dump().")
+            result = convert_data_object_to_json_data(data_object.model_dump(), default_handler, verbose, print_analysis=False, print_values=print_values)
+        elif hasattr(data_object, 'dict'):
+            if verbose:
+                print(f"Converting {type(data_object)} using dict().")
+            result = convert_data_object_to_json_data(data_object.dict(), default_handler, verbose, print_analysis=False, print_values=print_values)
+        elif hasattr(data_object, '__dict__'):
+            if verbose:
+                print(f"Converting {type(data_object)} using __dict__.")
+            result = convert_data_object_to_json_data(data_object.__dict__, default_handler, verbose, print_analysis=False, print_values=print_values)
+        else:
+            if verbose:
+                print(f"Converting non-JSON-compatible type {type(data_object)} using default handler.")
+            result = default_handler(data_object)
+    
+    # Only do print_analysis at the top level to avoid recursive printing
+    if print_analysis and not isinstance(data_object, (dict, list)):
+        if verbose:
+            print("\nAnalyzing data object structure:")
+        pretty_print_json_data(result, print_values=print_values)
+    
+    return result
+def check_json_compatibility(data_object):
+    """
+    Checks whether the provided data_object is fully JSON compatible.
+    
+    :param data_object: any Python object.
+    :return: Boolean, True if fully JSON-compatible; False otherwise.
+    """
+    return count_non_json_compatible(data_object) == 0
+
+def save_object_to_pickle_file(data_object, pickle_file_path, verbose=False, print_object=False):
+    """
+    Save an object to a pickle file.
+
+    :param data_object: object, the object to save to pickle file
+    :param pickle_file_path: str, path to the file where the object will be saved
+    :param verbose: bool, whether to print verbose saving info
+    :param print_object: bool, whether to print the full object being saved
+    :return: None
+    """
+    try:
+        with open(pickle_file_path, 'wb') as f:  # Note: 'wb' for binary write
+            pickle.dump(data_object, f)
+            if verbose:
+                print(f"\nSuccessfully pickled - saved object to: {pickle_file_path}")
+                print(f"Type of object: {type(data_object)}")
+            if print_object:
+                print("\nDirect print of object being saved:")
+                print(data_object)
+            
+    except Exception as e:
+        print(f"\nError saving object: {str(e)}")
+        raise
+def get_object_from_pickle_file(pickle_file_path, verbose=False, print_object=False):
+    """
+    Load any Python object from a pickle file.
+    
+    :param pickle_file_path: str, path to the pickle file.
+    :param verbose: bool, if True prints verbose loading info.
+    :param print_object: bool, if True, analyzes and prints the object's structure.
+    :return: The raw object that was pickled.
+    """
+    try:
+        with open(pickle_file_path, 'rb') as f:
+            data_object = pickle.load(f)
+        if verbose:
+            print(f"\nSuccessfully loaded object from pickle file: {pickle_file_path}")
+            print(f"Type of object: {type(data_object)}")
+        
+        if print_object:
+            print("\nConverting data object to JSON data:")
+            convert_data_object_to_json_data(data_object, verbose=verbose, print_analysis=True, print_values=True)
+            print("\nFull object contents:")
+            print(data_object)
+            
+        return data_object
+    except FileNotFoundError:
+        print(f"\nError: File not found at {pickle_file_path}")
+        raise
+    except Exception as e:
+        print(f"\nError loading or processing object: {str(e)}")
+        raise
 
 ### MISC FILE
 def rename_file(file_path, new_filebase):
@@ -737,6 +943,44 @@ def move_files_with_suffix(source_folder, destination_folder, suffixpat_include,
     """
     # Use apply_to_folder to move files
     return apply_to_folder(move_file, source_folder, destination_folder, suffixpat_include=suffixpat_include, include_subfolders=False, verbose=verbose)
+def copy_file(file_path, destination_folder):
+    """
+    Copies a file to the specified destination folder.
+
+    :param file_path: string, the path to the file to be copied.
+    :param destination_folder: string, the path to the destination folder.
+    :return: string, the new file path after copying, or an error if the operation fails.
+    """
+    # Check if the original file exists
+    if not os.path.isfile(file_path):
+        raise ValueError(f"The file path does not exist or is invalid for {file_path}.")
+
+    # Check if the destination folder exists, if not, create it
+    if not os.path.isdir(destination_folder):
+        os.makedirs(destination_folder)
+
+    # Create the new file path with the destination folder
+    file_name = os.path.basename(file_path)
+    new_file_path = os.path.join(destination_folder, file_name)
+
+    # Copy the original file to the new file path
+    try:
+        shutil.copy2(file_path, new_file_path)
+        return new_file_path  # Return the new file path if the file was successfully copied
+    except OSError as e:
+        return e  # Return the exception if an error occurred
+def copy_files_with_suffix(source_folder, destination_folder, suffixpat_include, verbose=False):
+    """
+    Copies all files in a given folder that end with a specified suffix to the destination folder.
+
+    :param source_folder: string, the path to the source folder where files are to be copied from.
+    :param destination_folder: string, the path to the destination folder where files are to be copied to.
+    :param suffixpat_include: string, the suffix pattern of the files to be copied.
+    :param verbose: boolean, if True, the function will print verbose messages. Default is False.
+    :return: list, the new file paths after copying, or an error if the operation fails.
+    """
+    # Use apply_to_folder to copy files
+    return apply_to_folder(copy_file, source_folder, destination_folder, suffixpat_include=suffixpat_include, include_subfolders=False, verbose=verbose)
 def tune_title(title):
     """
     Removes any special characters from the given title.
@@ -906,6 +1150,52 @@ def check_if_duplicate_filename(filename, folder, exclude_suffix=True):
     else:
         # Do an exact comparison including the suffix and extension
         return filename.lower() in [f.lower() for f in existing_files]
+def find_and_replace_in_filenames_in_folder(folder_path, find_str, replace_str, suffixpat_include=None, suffixpat_exclude=None, include_subfolders=False):
+    """
+    Finds and replaces strings in filenames within the specified folder.
+    Optionally filters by suffix pattern and includes subfolders.
+
+    :param folder_path: string of the path to the folder where filenames will be processed.
+    :param find_str: string to find in the filenames.
+    :param replace_str: string to replace the found string with.
+    :param suffixpat_include: string of the suffix pattern that included files must have.
+    :param suffixpat_exclude: string of the suffix pattern that files must not have to be included.
+    :param include_subfolders: boolean indicating whether to include files from subfolders.
+    :return: integer representing the number of files renamed.
+    """
+    # Get list of files using existing function
+    file_paths = get_files_in_folder(folder_path, suffixpat_include, suffixpat_exclude, include_subfolders)
+    
+    files_renamed = 0
+    for file_path in file_paths:
+        # Split path into directory and filename
+        directory, filename = os.path.split(file_path)
+        
+        # Check if filename contains the find string
+        if find_str in filename:
+            # Create new filename with replaced string
+            new_filename = filename.replace(find_str, replace_str)
+            new_file_path = os.path.join(directory, new_filename)
+            
+            # Rename the file
+            os.rename(file_path, new_file_path)
+            files_renamed += 1
+    
+    print(f"Updated filenames for {files_renamed} files in {folder_path}")
+    return files_renamed
+def find_line_number_in_file(file_path, search_text):  # no unittests yet
+    """
+    Finds the line number where the specified text first appears in the file.
+
+    :param file_path: string, the path to the file to search.
+    :param search_text: string, the text to search for.
+    :return: int, the line number where the text was found (1-based), or None if not found.
+    """
+    with open(file_path, 'r', encoding='utf-8') as file:
+        for i, line in enumerate(file, 1):
+            if search_text in line:
+                return i
+    return None
 
 ### TIME AND TIMESTAMP
 def convert_seconds_to_timestamp(seconds):
@@ -968,7 +1258,7 @@ def convert_timestamp_to_seconds(timestamp):
     return total_seconds
 def change_timestamp(timestamp, delta_seconds):
     """
-    Changes a given timestamp by a specified number of seconds. Uncomment line in tune_timestamp
+    Changes a given timestamp by a specified number of seconds.
 
     :param timestamp: string representing the timestamp in the format hh:mm:ss or mm:ss.
     :param delta_seconds: integer representing the number of seconds to change the timestamp by.
@@ -980,17 +1270,24 @@ def change_timestamp(timestamp, delta_seconds):
     if modified_seconds < 0: 
         raise ValueError("Resulting time cannot be less than zero.")
     return convert_seconds_to_timestamp(modified_seconds)
-def tune_timestamp(timestamp):
+def tune_timestamp(timestamp, delta_seconds=None):
     """
     Converts a given timestamp to a standard format with respect to digits and leading zeros.
+    Optionally shifts the timestamp by a specified number of seconds.
 
     :param timestamp: string representing the timestamp in the format hh:mm:ss or mm:ss.
+    :param delta_seconds: integer representing the number of seconds to shift the timestamp by. Default is None.
     :return: string representing the tuned timestamp or None if the input timestamp is None.
+    :raises ValueError: if delta_seconds is provided but is not an integer.
     """
-    # convert a timestamp to our standard with respect to digits and leading zeros
-    if timestamp is None: # not sure if it was intentional to not raise ValueError but leave it
+    if timestamp is None:
         return None
-    # timestamp = change_timestamp(timestamp, 0)  # CAUTION - only include to shift the timestamps
+        
+    if delta_seconds is not None:
+        if not isinstance(delta_seconds, int):
+            raise ValueError("delta_seconds must be an integer")
+        timestamp = change_timestamp(timestamp, delta_seconds)
+        
     secs = convert_timestamp_to_seconds(timestamp)
     tuned_timestamp = convert_seconds_to_timestamp(secs)
     #print(f"Original timestamp: '{timestamp}'  Tuned timestamp: '{tuned_timestamp}'") 
@@ -1190,6 +1487,65 @@ def get_elapsed_seconds(start_time_epoch_seconds):
     """
     current_time = time.time()
     return int(round(current_time - start_time_epoch_seconds))
+def track_progress(current_count, total_count, start_time, last_percentage=0, item_name="items"):
+    """
+    Tracks and reports progress for iterative operations.
+    Reports at 2%, 5%, and every 10% thereafter, skipping early percentages if item count is too small.
+    
+    :param current_count: int, current number of items processed
+    :param total_count: int, total number of items to process
+    :param start_time: float, start time from time.time()
+    :param last_percentage: int, last reported percentage (for internal tracking)
+    :param item_name: str, name of items being processed (default "items")
+    :return: int, updated last_percentage
+    :raises ValueError: if total_count is zero
+    """
+    if total_count == 0:
+        raise ValueError("Total count cannot be zero")
+        
+    current_percentage = (current_count / total_count) * 100
+    
+    # Define checkpoints (2%, 5%, and every 10%)
+    checkpoints = [2, 5] + list(range(10, 101, 10))
+    
+    # For small total counts, find checkpoints that represent at least 1 item
+    items_per_percent = total_count / 100
+    valid_checkpoints = []
+    min_items = 1
+    
+    # Find the minimum percentage that represents at least 1 item
+    min_percentage = (min_items / total_count) * 100
+    
+    # Only include checkpoints that are at or above the minimum percentage
+    valid_checkpoints = [cp for cp in checkpoints if cp >= min_percentage]
+    
+    if not valid_checkpoints:
+        return last_percentage
+        
+    first_valid_checkpoint = valid_checkpoints[0]
+    
+    # Round up to the nearest valid checkpoint
+    if first_valid_checkpoint == 50 and current_percentage >= 60:
+        first_valid_checkpoint = 60
+    
+    # If we haven't reached the first valid checkpoint, return
+    if current_percentage < first_valid_checkpoint:
+        return last_percentage
+        
+    # Find the next checkpoint we haven't reached yet
+    next_checkpoint = next((cp for cp in valid_checkpoints if cp > last_percentage and current_percentage >= cp), None)
+    
+    if next_checkpoint is not None:
+        elapsed_seconds = time.time() - start_time
+        remaining_items = total_count - current_count
+        time_per_item = elapsed_seconds / current_count if current_count else 0
+        time_remaining_mins = (remaining_items * time_per_item) / 60 if time_per_item else 0
+        
+        print(f"Progress: {int(current_percentage)}% complete ({current_count:,}/{total_count:,} {item_name}) "
+              f"- Time remaining: {time_remaining_mins:.1f} minutes")
+        return next_checkpoint
+    
+    return last_percentage
 
 ### TIMESTAMP LINKS
 def remove_timestamp_links_from_content(content):
@@ -1231,7 +1587,7 @@ def generate_timestamp_link(base_link, timestamp):
     domain_timestamp_formats = {
         "youtube.com": "&t={}",
         "youtu.be": "&t={}",
-        "spotify.com": "&t={}",
+        "spotify.com": "?t={}",  # changed from &t= on 1-20-25 RT
         "vimeo.com": "?ts={}"
     }
 
@@ -1278,7 +1634,31 @@ def add_timestamp_links_to_content(content, base_link):
             line_with_link = line
         processed_lines.append(line_with_link)
     return '\n'.join(processed_lines)+"\n"  # explicitly add extra newline to avoid stripping one
-def add_timestamp_links(file_path):
+def get_link_from_metadata(file_path):
+    """
+    Retrieves a link from metadata, first trying 'link' field, then any field starting with 'link'.
+    
+    :param file_path: string, the path to the file to read metadata from.
+    :return: string, the link value found, or None if no link field is found.
+    """
+    # First try the simple 'link' field
+    _, base_link = read_metadata_field_from_file(file_path, "link")
+    if base_link is not None:
+        return base_link
+    
+    # If that fails, look for any field starting with 'link'
+    metadata, _ = read_metadata_and_content(file_path)
+    metadata_lines = metadata.split('\n')
+    
+    for line in metadata_lines:
+        line = line.strip()
+        if line.startswith('link ') and ':' in line:
+            # Extract the value after the colon
+            colon_index = line.find(':')
+            return line[colon_index + 1:].strip()
+    
+    return None
+def  add_timestamp_links(file_path):
     """
     Adds markdown timestamp links and overwrites the file.
 
@@ -1286,13 +1666,50 @@ def add_timestamp_links(file_path):
     :return: none
     """
     metadata, content = read_metadata_and_content(file_path)
-    _, base_link = read_metadata_field_from_file(file_path, "link")
+    base_link = get_link_from_metadata(file_path)
+    
+    if base_link is None:
+        print(f"Warning: No link field found in metadata for {file_path}")
+        return
     
     # First, remove any existing timestamp links from the content
     content_without_links = remove_timestamp_links_from_content(content)
     # Then, add new timestamp links to the content
     new_content = add_timestamp_links_to_content(content_without_links, base_link)
 
+    write_metadata_and_content(file_path, metadata, new_content, suffix_new='_temp', overwrite='yes')
+def redo_timestamp_links_with_delta_seconds(file_path, delta_seconds):  # no unittests
+    """
+    Redoes the timestamp links with a delta seconds added to the original timestamp.
+    
+    :param file_path: string, the path to the file where timestamp links will be redone.
+    :param delta_seconds: integer, the number of seconds to add to each timestamp.
+    :return: none
+    """
+    metadata, content = read_metadata_and_content(file_path)
+    _, base_link = read_metadata_field_from_file(file_path, "link")
+    
+    # First, remove any existing timestamp links from the content
+    content_without_links = remove_timestamp_links_from_content(content)
+    
+    # Process each line to add timestamp links with the delta seconds
+    content_lines = content_without_links.splitlines()
+    processed_lines = []
+    for line in content_lines:
+        timestamp, index = get_timestamp(line)
+        if timestamp:
+            tuned_timestamp = tune_timestamp(timestamp, delta_seconds)
+            if tuned_timestamp and index is not None:
+                timestamp_link = generate_timestamp_link(base_link, tuned_timestamp)
+                line_with_link = line[:index] + timestamp_link + line[index + len(timestamp):]
+            else:
+                line_with_link = line
+        else:
+            line_with_link = line
+        processed_lines.append(line_with_link)
+    
+    new_content = '\n'.join(processed_lines) + '\n'  # explicitly add extra newline to avoid stripping one
+    
     write_metadata_and_content(file_path, metadata, new_content, suffix_new='_temp', overwrite='yes')
 
 ### FIND AND REPLACE
@@ -1309,26 +1726,52 @@ def count_num_instances(file_path, find_str):
     count = complete_text.count(find_str)
     print(f"Number instances: {count} of {find_str} found in {file_path}")
     return count
-def find_and_replace_pairs(file_path, find_replace_pairs, use_regex=False):
+def find_and_replace_pairs(file_path, find_replace_pairs, debug=False, use_regex=False, include_metadata=False):
     """
     Finds and replaces multiple specified strings or regex patterns in the file and overwrites the original file.
     Usage - cur_find_replace_pairs = [("Mervin Praison", "John Smith"), ("Summary", "Tamagotchi")]
 
     :param file_path: string, the path to the file where the find and replace operations will be performed.
     :param find_replace_pairs: list of tuples, each containing a string or regex pattern to be found and a string to replace it with.
+    :param debug: boolean, whether to print debug information.
     :param use_regex: boolean for whether to use regex patterns for finding. Default is False (use exact string matching).
+    :param include_metadata: boolean for whether to search and replace in metadata section. Default is True.
     :return: int, the total number of replacements made.
     """
     metadata, content = read_file_flex(file_path)
+    verbose_print(debug, f"\nProcessing file: {file_path}")
 
     total_replacements = 0
     for find_str, replace_str in find_replace_pairs:
+        verbose_print(debug, f"  Looking for: '{find_str}'")
+        verbose_print(debug, f"  Replace with: '{replace_str}'")
+        
         if use_regex:
             regex = re.compile(find_str, re.DOTALL)
+            if include_metadata and metadata is not None:
+                metadata, meta_count = regex.subn(replace_str, metadata)
+                total_replacements += meta_count
+                verbose_print(debug, f"  Metadata replacements made: {meta_count}")
             content, count = regex.subn(replace_str, content)
+            total_replacements += count
+            verbose_print(debug, f"  Content replacements made: {count}")
         else:
-            content, count = re.subn(re.escape(find_str), replace_str, content, flags=re.DOTALL)
-        total_replacements += count
+            # First escape all regex special characters
+            safe_find_str = re.escape(find_str)
+            
+            # Then unescape the URL-safe characters we want to match literally
+            url_safe_chars = '/: .'
+            for char in url_safe_chars:
+                safe_find_str = safe_find_str.replace('\\' + char, char)
+            verbose_print(debug, f"  Search pattern after escaping: '{safe_find_str}'")
+            
+            if include_metadata and metadata is not None:
+                metadata, meta_count = re.subn(safe_find_str, replace_str.replace('\\', '\\\\'), metadata, flags=re.DOTALL)
+                total_replacements += meta_count
+                verbose_print(debug, f"  Metadata replacements made: {meta_count}")
+            content, count = re.subn(safe_find_str, replace_str.replace('\\', '\\\\'), content, flags=re.DOTALL)
+            total_replacements += count
+            verbose_print(debug, f"  Content replacements made: {count}")
 
     if metadata is None:
         write_complete_text(file_path, content, overwrite='yes')
@@ -1336,11 +1779,20 @@ def find_and_replace_pairs(file_path, find_replace_pairs, use_regex=False):
         write_metadata_and_content(file_path, metadata, content, overwrite='yes')
 
     return total_replacements
-# TODO reconsider the flexibility of the space before the comma so that we can use pairs with leading or trailing spaces, maybe have a warning confirmation message if the csv has a pair with a leading space
 def parse_csv_for_find_replace(csv_file):
     """
     Parses a CSV file to extract find and replace pairs.
-    Returns a list of the find_
+    Handles two formats for find/replace pairs:
+    1. Unquoted strings: Leading and trailing spaces are stripped
+    2. Single-quoted strings ('): Preserves all spaces between the quotes
+    
+    Example CSV content:
+    find, replace
+    hello  ,  world     # -> ("hello", "world")
+    'hello  ', 'world ' # -> ("hello  ", "world ")
+    
+    :param csv_file: string, path to the CSV file containing find/replace pairs.
+    :return: list of tuples, each containing (find_string, replace_string).
     """
     pairs = []
     with open(csv_file, mode='r', newline='') as csvfile:
@@ -1348,17 +1800,38 @@ def parse_csv_for_find_replace(csv_file):
         first_row = next(csvreader)
         if not (first_row and ','.join(first_row).strip().startswith('find')):
             warnings.warn("CSV does not start with 'find, replace' header. Processing the first row as data.")
-            pairs.append((first_row[0].strip(), first_row[1].strip()))
+            pairs.append(process_find_replace_pair(first_row[0], first_row[1]))
         for row in csvreader:
             if row and not row[0].strip().startswith('#'):
                 try:
-                    find_str, replace_str = row[0].strip(), row[1].strip()
-                    pairs.append((find_str, replace_str))
+                    pairs.append(process_find_replace_pair(row[0], row[1]))
                 except IndexError as e:
                     print(f"Error processing row: {row} - {str(e)}")
     return pairs
+def process_find_replace_pair(find_str, replace_str):
+    """
+    Helper function to process a find/replace pair based on whether they use quotes.
+    Both strings must use the same format (either both quoted or both unquoted).
+    
+    :param find_str: string, the string to find.
+    :param replace_str: string, the string to replace with.
+    :return: tuple of (processed_find_str, processed_replace_str).
+    :raises ValueError: if one string is quoted and the other isn't.
+    """
+    find_quoted = find_str.strip().startswith("'") and find_str.strip().endswith("'")
+    replace_quoted = replace_str.strip().startswith("'") and replace_str.strip().endswith("'")
+    
+    if find_quoted != replace_quoted:
+        raise ValueError("Both strings must be either quoted or unquoted")
+        
+    if find_quoted:
+        # Remove only the outer quotes
+        return (find_str.strip()[1:-1], replace_str.strip()[1:-1])
+    else:
+        # Strip all leading/trailing spaces for unquoted strings
+        return (find_str.strip(), replace_str.strip())
 # TODO needs unittest
-def find_and_replace_from_csv(folder_path, find_replace_csv, suffixpat_include=None, verbose=False):
+def find_and_replace_from_csv(folder_path, find_replace_csv, suffixpat_include=None, include_subfolders=False, include_metadata=False, verbose=False):
     """
     Applies find and replace operations on all files in a specified folder based on pairs defined in a CSV file.
     Overwrite is fixed at 'yes' so you have to copy the files before running.
@@ -1373,9 +1846,10 @@ def find_and_replace_from_csv(folder_path, find_replace_csv, suffixpat_include=N
     """
     # Parse the CSV to get find and replace pairs
     find_replace_pairs = parse_csv_for_find_replace(find_replace_csv)
+    #print(f"find_replace_pairs: {find_replace_pairs}")
     
     # Apply find and replace operations to all files in the folder
-    results = apply_to_folder(find_and_replace_pairs, folder_path, find_replace_pairs, suffixpat_include=suffixpat_include, verbose=verbose)
+    results = apply_to_folder(find_and_replace_pairs, folder_path, find_replace_pairs, suffixpat_include=suffixpat_include, include_subfolders=include_subfolders, include_metadata=include_metadata, verbose=verbose)
 
     # Print the total number of replacements in all files
     total_replacements = sum(results.values())
@@ -1387,6 +1861,7 @@ def find_and_replace_from_csv(folder_path, find_replace_csv, suffixpat_include=N
             print(f"{num_replacements} replacements in file: {file_path}  {num_replacements} replacements")
 
 ### HEADINGS
+# TODO consider consistency of using read_complete_text vs read_metadata_and_content
 def get_heading_level(heading):
     """
     Determines the level of a markdown heading.
@@ -1425,6 +1900,21 @@ def find_heading_text(full_text, heading):
     :param heading: string, the markdown heading to find.
     :return: tuple (start_index, end_index) or None if not found.
     """
+    # Special handling for Format 2 (METADATA and CONTENT)
+    if heading in ['METADATA', 'CONTENT']:
+        start = full_text.find(heading)
+        if start != -1:
+            if heading == 'METADATA':
+                # Find end at CONTENT marker
+                content_start = full_text.find('CONTENT')
+                if content_start != -1:
+                    return start, content_start
+            else:  # heading == 'CONTENT'
+                # Return from CONTENT to end of file
+                return start, len(full_text)
+        return None
+    
+    # Handling for standard markdown headings
     pattern = get_heading_pattern(heading)
     if pattern is None:
         return None
@@ -1432,20 +1922,29 @@ def find_heading_text(full_text, heading):
     if match:
         return match.start(), match.end()
     return None
-def get_heading(file_path, heading):
+def get_heading(file_path, heading, strip_heading_line=False):
     """
     Extracts the markdown heading and its associated text from a file, including any subheadings of equal or lower order.
     Uses the complete text and does not parse the metadata and content sections.
 
     :param file_path: string, the path to the file to be read.
     :param heading: string, the markdown heading to be extracted, including the '#' characters and the following space.
+    :param strip_heading_line: bool, if True strips the heading line and any blank lines after it from the result.
     :return: string, the markdown heading and its associated text, including any subheadings of equal or lower order.
     """
     complete_text = read_complete_text(file_path)
     result = find_heading_text(complete_text, heading)
     if result:
         start, end = result
-        return complete_text[start:end]
+        text = complete_text[start:end]
+        if strip_heading_line:
+            lines = text.splitlines()
+            # Skip first line and any blank lines after it
+            i = 1
+            while i < len(lines) and not lines[i].strip():
+                i += 1
+            text = '\n'.join(lines[i:])
+        return text
     return None
 def set_heading(file_path, new_text, heading):
     """
@@ -1460,7 +1959,12 @@ def set_heading(file_path, new_text, heading):
     """
     metadata, content = read_metadata_and_content(file_path)
     
-    new_text_with_heading = f"{heading}\n{new_text}"
+    # Check if new_text already starts with the heading
+    if new_text.lstrip().startswith(heading):
+        new_text_with_heading = new_text
+    else:
+        new_text_with_heading = f"{heading}\n{new_text}"
+    
     if not new_text_with_heading.endswith('\n'):
         new_text_with_heading += '\n'
     
@@ -1571,51 +2075,173 @@ def create_new_file_from_heading(file_path, heading, suffix_new='_headingonly', 
             heading_text = heading_text.lstrip(heading).lstrip('\n')
     
     return write_complete_text(file_path, heading_text, suffix_new)
+# TODO merge this with delete_heading function after checking for all uses in codebase
+def delete_all_heading_instances(file_path, heading):
+    """
+    Deletes all instances of the specified markdown heading and their following text, including subheadings.
+    Stops at headings of equal or higher level (fewer or same number of '#' characters).
+
+    :param file_path: string, the path to the file from which the headings will be deleted.
+    :param heading: string, the markdown heading to be deleted, including the '#' characters and the following space.
+    """
+    complete_text = read_complete_text(file_path)
+    pattern = get_heading_pattern(heading)
+    
+    if pattern is None:
+        return
+        
+    # Delete all instances of the heading and its content
+    new_text = pattern.sub('', complete_text)
+    
+    if new_text != complete_text:
+        write_complete_text(file_path, new_text, suffix_new='_temp', overwrite='yes')
+    else:
+        warnings.warn("in delete_all_heading_instances: trying to delete heading that does not exist - no action")
+def create_list_of_strings_from_md_file(md_file_path, heading_level, verbose=True):
+    """
+    Creates a list of strings from a markdown file, where each string contains the text between headings of the specified level.
+
+    :param md_file_path: string, path to the markdown file to process.
+    :param heading_level: int, the heading level to split on (e.g., 2 for '## ' headings).
+    :return: list of strings, where each string contains the text between headings of the specified level.
+    """
+    # Read the complete text from the file
+    complete_text = read_complete_text(md_file_path)
+    
+    # Create the heading pattern to match (e.g., '## ' for level 2)
+    heading_pattern = '#' * heading_level + ' '
+    
+    # Split the text into sections based on the heading pattern
+    sections = []
+    current_section = []
+    lines = complete_text.splitlines()
+    
+    for line in lines:
+        # Check if this line is a heading of our target level
+        if line.startswith(heading_pattern):
+            # If we have accumulated text in current_section, join it and add to sections
+            if current_section:
+                sections.append('\n'.join(current_section))
+            # Start a new section with this heading
+            current_section = [line]
+        # Check if this line is a heading of a lower level (more #'s)
+        elif line.startswith('#') and len(line) - len(line.lstrip('#')) < heading_level:
+            # Skip headings of lower levels (e.g., skip '# ' when looking for '## ')
+            continue
+        # If we're inside a section, add the line
+        elif current_section:
+            current_section.append(line)
+    
+    # Add the last section if it exists
+    if current_section:
+        sections.append('\n'.join(current_section))
+
+    if verbose:
+      total_chars = 0
+      for string in sections:
+          first_line = string.split('\n')[0]
+          char_count = len(string)
+          total_chars += char_count
+          print(f"{first_line}   {char_count//1000} K characters")
+      print(f"Total: {total_chars//1000} K characters\n")
+    
+    return sections
+def get_heading_above(file_path, search_text):
+    """
+    Find the markdown heading immediately above the first instance of the search text in the file.
+
+    :param file_path: string, path to the file to search in
+    :param search_text: string, the text to find the heading above
+    :return heading: string, the heading found (including the ### markers) or None if not found
+    """
+    # Get complete text from file
+    complete_text = read_complete_text(file_path)
+    
+    # Find the position of the search text
+    text_pos = complete_text.find(search_text)
+    if text_pos == -1:
+        return None
+        
+    # Get the text up to the search position
+    text_above = complete_text[:text_pos]
+    
+    # Search backwards through lines for heading
+    lines = text_above.split('\n')
+    for line in reversed(lines):
+        stripped = line.strip()
+        if stripped.startswith('#'):
+            # Verify it's a valid markdown heading (# followed by space)
+            if ' ' in stripped and stripped.index(' ') == stripped.count('#'):
+                return stripped
+    
+    return None
+def scale_headings(full_text, scale_factor):
+    """
+    Scales the level of all headings in the text by a specified amount.
+
+    :param full_text: string, the text containing the headings to be scaled.
+    :param scale_factor: int, the amount to scale the heading levels by (positive to increase level, negative to decrease).
+    :return: string, the text with scaled heading levels.
+    :raises ValueError: if scaling would result in invalid heading levels (< 1 or > 6).
+    """
+    if not full_text:
+        return full_text
+
+    lines = full_text.splitlines()
+    scaled_lines = []
+    
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith('#'):
+            # Verify it's a valid markdown heading (# followed by space)
+            if ' ' in stripped and stripped.index(' ') == stripped.count('#'):
+                current_level = get_heading_level(stripped)
+                new_level = current_level + scale_factor
+                
+                # Check if new level would be valid
+                if new_level > 6:
+                    raise ValueError(f"Scaling heading '{stripped}' by {scale_factor} would exceed maximum level of 6")
+                if new_level < 1:
+                    raise ValueError(f"Scaling heading '{stripped}' by {scale_factor} would result in level below 1")
+                
+                # Replace the heading markers while preserving the heading text
+                heading_text = stripped[current_level:].lstrip()
+                scaled_line = '#' * new_level + ' ' + heading_text
+                scaled_lines.append(scaled_line)
+            else:
+                scaled_lines.append(line)
+        else:
+            scaled_lines.append(line)
+    
+    return '\n'.join(scaled_lines)
 
 ### METADATA
 def set_metadata_field(metadata, field, value):
     """
     Sets or updates a metadata field with a given value.
 
-    :param metadata: string, the metadata from which a metadata field is to be set or updated.
+    :param metadata: string, the metadata section already extracted from the file.
     :param field: string, the metadata field to be set or updated without the : and space.
     :param value: string, the value to be set for the metadata field.
     :return: string, the updated metadata with the set or updated metadata field.
     """
-    # Split the metadata text into lines
     lines = metadata.split('\n')
-    field_line = None
     field_exists = False
-    insert_index = -1  # Default insert index to the end of the metadata
 
-    # Check if the field already exists and find the insert index after '## metadata'
-    metadata_start_found = False
+    # Check if the field already exists
     for i, line in enumerate(lines):
-        if '## metadata' in line:
-            metadata_start_found = True
-            metadata_index = i
-        elif metadata_start_found and line.strip() == '':
-            insert_index = i  # Set insert index to the first blank line after '## metadata'
-            break
         if line.startswith(f"{field}:"):
+            lines[i] = f"{field}: {value}"
             field_exists = True
-            field_line = i
             break
 
-    # If the field exists, update it
-    if field_exists:
-        lines[field_line] = f"{field}: {value}"
-    else:
-        # If the field does not exist, add it at the insert index
-        if insert_index == -1:  # If no blank line was found, append it after the metadata heading
-            lines.insert(metadata_index + 1, f"{field}: {value}")
-        else:
-            lines.insert(insert_index, f"{field}: {value}")
+    # If the field doesn't exist, add it after any existing fields
+    if not field_exists:
+        # Find the first blank line or end of metadata
+        insert_index = next((i for i, line in enumerate(lines) if line.strip() == ''), len(lines))
+        lines.insert(insert_index, f"{field}: {value}")
 
-    # Reassemble the metadata text
-    updated_metadata = '\n'.join(lines)
-
-    return updated_metadata
+    return '\n'.join(lines)
 def remove_metadata_field(metadata, field):
     """
     Removes a specified metadata field from the metadata.
@@ -1638,19 +2264,28 @@ def create_initial_metadata():
     """
     metadata = "## metadata\nlast updated: \n"  # newlines will
     return metadata
-def set_last_updated(metadata, new_last_updated_value, use_today=True):
+def set_last_updated(file_path, new_last_updated_value, prepend_today=True):
     """
-    Updates the 'last updated' metadata field in the metadata with a new value.
+    Updates the 'last updated' metadata field in a file with a new value.
 
-    :param metadata: string, the metadata from which the 'last updated' metadata field is to be updated.
+    :param file_path: string, the path to the file to be updated.
     :param new_last_updated_value: string, the new value for the 'last updated' metadata field.
-    :param use_today: boolean, if True, today's date is prepended to the new_last_updated_value. Default is True.
-    :return: string, the updated metadata with the new 'last updated' value.
+    :param prepend_today: boolean, if True, today's date is prepended to the new_last_updated_value. Default is True.
+    :return: None
     """
-    if use_today:
-        date_today = datetime.now().strftime("%m-%d-%Y") # Assign today's date in format MM-DD-YYY
+    # Read the metadata and content from the file
+    metadata, content = read_metadata_and_content(file_path)
+    
+    # Format the new last updated value
+    if prepend_today:
+        date_today = datetime.now().strftime("%m-%d-%Y")  # Assign today's date in format MM-DD-YYY
         new_last_updated_value = f"{date_today} {new_last_updated_value}"
-    return set_metadata_field(metadata, 'last updated', new_last_updated_value)
+    
+    # Update the metadata with the new last updated value
+    updated_metadata = set_metadata_field(metadata, 'last updated', new_last_updated_value)
+    
+    # Write the updated metadata and content back to the file
+    write_metadata_and_content(file_path, updated_metadata, content, suffix_new='_temp', overwrite='yes')
 def read_metadata_field_from_file(file_path, field):
     """
     Reads a specific metadata field from a file.
@@ -1675,7 +2310,7 @@ def read_metadata_field_from_file(file_path, field):
             field_end = len(metadata_selection)
         field_value = metadata_selection[field_start:field_end].strip()
         return field_line, field_value
-    return None
+    return None, None
 def set_metadata_fields_from_csv(folder_path, csv_file_path, suffix_extension):
     """
     Sets metadata fields for all files in a folder based on a CSV file.
@@ -1791,9 +2426,6 @@ def create_csv_matrix_from_triples(triples_text, target_file_path):
     :param target_file_path: string of the path to the target csv file.
     :return: string of the path to the created csv file.
     """
-    import csv
-    from collections import defaultdict
-
     # Parse the triples text into a list of tuples
     triples = []
     for line in triples_text.strip().split('\n'):
@@ -1825,3 +2457,4 @@ def create_csv_matrix_from_triples(triples_text, target_file_path):
     print(f"CSV file with {row_count} rows created at {target_file_path}")
     return target_file_path
 
+# END OF FILE primary/fileops.py

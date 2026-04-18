@@ -1,19 +1,35 @@
+# ===== START OF FILE primary/vectordb.py =====
+# Library for vector database operations
+
+import sys
 import os
 import json
 import zipfile
 import shutil
-import datetime
+from datetime import datetime, timezone, timedelta
+import time
+import re
+from termcolor import colored
 
 from openai import OpenAI
 from pinecone import Pinecone, ServerlessSpec
+
+# Exclude for qrag chalicelib
 from langchain_pinecone import Pinecone as LangchainPinecone
 from langchain_community.document_loaders import ObsidianLoader
 from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-from config import PINECONE_API_KEY, OPENAI_API_KEY_CONFIG_LLM
+# ---API KEYS AND SECRETS---
+from dotenv import load_dotenv
+load_dotenv(override=True)  # Load environment variables from .env file
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY_LOCAL"]
+PINECONE_API_KEY = os.environ["PINECONE_API_KEY"]
 
-client = OpenAI(api_key=OPENAI_API_KEY_CONFIG_LLM)
+
+# ---START OF SYNCED CODE--- only code below will be synchronized with chalicelib.
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 VZIP_LOG_FOLDER = 'logs/vectordb_pinecone_log_zips/'
 EMBEDDING_MODEL = "text-embedding-3-small"  # OpenAI 1536 dimensions and $0.02/1M tokens - batch is 1/2 that, large is $.13)
@@ -23,6 +39,48 @@ EMBEDDING_MODEL = "text-embedding-3-small"  # OpenAI 1536 dimensions and $0.02/1
 
 
 ### VECTOR DB SUPPORT
+def convert_date_to_unix(date_str, utc_offset=0):
+    """
+    Converts an ISO date string to Unix timestamp with UTC offset.
+
+    :param date_str: string, date in ISO format (e.g., '2024-01-01')
+    :param utc_offset: integer, UTC offset in hours (default: 0 for UTC)
+    :return: integer, Unix timestamp adjusted for UTC offset
+    """
+    # Create timezone object for the offset
+    tz = timezone(timedelta(hours=utc_offset))
+    
+    # Parse the date and make it timezone-aware with specified offset
+    date = datetime.strptime(date_str, '%Y-%m-%d').replace(tzinfo=tz)
+    
+    # Convert to Unix timestamp
+    return int(date.timestamp())
+def mrun_convert_date_to_unix():
+    pass
+#if __name__ == "__main__":
+    #date_str = "2024-10-23"
+    date_str = "2023-04-22"
+    utc_offset = -7
+    unix_timestamp = convert_date_to_unix(date_str, utc_offset)
+    print(f"Unix timestamp for {date_str} at UTC {utc_offset}: {unix_timestamp}")
+    comp_unix_timestamp = 1682146800
+    hours_diff = (comp_unix_timestamp - unix_timestamp) / 3600
+    print(f"Comparison Unix timestamp: {comp_unix_timestamp} (UTC{hours_diff:+.0f} offset needed)")
+    #OLD WITH UTC-0 Offset
+    #Unix timestamp for 2023-04-22: 1682146800
+    #Unix timestamp for 2024-09-20: 1726815600
+    #Unix timestamp for 2024-10-23: 1729666800
+    #Unix timestamp for 2023-11-15: 1700035200
+
+    # Get local timezone info
+    local = time.localtime()
+    utc_offset_hours = local.tm_gmtoff / 3600  # Convert seconds to hours
+
+    # Current datetime with timezone info
+    now = datetime.now()
+    print(f"Current local time: {now}")
+    print(f"UTC offset: {utc_offset_hours:+.1f} hours")
+    print(f"DST active: {'Yes' if local.tm_isdst else 'No'}")
 def generate_embedding(text, model=EMBEDDING_MODEL):
     """ 
     Generates an embedding vector for the provided text using the specified OpenAI embeddings model.
@@ -31,50 +89,144 @@ def generate_embedding(text, model=EMBEDDING_MODEL):
     :param model: string of the OpenAI embeddings model to use.
     :return: list of floats representing the embedding vector.
     """
-
-    response = client.embeddings.create(input=text,
+    openai_client = OpenAI(api_key=OPENAI_API_KEY)
+    response = openai_client.embeddings.create(input=text,
     model=model)
     embedding = response.data[0].embedding
     return embedding
 
 # TODO review the timestamp lines
-def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=True):
-    """ 
+def generate_vectors_qa(folder_paths, suffixpat_include, include_subfolders=False, embedding_field='QUESTION', date_from_filename=False, dummy_run=False):
+    """
     Generates vectors from markdown files in the specified folder paths.
+    Supports multiple questions per block with format like "QUESTION 1:", "QUESTION 2:", etc.
 
     :param folder_paths: list of strings of the paths to the folders containing markdown files.
-    :param include_subfolders: boolean indicating whether to search for markdown files in subfolders. Default is True.
-    :return: vectors as a list of dictionaries, each containing an id, values, and metadata for a block of text.
+    :param suffixpat_include: string pattern to filter files by suffix.
+    :param include_subfolders: boolean indicating whether to search for markdown files in subfolders.
+    :param embedding_field: string indicating which field base to use for generating embeddings. Default is 'QUESTION'.
+    :param date_from_filename: boolean indicating whether to extract ISO date from filename. Default is False.
+    :return: vectors as a list of dictionaries, each containing an id, values, and metadata.
+    :raises ValueError: if date_from_filename is True and any filename has an invalid ISO date format,
+                       or if any block is missing the specified embedding_field.
     """
     from primary.fileops import get_files_in_folder, get_timestamp
-    from primary.structured import get_blocks_from_file, get_all_fields_dict
+    from primary.structured import get_blocks_from_file, get_all_fields_dict, validate_iso_dates_in_filename, validate_blocks_in_folders
 
-    vectors = []  # Consider renaming this. it's the list of all the dicts with the fields from the blocks
+    # Pre-validate ISO dates if date_from_filename is True
+    if date_from_filename:
+        if not validate_iso_dates_in_filename(folder_paths, suffixpat_include):
+            raise ValueError("Invalid ISO date format found in one or more filenames")
+    
+    # Create a regex pattern to match the base field and numbered variants
+    field_pattern = re.compile(rf'^{re.escape(embedding_field)}(\s+\d+)?$')
+    
+    # Modified validation to check for at least one matching field
+    def validate_has_embedding_field(folder_paths, suffixpat_include):
+        for folder_path in folder_paths:
+            file_paths = get_files_in_folder(folder_path, suffixpat_include=suffixpat_include, include_subfolders=include_subfolders)
+            for path in file_paths:
+                blocks = get_blocks_from_file(path)
+                for block in blocks:
+                    fields = get_all_fields_dict(block)
+                    # Check if any field matches our pattern
+                    if not any(field_pattern.match(field) for field in fields.keys()):
+                        return path
+        return None
+    
+    # Validate that at least one block has the required embedding field or a numbered variant
+    invalid_file = validate_has_embedding_field(folder_paths, suffixpat_include)
+    if invalid_file:
+        raise ValueError(f"Missing required embedding field '{embedding_field}' or numbered variants in file: {invalid_file}")
+
+    vectors = []
     total_files = 0
     num_vectors = 0
+    print("\nStarting vector generation...")
+    
     for folder_path in folder_paths:
         file_paths = get_files_in_folder(folder_path, suffixpat_include=suffixpat_include, include_subfolders=include_subfolders)
+        
+        # Debug print statements
+        # print("\nDEBUG: File matching details:")
+        # print(f"Folder path: {folder_path}")
+        # print(f"Suffix pattern: {suffixpat_include}")
+        # print("Found files:")
+        # for path in file_paths:
+        #     print(f"  - {path}")
+
         total_files += len(file_paths)
-        for path in file_paths:
+        for i, path in enumerate(file_paths, 1):
+            file_name_with_extension = os.path.basename(path)
+            print(f"Generating vectors for file {i}/{len(file_paths)}: {file_name_with_extension}")
+            
             blocks = get_blocks_from_file(path)
             block_num = 0
+            
+            # Extract date from filename if enabled (we know it's valid at this point)
+            if date_from_filename:
+                date_str = file_name_with_extension.split('_')[0]
+                # Use UTC-7 (PDT) to match existing vector timestamps
+                date_timestamp_unix = convert_date_to_unix(date_str, utc_offset=-7)
+                #print(f"DEBUG: Converting date {date_str} to Unix timestamp: {date_timestamp_unix}")
+            
+            vectors_before = len(vectors)
             for block in blocks:
                 fields = get_all_fields_dict(block)
-                file_name_with_extension = os.path.basename(path)  # Get file name with extension
-                fields['SOURCE'] = file_name_with_extension  # Use file name with extension as the SOURCE
-                vector_id = (os.path.splitext(file_name_with_extension)[0] + "_" + str(block_num)).replace(" ", "_")
+                fields['SOURCE'] = file_name_with_extension
                 
-                # Main call to generate embeddings
-                embedding = generate_embedding(fields['QUESTION'])  
-                timestamp, _ = get_timestamp(fields['QUESTION'])  # Extract timestamp from the question
-                if timestamp:
-                    fields['TIMESTAMP'] = timestamp  # Add timestamp to the metadata fields
-                vector = {'id': vector_id, 'values': embedding, 'metadata': fields}  # Create the vector schema
-                vectors.append(vector)
-                num_vectors += 1
+                # Add date metadata as timestamp if enabled
+                if date_from_filename:
+                    fields['DATE'] = date_timestamp_unix
+                
+                base_vector_id = (os.path.splitext(file_name_with_extension)[0] + "_" + str(block_num)).replace(" ", "_")
+                
+                # Find all fields that match our pattern (base field or numbered variants)
+                matching_fields = {}
+                for field_name, field_value in fields.items():
+                    match = field_pattern.match(field_name)
+                    if match:
+                        matching_fields[field_name] = field_value
+                
+                # If no matching fields found, skip this block
+                if not matching_fields:
+                    continue
+                
+                # Generate a vector for each matching field
+                for field_idx, (field_name, text_to_embed) in enumerate(matching_fields.items()):
+                    # Create a copy of the fields dictionary for this specific question
+                    vector_fields = fields.copy()
+                    
+                    # Replace the numbered field with the base field name in the metadata
+                    if field_name != embedding_field:
+                        vector_fields[embedding_field] = text_to_embed
+                        del vector_fields[field_name]
+                    
+                    # Generate a unique ID for this vector
+                    if len(matching_fields) > 1:
+                        vector_id = f"{base_vector_id}_q{field_idx+1}"
+                    else:
+                        vector_id = base_vector_id
+                    
+                    if dummy_run:
+                        embedding = [0.0] * 1536
+                    else:
+                        embedding = generate_embedding(text_to_embed)
+                    
+                    vector = {'id': vector_id, 'values': embedding, 'metadata': vector_fields}
+                    vectors.append(vector)
+                    num_vectors += 1
+                
                 block_num += 1
-            #print('Vectorized file:' + file_name_with_extension)
+            
+            vectors_created = len(vectors) - vectors_before
+            print(f"  Number of blocks in file: {block_num}")
+            print(f"  Number of vectors created: {vectors_created}")
+                
     print(f"Vectors generated for {total_files} files - number of vectors: {num_vectors}")
+    if dummy_run:
+        print(colored("DUMMY RUN!! - no embeddings done", "red"))
+        return None
     return vectors
 
 def vectors_to_json(vectors, file_path):
@@ -393,7 +545,7 @@ def create_vectordb_vrag_langchain(folder_paths, vector_index_base, suffixpat_in
     """ 
     from primary.fileops import apply_to_folder, create_new_file_from_heading, sub_suffix_in_file, move_files_with_suffix, remove_timestamp_links, find_and_replace_pairs
     
-    os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY_CONFIG_LLM
+    # os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY_CONFIG_LLM  # 10-4-24 commented out - think we can delete this
 
     # Setup vector database creation
     vector_index_name, vector_index_name_with_timestamp, datetime, all_file_paths = setup_create_vectordb(folder_paths, vector_index_base, suffixpat_include)
@@ -472,15 +624,30 @@ def create_vectordb_vrag_langchain(folder_paths, vector_index_base, suffixpat_in
     update_pinecone_index_list_md()
     return log_file_path
 
-def create_qrag_vectordb(folder_paths, vector_index_base, suffixpat_include=None):
+def create_qrag_vectordb(folder_paths, vector_index_base, suffixpat_include=None, embedding_field="QUESTION", date_from_filename=False, dummy_run=False):
     # Set OpenAI and Pinecone API keys
-    os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY_CONFIG_LLM
+    #os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY_CONFIG_LLM  # 10-4-24 commented out - think we can delete this
     
     # Setup vector database creation
     vector_index_name, vector_index_name_with_timestamp, datetime, all_file_paths = setup_create_vectordb(folder_paths, vector_index_base, suffixpat_include)
+    print("If you are replacing the vector database, you can go to the Pinecone portal and delete the existing index now.")
 
-    # Generate vectors
-    vectors = generate_vectors_qa(folder_paths, suffixpat_include)
+    # Generate vectors - Fix the parameter order
+    vectors = generate_vectors_qa(
+        folder_paths, 
+        suffixpat_include,
+        embedding_field=embedding_field,
+        date_from_filename=date_from_filename,
+        dummy_run=dummy_run
+    )
+
+    if dummy_run:
+        print("Dummy run completed. No vectors were upserted to Pinecone.")
+        return None
+
+    if vectors is None:
+        raise ValueError("Vectors are None. This should not happen. Check the dummy run flag and the input parameters.")
+        return None
 
     # Check and create Pinecone index, and get user confirmation
     if not check_and_create_pinecone_index(vector_index_name):
@@ -496,6 +663,8 @@ def create_qrag_vectordb(folder_paths, vector_index_base, suffixpat_include=None
         "pinecone vector_index_name": vector_index_name,
         "folder_paths": folder_paths,
         "suffixpat_include": suffixpat_include,
+        "embedding_field": embedding_field,
+        "date_from_filename": date_from_filename,
         "total_files": len(all_file_paths),
         "total_vectors": len(vectors),
     }
@@ -514,3 +683,4 @@ def create_qrag_vectordb(folder_paths, vector_index_base, suffixpat_include=None
     return log_file_path
 
 
+# ===== END OF FILE primary/vectordb.py =====

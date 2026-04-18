@@ -20,11 +20,10 @@
   <div class="num-chunks-container">
     <span class="num-chunks-label">Choose the number of quoted selections:</span>
     <div class="num-chunks-options">
-      <span class="num-chunks-option" data-value="2">2</span>
-      <span class="num-chunks-option" data-value="3">3</span>
       <span class="num-chunks-option" data-value="5">5</span>
       <span class="num-chunks-option" data-value="10">10</span>
       <span class="num-chunks-option" data-value="20">20</span>
+      <span class="num-chunks-option" data-value="50">50</span>
     </div>
   </div>
 
@@ -53,7 +52,7 @@
 
 <script>
   document.addEventListener("DOMContentLoaded", function() {
-    var fileInfoSiteBody = `webflow-qrag-input-component-date-embed.html   2-02 0823 add date range to deutsch and pv-evac`;
+    var fileInfoSiteBody = `webflow-qrag-input-component-date-embed.html   9-23-25 1905 update date range for deutsch`;
     console.log('Loading JavaScript for QRAG Input Component Embed: ', fileInfoSiteBody);
 
     // Find parent BotContainer and set date range visibility
@@ -62,7 +61,7 @@
     
     // Define num chunks variables and functions first
     const numChunksOptions = qragInputComponent.querySelectorAll('.num-chunks-option');
-    const defaultNumChunksValue = '3';
+    const defaultNumChunksValue = '10';
 
     // Always ensure num_chunks has a value in session storage
     if (!sessionStorage.getItem('num-chunks')) {
@@ -95,11 +94,15 @@
             showDateRange = true;
         } else if (containerId.includes('deutsch')) {
             minAllowedDate = '1995-01-01';
-            maxAllowedDate = '2024-12-23';
+            maxAllowedDate = '2025-09-16';
             showDateRange = true;
         } else if (containerId.includes('pv-evac')) {
             minAllowedDate = '2023-09-20';
             maxAllowedDate = '2024-10-23';
+            showDateRange = true;
+        } else if (containerId.includes('sovereign-child')) {
+            minAllowedDate = '2025-01-13';
+            maxAllowedDate = '2025-08-26';
             showDateRange = true;
         }
         

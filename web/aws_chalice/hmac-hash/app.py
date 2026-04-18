@@ -9,18 +9,21 @@ from chalice import Chalice, Response
 from chalicelib.aws import USERS_HMAC_SECRET_KEY, generate_hmac_hash
 
 app = Chalice(app_name='hmac-hash')
-app.api.cors = True
+app.api.cors = False
 
 # Define allowed origins as a set
 ALLOWED_ORIGINS = {
     'https://www.focusonfoundations.org',
-    'https://floodlamp-8c9d00d6ef3e90c375de806594d04.webflow.io'
+    'https://floodlamp-8c9d00d6ef3e90c375de806594d04.webflow.io',
+    'http://localhost:3000'
 }
 
-@app.route('/generate-hash', methods=['POST'], cors=True)
+@app.route('/generate-hash', methods=['POST'])
 def handle_generate_hash():
-    print("hmac-hash lambda func - last updated 12-20-24 RT ")
-    
+    print("hmac-hash lambda func")
+    print("last updated: 4-9 0820 Testing deployment logging (last non-test change 12-20-24 RT removed API key)")
+    # ADDITIONAL TEST COMMENT 4-9 0820
+
     # Get the origin from the request
     request_origin = app.current_request.headers.get('origin', '')
     
@@ -54,10 +57,31 @@ def handle_generate_hash():
         print("Error while processing request:", e)
         return Response(body={'error': str(e)}, status_code=500, headers=cors_headers)
 
+@app.route('/generate-hash', methods=['OPTIONS'])
+def handle_preflight():
+    request_origin = app.current_request.headers.get('origin', '')
+    
+    # Only respond to allowed origins
+    if request_origin in ALLOWED_ORIGINS:
+        return Response(
+            body='',
+            status_code=200,
+            headers={
+                'Access-Control-Allow-Origin': request_origin,
+                'Access-Control-Allow-Methods': 'POST,OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+                'Access-Control-Max-Age': '3600'
+            }
+        )
+    
+    # For disallowed origins, return empty response (no CORS headers)
+    return Response(body='', status_code=200)
+
 # TO REDEPLOY WITH MIRROR SCRIPT
 '''
 cd /Users/randytrue/Documents/Code/corpus-tools/web/aws_chalice/hmac-hash
 ../chalicelib_mirror_deploy.sh
+../chalicelib_mirror_deploy.sh prod
 '''
 
 # TEST WITH CURL WITHOUT API KEY
@@ -65,6 +89,20 @@ cd /Users/randytrue/Documents/Code/corpus-tools/web/aws_chalice/hmac-hash
 
 # TEST WITH CURL WITH API KEY
 # curl -X POST https://xusv8bpl49.execute-api.us-west-2.amazonaws.com/api/generate-hash -H "Content-Type: application/json" -H "x-api-key: bfua9..." -d '{"input_text": "test@example.com"}'
+
+'''
+# Test with allowed origin
+curl -v -X POST https://xusv8bpl49.execute-api.us-west-2.amazonaws.com/dev/generate-hash \
+  -H "Content-Type: application/json" \
+  -H "Origin: https://www.focusonfoundations.org" \
+  -d '{"input_text": "test@example.com"}'
+
+# Test with disallowed origin
+curl -v -X POST https://xusv8bpl49.execute-api.us-west-2.amazonaws.com/dev/generate-hash \
+  -H "Content-Type: application/json" \
+  -H "Origin: https://example.com" \
+  -d '{"input_text": "test@example.com"}'
+'''
 
 # TEST WITH PORTAL API GATEWAY (NOT IN LAMBDA FUNCTION VIEW)
 # Headers:
